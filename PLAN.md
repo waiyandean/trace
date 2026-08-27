@@ -207,8 +207,15 @@ off to one side of the workflow, needs a specific machine, and cannot be driven
 by a form submission.
 
 **Target:** Zebra ZT231 on Ethernet, sent ZPL generated directly by the Worker
-when a goods-in line is saved. ZPL is plain text, so generating it is a
-template string with no driver, SDK or print dialog involved:
+when a goods-in line is saved.
+
+Confirmed specifications (2026-08-27): 203 dpi, ZPL and ZPL II, 10/100 Ethernet
+built in, USB, USB Host and RS-232, 256 MB RAM and 256 MB Flash, a 4.3" colour
+touchscreen, metal frame and industrial duty cycle. A 300 dpi variant of the
+same model exists, so confirm which unit is on site — it changes QR sizing.
+
+ZPL is plain text, so generating it is a template string with no driver, SDK or
+print dialog involved:
 
 ```
 ^XA
@@ -237,12 +244,25 @@ only reaches public addresses. Something has to bridge the gap. Three options:
    local print service privately, and the Worker posts to it with a service
    token. Instant rather than polled, and uses infrastructure already in use,
    but still needs the local machine plus tunnel configuration.
-3. **The printer connects out by itself.** Link-OS printers can open an
-   outbound WebSocket to a configured URL, which is designed precisely for
-   printers behind NAT; a Durable Object would hold that socket and push ZPL
-   down it. This needs no local machine at all, which makes it the most
-   attractive of the three — **but whether the ZT231's firmware supports it
-   must be verified before anything is planned around it.**
+3. **The printer connects out by itself, via Zebra Cloud Connect (Weblink).**
+   The printer opens an outbound, TLS-encrypted WebSocket to a configured URL,
+   which is designed precisely for printers behind NAT. It needs no local
+   machine, no tunnel and no firewall rules, which makes it the most attractive
+   of the three. On the Cloudflare side a Durable Object holds the connection,
+   using the WebSocket Hibernation API so an idle printer costs nothing, and
+   the Worker hands jobs to that object to push down the socket.
+
+   **Checked 2026-08-27 and it looks supported.** Zebra's documentation states
+   that all Link-OS printers support Weblink except a few legacy models and the
+   Link-OS *Basic* tier, naming the ZD220, ZD230 and ZT111. The ZT231 is not on
+   that list, and the ZT111 named on it is the Basic-tier model directly below
+   it, so the ZT231 should have it. Configuration is a JSON string pushed to
+   the printer with Zebra's Printer Setup Utility, which exists for Windows,
+   Android and iOS — so this does not tie the setup to the Windows laptop.
+   Confirm on the actual unit via its own menu before committing to this route.
+
+   One cost to check first: whether Durable Objects require a paid Workers plan
+   on this account.
 
 **The offline tension.** The system is offline-first, but printing is
 synchronous: staff are stood at the door holding the box and need the label
@@ -366,10 +386,21 @@ separately first. It does not block P0–P3 (see the open questions below).
 
 These need Dean's answer before the phase that depends on them.
 
-1. **Label printing path.** Being taken forward as a separate workstream:
-   which of the three bridging options, whether the ZT231 supports an outbound
-   Link-OS WebSocket, and what always-on machine exists in the kitchen if one
-   is needed. **Correction to an earlier version of this plan, which said
+1. **Label printing path.** Being taken forward as a separate workstream.
+   Narrowed 2026-08-27: Zebra's Cloud Connect (Weblink) documentation indicates
+   the ZT231 supports an outbound WebSocket, which would remove the need for
+   any always-on machine in the kitchen. Still to confirm on the unit itself,
+   along with whether Durable Objects need a paid Workers plan here.
+
+   **Prove raw ZPL over port 9100 from the Windows laptop before choosing a
+   bridge.** Every one of the three options ends with something writing ZPL to
+   a socket, so if that does not work nothing else will. It also breaks the
+   dependency on Zebra Designer immediately, well before any of this system
+   exists, because any script on any machine can then print. Use Zebra Designer
+   to *export* the ZPL for the label layout rather than writing coordinates by
+   hand, and keep that output as the template.
+
+   **Correction to an earlier version of this plan, which said
    scannable labels block P1 and P3: they do not.** The lot picker works
    without any scanning — "open lots of chicken feet, first-expiring first" is
    usually a one to three item list — and the short fallback code covers the
@@ -400,6 +431,23 @@ These need Dean's answer before the phase that depends on them.
    if anyone can pick any name. Whether that changes, and to what, is open.
 8. **Packaging.** The old rebuild deliberately excluded packaging lines. Does
    packaging get lot-tracked here, or stay out of scope?
+
+## References
+
+Printer and label work:
+
+- [ZT231 specification sheet](https://www.zebra.com/us/en/products/spec-sheets/printers/industrial/zt231.html)
+- [ZT231 support and downloads](https://www.zebra.com/us/en/support-downloads/printers/industrial/zt231.html)
+- [Cloud Connect (Weblink) product page](https://www.zebra.com/us/en/software/printer-software/cloud-connect.html)
+- [Weblink WebSocket developer documentation](https://developer.zebra.com/content/weblink-websocket)
+- [Weblink WebSocket endpoint configuration (PDF)](https://techdocs.zebra.com/link-os/2-13/webservices/content/Weblink%20WebSocket%20Endpoint%20Configuration.pdf)
+
+Background from the previous system, in other repositories:
+
+- `forms` repo, `TRACEABILITY.md` — the abandoned ledger, its measured join
+  rates, and the incidents worth not repeating.
+- `aahq-doc` repo, `HANDOFF.md`, "Post-audit project — rebuild traceability
+  from the ground up" — the design brief this project satisfies.
 
 ## Constraints carried over
 
