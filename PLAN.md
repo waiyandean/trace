@@ -46,16 +46,17 @@ event against an identified lot.
 | Use an ingredient in a batch | `CONSUME` | negative, points at the lot produced |
 | Make a batch | `PRODUCE` | opens a lot, positive |
 | Use a product inside another product | `CONSUME` + `PRODUCE` | no special case needed |
+| Combine two lots into one container | `COMBINE` | closes the parents, opens a lot with two parents |
 | Send stock to a customer | `DISPATCH` | negative |
 | Put stock on hold / release it | `HOLD` / `RELEASE` | status change |
 | Weekly count | `ADJUST` | signed correction to match reality |
 
-Two tables carry all of it: **lots** (what physically exists, and where) and
-**movements** (append-only, every change to any lot). Stock on hand, backward
-trace, forward trace and mass balance are all *queries over movements*. None of
-them is a stored figure that can drift out of step with the events beneath it.
+Two tables carry all of it: **lots** (what physically exists) and **movements**
+(append-only, every change to any lot). Stock on hand, backward trace, forward
+trace and mass balance are all *queries over movements*. None of them is a
+stored figure that can drift out of step with the events beneath it.
 
-Three consequences worth stating explicitly:
+Consequences worth stating explicitly:
 
 - **A product lot and an ingredient lot are the same kind of object.** That is
   what makes product-into-product work with no extra machinery: garlic oil is
@@ -64,6 +65,12 @@ Three consequences worth stating explicitly:
 - **A split across two lots is just two `CONSUME` movements.** There is no
   separate allocation table. The rule that the parts must add up to the
   quantity consumed is a validation applied when the transaction is written.
+- **A merge is modelled, not hidden.** Staff will tip two deliveries of onions
+  into one tub. `COMBINE` records that as a new lot with both parents, so a
+  trace through it returns *"one of these two deliveries"*, naming both, rather
+  than silently picking one. Precision drops; integrity does not. Silently
+  picking a winner is exactly what produced the old system's 2,593 ambiguous
+  matches that read as facts.
 - **The weekly count is what closes the books.** A count compares what the
   ledger computes against what is physically there and writes the difference as
   an `ADJUST` movement. Without this, variance accumulates indefinitely and the
@@ -80,6 +87,185 @@ Three consequences worth stating explicitly:
 | Offline | Offline-first capture | Production-floor wifi is documented as unreliable. Capture forms queue locally and sync, with an idempotency key on every submission so that a replay is a no-op rather than a duplicate. |
 | History | Clean start, legacy read-only | The old Sheets and D1 ledger are frozen as an archive. The new system holds only what it can prove. Importing history that is 40–70% ambiguous on its joins would put exactly the uncertainty this project exists to remove inside the new system on day one. |
 
+## Labelling and scanning
+
+Findings from the 2026-08-27 design session. **The printing half is being taken
+forward as a separate workstream before it is planned into a phase here**, so
+nothing below is committed to a phase yet.
+
+### The label carries three things
+
+```
+┌─────────────────────────┐
+│  CHICKEN FEET           │  item name, readable across a room
+│  ▓▓▓▓▓  Use by 04/09/26 │  QR encoding the lot id, plus the date
+│  ▓▓▓▓▓                  │
+│  K7M4QP                 │  short code, typeable as a fallback
+└─────────────────────────┘
+```
+
+The short code matters more than it looks. Lot selection is meant to be
+mandatory before a batch completes, so if a scan is the *only* way to identify
+a lot, a dead camera or a frosted label blocks a shift — and a blocked shift is
+how a mandatory rule gets routed around. Six characters, no ambiguous glyphs
+(no `0`/`O`, no `1`/`I`), turns a failed scan into a short type-in.
+
+### Reading the label
+
+The iPad camera works, in Safari, over HTTPS, with a JavaScript decode library
+(`zxing-js` or `html5-qrcode`). Safari does not support the browser-native
+`BarcodeDetector`, so the library route is the only one available; it is mature
+and small. Camera access from a home-screen-installed PWA was broken on older
+iOS and later fixed — since these forms run as PWA shortcuts, **that needs
+testing on the actual iPads rather than assuming**.
+
+**QR, not a 1D barcode.** QR carries error correction of up to 30%, so it
+survives grease, condensation, a curled label on a round tub, and being read at
+an angle in poor light. A 1D barcode needs to be flat, clean and square-on,
+which is not a description of anything in a kitchen.
+
+Handheld Bluetooth scanners pair as a keyboard, so they need no code at all and
+beat a two-handed iPad for speed, aim and cold-room ergonomics. Roughly £40–90
+each for a 2D-capable unit (1D-only models cannot read QR at all). The
+trade is another device to charge, pair, drop and clean. Rule of thumb: the
+camera is fine for one to five scans; a fourteen-line delivery at the door in
+the cold is where a handheld starts paying for itself.
+
+Nothing here is settled until it is measured on the real iPads, in the chill,
+with gloves on, against a condensation-covered label.
+
+### Intake cannot rely on a supplier label
+
+Not all incoming goods carry a scannable code, and some carry no code, no lot
+reference and no printed expiry at all. The design does not depend on them:
+**the lot id is system-generated, so it cannot be missing.** The delivery date
+becomes the lot code, and the use-by comes from the item's shelf-life rule
+whenever nothing is printed on the box.
+
+| What the case carries | What staff do | Result |
+| --- | --- | --- |
+| GS1-128 with lot and expiry | scan, confirm quantity | a lot |
+| Plain barcode only | scan for the item, type quantity and dates | a lot |
+| Readable text, no barcode | pick the item, type quantity and dates | a lot |
+| Nothing at all | pick the item, type quantity, use-by from the rule | a lot |
+
+All four paths end identically. A supplier's GS1-128 label — which encodes GTIN
+`(01)`, batch `(10)` and expiry `(17)` — is therefore a typing accelerator
+where it exists, never a foundation. Worth photographing a few real Lynas cases
+to find out how common it is; likely present on manufacturer-packed ambient
+goods and absent on butchery and fresh produce.
+
+### Applying labels without mixing them up
+
+Incoming goods do not arrive with the label we need, so the sequence is: enter
+the line, the system opens the lot, print, apply.
+
+Note that **one delivery line is one lot but many physical boxes** — ten cases
+of chicken feet need ten labels, all pointing at the same lot. Label count
+follows case count, so a fourteen-line delivery may be sixty labels.
+
+That creates a mixup risk: printing a batch of labels and then walking round
+sticking them on invites putting the chicken feet label on the pork belly.
+Scanning our own label back afterwards does *not* catch this — it only reads
+back what was printed, and the system has no independent way to know which box
+it is looking at. A scan-in step only earns its place if it captures something
+new, such as binding to the supplier's own barcode, or confirming a putaway
+location.
+
+Three sequencing options, in increasing safety:
+
+| | Speed | Mixup risk | Printer needed |
+| --- | --- | --- | --- |
+| Enter all lines, print all, apply | fast | high | yes |
+| Enter one line, print one, apply, repeat | slower | low | yes, at the door |
+| Stick a pre-printed blank QR on the box, scan it, then enter the line | fast | none | no |
+
+The third is worth serious consideration for the pilot: binding happens at the
+moment of scanning a label that is *already physically on the box*, so a mixup
+is structurally impossible rather than merely unlikely. Pre-printed unique QR
+rolls are cheap. The cost is that the label carries no human-readable
+information — mitigated by the fact that the supplier's own label already names
+the product, and staff already handwrite a date code.
+
+### Loose goods, decanting and re-labelling
+
+The hardest case is not a missing barcode, it is goods with no surface to label
+— a crate of onions tipped into a tub. Rules that handle it:
+
+- Label the container the goods live in, not the goods.
+- Decanting into a new tub requires re-labelling: a new physical label bound to
+  the *same* lot. This needs an explicit re-label flow, also used for a damaged
+  or lost label.
+- Combining two lots in one container is recorded as `COMBINE`, per the model
+  section above.
+
+### Printing
+
+**Current state:** labels are designed and printed manually through Zebra
+Designer on a Windows laptop. This is the thing to move away from — it is
+off to one side of the workflow, needs a specific machine, and cannot be driven
+by a form submission.
+
+**Target:** Zebra ZT231 on Ethernet, sent ZPL generated directly by the Worker
+when a goods-in line is saved. ZPL is plain text, so generating it is a
+template string with no driver, SDK or print dialog involved:
+
+```
+^XA
+^FO30,30^A0N,50,50^FDCHICKEN FEET^FS
+^FO30,95^BQN,2,6^FDQA,L7F3A9C^FS
+^FO230,110^A0N,35,35^FDUse by 04/09/26^FS
+^FO230,155^A0N,70,70^FDK7M4QP^FS
+^FO30,290^A0N,28,28^FDLynas  inv 009298395  27/08/26^FS
+^XZ
+```
+
+At 203 dpi the QR magnification wants to be around 5–6 so it stays readable
+through condensation.
+
+**The obstacle:** a Cloudflare Worker cannot reach a printer on the kitchen
+LAN. There is no route to a NAT'd private address, and Workers' outbound TCP
+only reaches public addresses. Something has to bridge the gap. Three options:
+
+1. **A local agent that polls.** A small always-on machine in the kitchen asks
+   the Worker for pending print jobs every few seconds and writes the returned
+   ZPL to the printer's port 9100. No firewall rules, no inbound connection, no
+   tunnel configuration; if the agent stops, jobs queue and print when it
+   returns. Costs a few seconds of latency, which does not matter for a label,
+   and a small machine to run it on.
+2. **Cloudflare Tunnel.** `cloudflared` on that same machine exposes a tiny
+   local print service privately, and the Worker posts to it with a service
+   token. Instant rather than polled, and uses infrastructure already in use,
+   but still needs the local machine plus tunnel configuration.
+3. **The printer connects out by itself.** Link-OS printers can open an
+   outbound WebSocket to a configured URL, which is designed precisely for
+   printers behind NAT; a Durable Object would hold that socket and push ZPL
+   down it. This needs no local machine at all, which makes it the most
+   attractive of the three — **but whether the ZT231's firmware supports it
+   must be verified before anything is planned around it.**
+
+**The offline tension.** The system is offline-first, but printing is
+synchronous: staff are stood at the door holding the box and need the label
+now. If the network is down the submission queues and no label prints, so the
+one thing the whole system depends on has not happened.
+
+This makes the pre-printed roll a *fallback underneath* the printer rather than
+a competing alternative:
+
+| Network | Path |
+| --- | --- |
+| Up | form → Worker → printer → label with item, dates and QR |
+| Down | take a pre-printed QR from the roll, apply it, scan to bind |
+
+Both end with a labelled box carrying a scannable id.
+
+For the offline path to work at all, **the lot id must be mintable on the iPad
+rather than assigned by the server** — otherwise there is no id to bind a
+label to while offline. Lot ids should therefore be ULIDs or similar, generated
+client-side, using the same mechanism that already has to mint idempotency
+keys. This has to be decided before P1, because getting it wrong means offline
+intake cannot print.
+
 ## Schema sketch
 
 Indicative, not final. Names and columns will be settled in P0.
@@ -87,9 +273,11 @@ Indicative, not final. Names and columns will be settled in P0.
 **Catalog**
 
 - `items` — one row per ingredient, packaging item or product. Carries
-  `kind`, `base_unit` (`kg` | `L` | `Units`), shelf-life rule, active flag.
-  Ingredients and products share this table; that is what makes
-  product-into-product free.
+  `kind`, `base_unit` (`kg` | `L` | `Units`), and a **required** shelf-life
+  rule. Ingredients and products share this table; that is what makes
+  product-into-product free. The shelf-life rule is required rather than
+  optional because it is the only source of a use-by for goods that arrive with
+  no printed date.
 - `locations` — storage areas, with a kind (ambient, chill, freezer,
   production, dispatch).
 - `suppliers`, `customers`, `staff`.
@@ -102,13 +290,20 @@ Indicative, not final. Names and columns will be settled in P0.
 
 **Ledger**
 
-- `lots` — system-generated opaque id, item, human-visible lot code, supplier
-  lot and supplier, received or produced timestamp, use-by, current location,
-  status (`open` | `closed` | `held` | `written_off`). **No quantity column.**
-  Quantity is derived from movements, so the two can never disagree.
+- `lots` — client-minted ULID, item, human-visible lot code, short fallback
+  code, supplier lot and supplier, received or produced timestamp, use-by,
+  status (`open` | `closed` | `held` | `written_off`), parent lots where the
+  lot came from a `COMBINE`. **No quantity column and no location column** —
+  both are derived from movements, so neither can disagree with the events
+  beneath it.
 - `movements` — append-only. Lot, type, signed quantity in the item's base
   unit, counterpart lot (the genealogy edge), location, when it happened, when
   it was recorded, staff, reason, note, and the submission event it came from.
+
+Stock on hand is a balance **per lot per location**, not per lot: part of a
+delivery routinely goes to the freezer while the rest stays in chill, and a
+single location field on the lot cannot represent that. `MOVE` movements carry
+a from-location and a to-location.
 
 **Submission and audit**
 
@@ -120,6 +315,12 @@ Indicative, not final. Names and columns will be settled in P0.
 - `amendments` — corrections are never edits. A correction writes a
   compensating movement plus an amendment row recording what changed, the
   before and after values, the reason, who requested it and who approved it.
+
+**Printing**
+
+- `print_jobs` — queued label jobs with their generated ZPL, status and
+  timestamps. A queue rather than a direct call, so that a printer or agent
+  outage delays labels instead of failing submissions.
 
 ## Delivery phases
 
@@ -156,36 +357,49 @@ The old system stays live and authoritative throughout P0–P6. Staff are not
 asked to double-enter until P7, and P7 is deliberately time-boxed because
 double entry is a real cost that degrades both sets of records if it runs long.
 
+**Label printing runs as a parallel workstream**, starting from the current
+Zebra Designer and Windows laptop setup and ending with ZPL driven from a form
+submission. It is not on the phase list above because it is being investigated
+separately first. It does not block P0–P3 (see the open questions below).
+
 ## Open questions
 
 These need Dean's answer before the phase that depends on them.
 
-1. **Scannable lot labels (blocks P1/P3).** The design brief calls for a
-   scannable label on each received case so production can scan the physical
-   lot rather than type a code. That needs a decision on hardware: label
-   printer and stock, or an on-screen code scanned by the iPad camera, or a
-   handwritten code with a scannable sheet. Label printing was explicitly
-   deferred in the old project; this project's brief reverses that, so it needs
-   confirming rather than assuming.
-2. **Count granularity (blocks P5).** Staff physically count "how much of X is
+1. **Label printing path.** Being taken forward as a separate workstream:
+   which of the three bridging options, whether the ZT231 supports an outbound
+   Link-OS WebSocket, and what always-on machine exists in the kitchen if one
+   is needed. **Correction to an earlier version of this plan, which said
+   scannable labels block P1 and P3: they do not.** The lot picker works
+   without any scanning — "open lots of chicken feet, first-expiring first" is
+   usually a one to three item list — and the short fallback code covers the
+   rest. Scanning is an accuracy and speed upgrade that can be added once the
+   hardware path is settled, so P1 to P3 can be built and run before it exists.
+2. **Client-minted lot ids (blocks P1).** Confirm ULIDs generated on the device
+   rather than server-assigned ids, so that offline intake can bind a label.
+3. **Count granularity (blocks P5).** Staff physically count "how much of X is
    in the freezer", not per lot. Traceability wants per lot. Options are
    counting by lot where cases are individually labelled and falling back to
-   item-plus-location for loose or decanted stock, or apportioning a
+   item-plus-location for loose or decanted stock, or apportioning an
    item-level variance across that item's open lots by a stated rule. This is
    an operational decision, not just a technical one.
-3. **The supervised exception workflow (blocks P3).** Lot selection is meant to
+4. **The supervised exception workflow (blocks P3).** Lot selection is meant to
    be mandatory before a batch can complete. There will still be cases where
    the physical lot genuinely is not in the system. What that escape hatch
    looks like, and who is allowed to use it, determines whether staff comply
    with the rule or route around it.
-4. **Authentication.** The current forms use a staff picker with no real login.
+5. **Shelf-life ownership (blocks P0).** Now upgraded from a nice-to-have: the
+   shelf-life rule is the only source of a use-by for goods that arrive
+   undated, so every item needs one. Which figures are approved, and where they
+   come from, needs settling before the catalog is populated.
+6. **Decant and merge discipline.** The system can model `COMBINE` honestly,
+   but how often staff combine lots determines how much trace precision is
+   lost in practice. Worth observing before assuming it is rare.
+7. **Authentication.** The current forms use a staff picker with no real login.
    An audit trail naming who recorded and who approved an amendment is weaker
    if anyone can pick any name. Whether that changes, and to what, is open.
-5. **Packaging.** The old rebuild deliberately excluded packaging lines. Does
+8. **Packaging.** The old rebuild deliberately excluded packaging lines. Does
    packaging get lot-tracked here, or stay out of scope?
-6. **Shelf-life ownership.** Which product shelf lives are fixed rules, and
-   where the approved figures come from, so that a derived use-by is derived
-   from something authoritative.
 
 ## Constraints carried over
 
