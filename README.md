@@ -16,7 +16,12 @@ around it, rather than the other way round.
 
 ## Status
 
-Just started. No architecture decided yet.
+Planning. Scope, stack, offline model and history handling are decided
+(2026-08-27); schema and phases are drafted. Nothing built yet.
+
+**Read `PLAN.md` first** — it carries the model, the decisions and their
+reasoning, the delivery phases, and the open questions still blocking
+specific phases.
 
 ## Background reading (other repos, not part of this one)
 
