@@ -71,10 +71,10 @@ def parse(src):
             total = int(re.search(r"\^GFA,(\d+)", rest).group(1))
             elements.append(("image", x, y, row * 8, total // row))
             continue
-        if a := re.search(r"\^A0\w,(\d+),(\d+)", rest):
+        if a := re.search(r"X", rest):
             h = int(a.group(1))
             fd = re.search(r"\^FD(.*)", rest, re.S)
-            text = fd.group(1).replace("^FR", "").strip() if fd else ""
+            text = fd.group(1).replace("^FR", "").replace("\\&", "").strip() if fd else ""
             if fb := re.search(r"\^FB(\d+),(\d+)", rest):
                 w, lines = int(fb.group(1)), int(fb.group(2))
                 est = max(1, min(lines, int(len(text) * h * CHAR_W / max(w, 1)) + 1))
