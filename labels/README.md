@@ -54,6 +54,18 @@ worst-case content — a long product name, a long product code, a seven-allerge
 declaration, a multi-pack quantity — and it is what catches the failures a
 label full of short strings hides.
 
+## Margins
+
+Content sits 24 dots (3 mm) from the left and right edges, matched on both
+sides. The earlier 15 dots was under 2 mm, which is tight for a die-cut label
+where the print can shift slightly relative to the die. The header band is the
+one deliberate exception: it bleeds to both edges, so a small registration
+shift shows as a thin white sliver rather than clipped text.
+
+Widening the margins narrowed the allergen box, and the seven-allergen case
+now reaches its right-hand edge with nothing to spare. That is the practical
+ceiling for a single declaration line at this font size.
+
 ## ^FB overprints, it does not truncate
 
 A field block whose text does not fit its width **wraps and draws the overflow
