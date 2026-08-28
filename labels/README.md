@@ -48,10 +48,23 @@ condensed font so they are approximate; boxes and ellipses are exact. A box or
 ellipse that fully contains another element is treated as a container rather
 than a clash, which is what makes the allergen box and the approval oval pass.
 
-QR dimensions are an estimate: the printer's own encoder picks the symbol
-version, and it has rendered larger than predicted in practice, so the tool
-deliberately assumes one version more than it calculates. Keep real clearance
-around a QR rather than trusting the number exactly.
+QR codes need care. Two things have been measured off real prints rather than
+assumed:
+
+- The symbol's **size** follows from the data and error correction, but the
+  printer's own encoder chooses the version, so the tool deliberately assumes
+  one version more than it calculates.
+- The symbol's **position does not match its `^FO`**. On this printer it
+  renders roughly 110 dots below the y given, at both magnification 5 and 6,
+  while its x is honoured exactly. Every other element type lands on its
+  stated coordinates. The offset was close to the symbol's own height on both
+  measurements, but that is two data points, not a model.
+
+Because of this, **keep the QR's column clear from top to bottom** rather than
+packing elements above and below it. That rule holds whatever the offset turns
+out to be, and it is why the approval oval was moved out of the right-hand
+column. The linter cannot catch a QR collision caused by this, since it places
+the symbol where the ZPL says.
 
 ## Label layout notes
 
