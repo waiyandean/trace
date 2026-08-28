@@ -388,10 +388,13 @@ These need Dean's answer before the phase that depends on them.
 
 1. **Label printing path.** Being taken forward as a separate workstream.
 
-   **Progress 2026-08-28.** The label side is proven. A packet label for
-   Tonkotsu Broth is written as ZPL and printing correctly on the ZT231 from
-   the Windows machine over USB, carrying every field the old label had plus
-   a QR and an added may-contain-allergens line. Zebra Designer is no longer
+   **Progress 2026-08-28.** The label side is proven. Three labels are
+   written as ZPL and printing correctly on the ZT231 from the Windows
+   machine over USB: the product packet label, and printed replacements for
+   the Goods In and Date Opened forms that staff currently fill in by hand.
+   Each carries the lot's short code and QR. Their content is still typed in
+   by hand, which is what P1 replaces — the templates are ready to be
+   generated from, not yet generated. Zebra Designer is no longer
    in the path. See `labels/` for the artwork, an image-to-ZPL converter, a
    layout linter and the findings — including that `^BY` is persistent printer
    state that silently displaces QR codes on later labels, which cost a
