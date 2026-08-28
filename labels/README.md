@@ -8,13 +8,20 @@ questions around it.
 
 | File | What |
 | --- | --- |
-| `png-to-zpl.py` | Converts an image into a ZPL `^GF` graphic field. |
-| `logo-bowl.zpl` | The Maki & Ramen bowl mark, 180 x 76 dots (22.5 x 9.5 mm). |
 | `tonkotsu-packet.zpl` | Product packet label, MR015 Tonkotsu Broth. |
+| `png-to-zpl.py` | Converts an image into a ZPL `^GF` graphic field. |
+| `sync-to-drive.sh` | Copies the `.zpl` files to the shared Drive folder. |
+
+## Where the files live
+
+This directory is the source of truth. `sync-to-drive.sh` copies them into
+the shared Drive folder (`Main/test labels`), which syncs to the Windows
+machine the printer is attached to, so the label can be printed there without
+transferring anything by hand.
 
 ## Printing one
 
-Over USB from a Windows machine with the printer shared as `ZEBRA`:
+Over USB from the Windows machine, with the printer shared as `ZEBRA`:
 
 ```
 copy /b tonkotsu-packet.zpl \\localhost\ZEBRA
@@ -28,7 +35,42 @@ nc <printer-ip> 9100 < tonkotsu-packet.zpl
 
 Paste the file into labelary.com (203 dpi, 4 x 2) to preview without printing.
 
-## Converting an image
+## Label layout notes
+
+`^LH0,24` shifts everything down 3 mm. If that is correcting print
+registration rather than being a deliberate design choice, it belongs in the
+printer instead (Menu > Print > Print Position > Top Position), which frees
+24 dots of vertical space — the layout currently has only 8 dots of bottom
+margin.
+
+The stock size also wants confirming. The layout assumes 4 x 2 inches
+(`^PW812 ^LL406`), but the original artwork is roughly 1.86:1, so the media
+may actually be 100 x 54 mm, which would make it `^PW800 ^LL432`.
+
+The QR currently carries the batch code. Once the trace endpoint exists it
+should carry a URL instead, so that any phone camera resolves it to the batch
+record without an app. Do not switch to a URL before that page is live — a
+dead link on a customer's packet is worse than no link.
+
+## Images
+
+Thermal printing is one bit per pixel: every dot is burned or not, with no
+greyscale and therefore no opacity. Flat artwork with strong black and white
+areas converts cleanly under the default threshold. Artwork whose shapes are
+distinguished only by colour does not.
+
+The Maki & Ramen logo was tried and dropped. Its pig and fish are mid-tone
+fills with no outline, so they threshold to white and vanish, leaving their
+eyes floating in empty space; the tree collapses into a shapeless blob.
+Dithering preserves the shapes as dot patterns but is too noisy at label size,
+and thermal printheads bleed enough to fill it in. A cropped bowl-only mark
+did convert cleanly, but was dropped along with the rest.
+
+Getting the full logo onto a label would need a line-art version drawn with
+outlines rather than colour fills. That is a design job, not a conversion
+setting.
+
+To convert an image:
 
 ```
 python3 png-to-zpl.py Logo.png --width 180 --crop 0,158,380,319
@@ -36,18 +78,4 @@ python3 png-to-zpl.py Logo.png --width 180 --crop 0,158,380,319
 
 `--width` is the printed width in dots; 203 dots is one inch, so 8 dots is
 roughly a millimetre. `--crop` takes `left,top,right,bottom` in source pixels.
-
-Thermal printing is one bit per pixel — every dot is burned or not, with no
-greyscale. Flat artwork with strong black and white areas converts cleanly
-under the default threshold. Artwork whose shapes are distinguished only by
-colour does not: the full Maki & Ramen logo loses the pig and the fish
-entirely, because both are mid-tone fills with no outline, so they threshold
-to white and leave their eyes floating in empty space. `--dither` keeps those
-shapes as dot patterns, but the pattern is noisy at label size and thermal
-printheads bleed, so it tends to fill in. Hence the bowl-only crop, which was
-already pure black and white in the original.
-
-## Sizing note
-
-`^GF` does not scale. Convert at the exact printed size you want. `^XG` can
-scale a stored graphic, but only by whole-number factors.
+`^GF` does not scale, so convert at the exact printed size wanted.
