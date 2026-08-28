@@ -16,6 +16,7 @@ questions around it.
 | `preview.sh` | Renders a label to PNG through Labelary's ZPL engine. |
 | `stress-test.zpl` | The same label with worst-case content, for checking layout changes. |
 | `sync-to-drive.sh` | Copies the `.zpl` files to the shared Drive folder. |
+| `print-copies.sh` | Writes a copy with a given print quantity into that folder. |
 
 ## Where the files live
 
@@ -23,6 +24,31 @@ This directory is the source of truth. `sync-to-drive.sh` copies them into
 the shared Drive folder (`Main/test labels`), which syncs to the Windows
 machine the printer is attached to, so the label can be printed there without
 transferring anything by hand.
+
+## Print quantity
+
+`^PQ` sets how many labels come out, and it is part of the label format
+rather than something that can be sent alongside it, so the number has to be
+in the file. One delivery line is one lot but many physical boxes — ten cases
+of chicken feet need ten labels, all naming the same lot — so this gets used
+constantly on intake.
+
+Rather than hand-editing:
+
+```
+./print-copies.sh goods-in.zpl 10      # writes goods-in-x10.zpl to Drive
+```
+
+The equivalent on the Windows machine, without this repository:
+
+```
+powershell -c "(gc label.zpl -Raw) -replace '\^PQ\d+','^PQ10' | sc out.zpl -NoNewline"
+copy /b out.zpl \\localhost\ZEBRA
+```
+
+Everything else on these labels — ingredient, dates, batch, lot — still has to
+be edited by hand until the Worker generates them. Quantity is only the most
+frequently changed of those fields, not the only one.
 
 ## Printing one
 
