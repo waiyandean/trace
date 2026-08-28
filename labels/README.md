@@ -152,17 +152,24 @@ The item or product name is set at the same size as the use-by date. Those two
 are what the label is for — what is this, and how long is it good — so neither
 should dominate the other.
 
-## Margins
+## The keep-out zone
 
-Content sits 24 dots (3 mm) from the left and right edges, matched on both
-sides. The earlier 15 dots was under 2 mm, which is tight for a die-cut label
-where the print can shift slightly relative to the die. The header band is the
-one deliberate exception: it bleeds to both edges, so a small registration
-shift shows as a thin white sliver rather than clipped text.
+**Nothing prints within 40 dots (5 mm) of any edge.** The print can shift
+relative to the die-cut edge, and the amount is not yet trustworthy, so the
+margin is sized for the worst observed drift rather than the best.
 
-Widening the margins narrowed the allergen box, and the seven-allergen case
-now reaches its right-hand edge with nothing to spare. That is the practical
-ceiling for a single declaration line at this font size.
+`lint-zpl.py` enforces this and fails anything that breaks it, so it does not
+depend on being remembered.
+
+The one exemption is a shape that deliberately bleeds to the edges, currently
+the Date Opened border. A registration shift clips a little of that border,
+which reads as a label trimmed slightly off rather than as missing
+information. Text losing its top does not.
+
+The zone costs real room: 5 mm on every side leaves 732 x 326 dots of usable
+area out of 812 x 406, about a quarter of the label gone. That is what set the
+current type sizes, and it is why the seven-allergen declaration is close to
+its ceiling on one line.
 
 ## ^FB overprints, it does not truncate
 

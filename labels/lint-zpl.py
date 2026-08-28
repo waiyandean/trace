@@ -19,6 +19,8 @@ QR_BYTE = {"L": [17, 32, 53, 78, 106, 134], "M": [14, 26, 42, 62, 84, 106],
            "Q": [11, 20, 32, 46, 60, 74], "H": [7, 14, 24, 34, 44, 58]}
 # Condensed resident font: average advance is a little over half the height.
 CHAR_W = 0.55
+# Keep-out zone at every edge: 5 mm at 203 dpi.
+MARGIN = 40
 
 
 def qr_side(data, ecc, mag):
@@ -95,11 +97,19 @@ def main():
     for k, x, y, w, h in els:
         print(f"  {k:6} x {x:4}-{x + w:4}   y {y:4}-{y + h:4}")
 
+    # Nothing may sit within the keep-out margin, since the print can shift
+    # relative to the die-cut edge and anything close to it risks being lost.
+    m = MARGIN
     problems = []
     for k, x, y, w, h in els:
         if x + w > pw or y + h > ll:
             problems.append(f"{k} at {x},{y} runs past the label "
                             f"(ends {x + w},{y + h})")
+        elif k != "box" or (w < pw - 1 or h < ll - 1):
+            # A full-bleed border or band is deliberate; anything else is not.
+            if x < m or y < m or x + w > pw - m or y + h > ll - m:
+                problems.append(f"{k} at {x},{y} breaks the {m}-dot margin "
+                                f"(occupies {x}-{x + w} by {y}-{y + h})")
     for i, a in enumerate(els):
         for b in els[i + 1:]:
             # A box or oval drawn around content is a container, not a clash.
