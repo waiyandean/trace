@@ -37,15 +37,16 @@ Paste the file into labelary.com (203 dpi, 4 x 2) to preview without printing.
 
 ## Label layout notes
 
-`^LH0,24` shifts everything down 3 mm. If that is correcting print
-registration rather than being a deliberate design choice, it belongs in the
-printer instead (Menu > Print > Print Position > Top Position), which frees
-24 dots of vertical space — the layout currently has only 8 dots of bottom
-margin.
+Stock is 4 x 2 inches, confirmed 2026-08-28, so `^PW812 ^LL406` is correct
+at 203 dpi.
 
-The stock size also wants confirming. The layout assumes 4 x 2 inches
-(`^PW812 ^LL406`), but the original artwork is roughly 1.86:1, so the media
-may actually be 100 x 54 mm, which would make it `^PW800 ^LL432`.
+`^LH0,24` shifts everything down 3 mm. Because the declared label length was
+right all along, that shift is correcting print registration rather than a
+wrong `^LL` — which means it belongs in the printer, not in every label
+format. Run a media calibration first, and only set Menu > Print > Print
+Position > Top Position by hand if calibration does not land it. Once the
+printer holds the offset, delete the `^LH` line and the layout regains 24
+dots of vertical space; it currently has only 8 dots of bottom margin.
 
 The QR currently carries the batch code. Once the trace endpoint exists it
 should carry a URL instead, so that any phone camera resolves it to the batch
