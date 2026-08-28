@@ -187,6 +187,46 @@ rolls are cheap. The cost is that the label carries no human-readable
 information — mitigated by the fact that the supplier's own label already names
 the product, and staff already handwrite a date code.
 
+### Reprinting, and what the archive is for
+
+Labels fall off, smudge, and get thrown away with the outer packaging they were
+stuck to. Discarding an outer box is the sharpest case: the supplier's own
+label goes in the bin with it, so from that moment **our label is the only
+identity the contents have**, and the four inner bags each need one.
+
+So reprinting is a routine operation, not an exception, and it has one hard
+rule: **a reprint carries the same short code as the original.** It must never
+mint a new lot. Minting one would split a single delivery into two lots, break
+the quantity balance, and produce two partial genealogies where there should be
+one — the exact failure this project exists to remove.
+
+The flow is: find the lot (by ingredient, batch code, delivery date, or by
+scanning a surviving label), say how many labels are needed and why, and print.
+
+Reprints are logged with their count and reason — damaged, lost, smudged, outer
+packaging discarded, decanted, split across locations. Without that, the number
+of labels in existence drifts away from the number of cases received, and
+nobody can answer why a ten-case delivery has fourteen labels.
+
+**The archived ZPL and the reprint do different jobs, and should not be
+confused.**
+
+- The **archive** is evidence: the exact payload sent to the printer, captured
+  at print time, about 1 KB. It is immutable, and its value is that it can
+  disagree with the current record.
+- A **reprint** is regenerated from the lot record, not replayed from the
+  archive, so it reflects any correction made since. Replaying the archive
+  would faithfully reproduce a label that is now wrong.
+
+Where the two differ, that difference is itself meaningful: it means the record
+changed after the label was printed, which is precisely what the amendment
+trail should already explain.
+
+This also makes a rendered image of the label pointless to store. An image
+generated from the record cannot disagree with the record, so it evidences
+nothing, while the ZPL is smaller, exact, and reproduces the label pixel for
+pixel whenever anyone wants to look at it.
+
 ### Loose goods, decanting and re-labelling
 
 The hardest case is not a missing barcode, it is goods with no surface to label
@@ -403,9 +443,11 @@ a from-location and a to-location.
 
 **Printing**
 
-- `print_jobs` — queued label jobs with their generated ZPL, status and
-  timestamps. A queue rather than a direct call, so that a printer or agent
-  outage delays labels instead of failing submissions.
+- `print_jobs` — queued label jobs with the exact ZPL sent, status, count and
+  timestamps, plus a reason where the job is a reprint. A queue rather than a
+  direct call, so that a printer or agent outage delays labels instead of
+  failing submissions, and an archive as well as a queue, since the payload as
+  sent is the evidence of what was printed.
 
 ## Delivery phases
 
