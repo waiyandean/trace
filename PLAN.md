@@ -485,8 +485,27 @@ These need Dean's answer before the phase that depends on them.
    usually a one to three item list — and the short fallback code covers the
    rest. Scanning is an accuracy and speed upgrade that can be added once the
    hardware path is settled, so P1 to P3 can be built and run before it exists.
-2. **Client-minted lot ids (blocks P1).** Confirm ULIDs generated on the device
-   rather than server-assigned ids, so that offline intake can bind a label.
+2. **Lot identity and short codes — resolved 2026-08-28 (Dean).** A lot carries
+   two identifiers, and they do different jobs.
+
+   The **internal id** is a ULID minted on the device. It needs no coordination
+   with the server, so a lot can always be created, even offline with
+   everything else unavailable. It is never printed and never typed.
+
+   The **short code** is the six-character identity printed on the label, in an
+   alphabet with the ambiguous glyphs removed. It must be unique, but the
+   device cannot check uniqueness while offline at the goods-in door, which is
+   exactly when it is needed. So the **server pre-issues a pool of short codes
+   to each device** — a couple of hundred, already reserved server-side.
+   Intake pops one and binds it to the ULID; the pool refills whenever the
+   device is online and falls below a threshold. Pools are disjoint per device,
+   so two devices cannot collide, and a code is never reused.
+
+   Keeping the two separate is what makes the degradation safe. If a pool ever
+   does run dry offline, the lot is still created and still records everything
+   about the delivery — it simply has no printed code until one can be
+   assigned, which is a relabel rather than lost data. Were the short code the
+   primary key, an empty pool would stop intake entirely.
 3. **Count granularity (blocks P5).** Staff physically count "how much of X is
    in the freezer", not per lot. Traceability wants per lot. Options are
    counting by lot where cases are individually labelled and falling back to
