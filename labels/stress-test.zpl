@@ -4,7 +4,7 @@
 ^CI28
 ^BY2,3,10
 
-^FO40,44^A0N,32^FDMR022  |  M&R Spicy Miso Tonkotsu Ramen^FS
+^FO40,42^A0N,38^FDMR022  |  M&R Spicy Miso Tonkotsu Ramen^FS
 ^FO40,90^GB732,0,4^FS
 
 ^FO40,106^A0N,20^FDUSE BY^FS

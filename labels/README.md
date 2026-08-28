@@ -171,6 +171,24 @@ area out of 812 x 406, about a quarter of the label gone. That is what set the
 current type sizes, and it is why the seven-allergen declaration is close to
 its ceiling on one line.
 
+## Names are one line, never two
+
+Dean, 2026-08-28: a name that does not fit is shortened in the catalog rather
+than wrapped or shrunk. So the name is a plain field with no field block, set
+at 38 dots on every label, and the divider rule sits directly beneath it with
+no space reserved for a second line.
+
+That fixes the character budget at a single number. Measured off real renders,
+the resident condensed font averages 0.44 of the character height per
+character, so 38-dot type gives about **44 characters** in the 732 dots
+between the keep-out margins. The longest current product name,
+`MR022  |  M&R Spicy Miso Tonkotsu Ramen`, is 37 and ends at x=724 against a
+772 limit.
+
+Without a field block, an over-long name clips at the edge rather than
+overprinting itself, so the failure is visible rather than a smear. It is
+still a failure: the catalog is where it gets prevented.
+
 ## ^FB overprints, it does not truncate
 
 A field block whose text does not fit its width **wraps and draws the overflow

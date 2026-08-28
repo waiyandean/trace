@@ -17,8 +17,10 @@ QR_ALNUM = {"L": [25, 47, 77, 114, 154, 195], "M": [20, 38, 61, 90, 122, 154],
             "Q": [16, 29, 47, 67, 85, 106], "H": [10, 20, 35, 50, 64, 84]}
 QR_BYTE = {"L": [17, 32, 53, 78, 106, 134], "M": [14, 26, 42, 62, 84, 106],
            "Q": [11, 20, 32, 46, 60, 74], "H": [7, 14, 24, 34, 44, 58]}
-# Condensed resident font: average advance is a little over half the height.
-CHAR_W = 0.55
+# Measured off real renders of the resident condensed font: an average advance
+# of 0.44 of the character height. Held slightly wider than measured, so the
+# estimate errs toward flagging rather than missing a collision.
+CHAR_W = 0.47
 # Keep-out zone at every edge: 5 mm at 203 dpi.
 MARGIN = 40
 
