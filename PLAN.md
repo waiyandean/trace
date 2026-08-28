@@ -417,8 +417,15 @@ Indicative, not final. Names and columns will be settled in P0.
 **Catalog**
 
 - `items` — one row per ingredient, packaging item or product. Carries
-  `kind`, `base_unit` (`kg` | `L` | `Units`), and a shelf-life in days that
-  defaults to seven. Ingredients and products share this table; that is what
+  `kind`, `base_unit` (`kg` | `L` | `Units`), a shelf-life in days that
+  defaults to seven, and **two storage requirements rather than one**: how the
+  item is kept unopened, and how it must be kept once opened. Several
+  ingredients are ambient on the shelf but have to be refrigerated after
+  opening, so the two genuinely differ, and the Date Opened label prints the
+  after-opening one. Getting that wrong puts an opened jar back on a dry
+  shelf, which is the error the label exists to prevent, so the label shows the
+  post-opening state in its storage tag as well as spelling out the
+  instruction. Ingredients and products share this table; that is what
   makes product-into-product free. The shelf life is a fallback used only when
   a delivery arrives with no printed date, so it needs a sensible default
   rather than fifty agreed figures before the catalog can be filled.

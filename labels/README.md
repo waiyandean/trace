@@ -85,32 +85,30 @@ label full of short strings hides.
 
 ## Telling the four types apart
 
-They have to be identifiable at a glance across a room, and on a monochrome
-thermal label the only thing that reads at that distance is where the solid
-black areas sit. So each type has a different silhouette:
+They have to be identifiable at a glance. An earlier attempt did this with
+reversed type in solid black bands, which worked but measured 41-48% black
+against 9-15% for the current design — roughly four times the ribbon, print
+time, head wear and smear risk on every label, forever. The heavy version also
+did not look like the labels the kitchen already prints, which are clean black
+on white. It was dropped.
 
-| Type | Black areas |
+What distinguishes them now:
+
+| Type | Device |
 | --- | --- |
-| Goods In | left bar, top band |
-| Date Opened | left bar, top band, **bottom band** |
-| Product packet | top band only |
-| Product box | top band, **bottom band** |
-
-The **left bar is the internal/product divide** — anything with a bar down the
-side belongs in storage, anything without goes to a customer. It carries the
-type name rotated, reusing the edge convention from the handwritten forms these
-replace, so it is also unambiguous close up.
+| Goods In | type name top left, no border |
+| Date Opened | type name top left, **border round the whole label** |
+| Product packet | product code and name, no border |
+| Product box | as packet, plus a **rule and case line** at the foot |
 
 Goods In and Date Opened are the pair that actually gets confused, because they
-sit on the same shelves on the same containers, so they get the strongest
-separation. Product labels live in a different part of the building and are
-customer-facing, which is also why they stay clean rather than carrying heavy
-internal markings.
+sit on the same shelves on the same containers, so the border goes there. It is
+an outline, so it costs almost no ink for a mark that reads across a room.
+Product labels are customer-facing and stay plainest.
 
-Each bottom band earns its place rather than being decoration: the Date Opened
-one carries the sealing instruction from the original form, and the box one
-carries the case quantity, which is the actual difference between a case label
-and a packet label.
+Packet against box is the weakest of the four distinctions, which is accepted:
+they go on physically different objects, a pouch and a case, so context does
+most of that work.
 
 Render `preview/all-four-distance.png` after any change — it is the four labels
 at a third scale, which is roughly what the eye gets from across a room.
