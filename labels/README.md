@@ -11,6 +11,8 @@ questions around it.
 | `tonkotsu-packet.zpl` | Product packet label, MR015 Tonkotsu Broth. |
 | `png-to-zpl.py` | Converts an image into a ZPL `^GF` graphic field. |
 | `lint-zpl.py` | Reports overlapping or off-label elements in a label. |
+| `preview.sh` | Renders a label to PNG through Labelary's ZPL engine. |
+| `stress-test.zpl` | The same label with worst-case content, for checking layout changes. |
 | `sync-to-drive.sh` | Copies the `.zpl` files to the shared Drive folder. |
 
 ## Where the files live
@@ -35,6 +37,39 @@ nc <printer-ip> 9100 < tonkotsu-packet.zpl
 ```
 
 Paste the file into labelary.com (203 dpi, 4 x 2) to preview without printing.
+
+## Previewing a label
+
+```
+./preview.sh tonkotsu-packet.zpl        # writes tonkotsu-packet.png
+```
+
+Renders through Labelary's HTTP API, which runs the real ZPL interpreter, so
+it shows what the printer will draw rather than an approximation. It starts
+from clean printer state, so it will not reproduce anything caused by settings
+persisting on the printer — see the `^BY` section below.
+
+**Always render `stress-test.zpl` as well as the label itself.** It carries the
+worst-case content — a long product name, a long product code, a seven-allergen
+declaration, a multi-pack quantity — and it is what catches the failures a
+label full of short strings hides.
+
+## ^FB overprints, it does not truncate
+
+A field block whose text does not fit its width **wraps and draws the overflow
+on top of the previous line**, even when the maximum line count is 1. The
+result is an unreadable smear rather than a clipped string, and nothing warns
+you.
+
+This is why the header is `^FB772,2` rather than `^FB772,1`: a product name
+too long for one line wraps to a second instead of destroying the first. The
+seven-allergen declaration currently reaches the right-hand edge of its box, so
+an eighth allergen would overprint.
+
+For generated labels this means the Worker cannot simply drop content into a
+fixed template. It has to size the header font and the allergen box from the
+length of what it is placing, and every layout change needs the stress test
+re-rendered.
 
 ## Checking a layout
 
