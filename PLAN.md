@@ -204,9 +204,29 @@ The flow is: find the lot (by ingredient, batch code, delivery date, or by
 scanning a surviving label), say how many labels are needed and why, and print.
 
 Reprints are logged with their count and reason — damaged, lost, smudged, outer
-packaging discarded, decanted, split across locations. Without that, the number
-of labels in existence drifts away from the number of cases received, and
-nobody can answer why a ten-case delivery has fourteen labels.
+packaging discarded, decanted, split across locations, or a case broken down.
+Without that, the number of labels in existence drifts away from the number of
+cases received, and nobody can answer why a ten-case delivery has fourteen
+labels.
+
+**Breaking a case down is the common one, and it is not a stock movement.**
+Sugar arrives as fifteen 1 kg packets in clear plastic; once a few are used the
+wrapper comes off and the remaining packets go on the shelf loose. Sesame oil
+arrives as six 2 litre bottles in a case, and once it is part-used the bottles
+come out to save space. In both, nothing is consumed — quantity, lot and
+balance are all unchanged, and only the physical presentation differs. So a
+reprint must be able to produce any number of labels **without implying a
+movement**, or tidying a shelf would book phantom consumption.
+
+It follows that a lot's label count is not fixed at intake. One case is one
+label on arrival and eleven labels once it is broken down, all carrying the
+same short code. The system can help without guessing: it already holds pack
+size for unit conversion, so it knows a sugar case is fifteen 1 kg packets, and
+can offer the remaining balance as a suggested count for staff to confirm.
+
+One label format covers both. Dean confirmed 2026-08-28 that the current
+100 x 50 mm stock physically fits every loose item, 2 litre bottles included,
+so no smaller template or second stock is needed.
 
 **The archived ZPL and the reprint do different jobs, and should not be
 confused.**
