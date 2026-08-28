@@ -387,7 +387,18 @@ separately first. It does not block P0–P3 (see the open questions below).
 These need Dean's answer before the phase that depends on them.
 
 1. **Label printing path.** Being taken forward as a separate workstream.
-   Narrowed 2026-08-27: Zebra's Cloud Connect (Weblink) documentation indicates
+
+   **Progress 2026-08-28.** The label side is proven. A packet label for
+   Tonkotsu Broth is written as ZPL and printing correctly on the ZT231 from
+   the Windows machine over USB, carrying every field the old label had plus
+   a QR and an added may-contain-allergens line. Zebra Designer is no longer
+   in the path. See `labels/` for the artwork, an image-to-ZPL converter, a
+   layout linter and the findings — including that `^BY` is persistent printer
+   state that silently displaces QR codes on later labels, which cost a
+   morning and which generated labels must set explicitly. Print registration
+   now lives on the printer rather than in the label format.
+
+   What remains is the network path, not the label. Narrowed 2026-08-27: Zebra's Cloud Connect (Weblink) documentation indicates
    the ZT231 supports an outbound WebSocket, which would remove the need for
    any always-on machine in the kitchen. Still to confirm on the unit itself,
    along with whether Durable Objects need a paid Workers plan here.
