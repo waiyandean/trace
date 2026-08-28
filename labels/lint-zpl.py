@@ -71,17 +71,20 @@ def parse(src):
             total = int(re.search(r"\^GFA,(\d+)", rest).group(1))
             elements.append(("image", x, y, row * 8, total // row))
             continue
-        if a := re.search(r"X", rest):
-            h = int(a.group(1))
+        if a := re.search(r"\^A(0|@)?(\w)?,(\d+)(?:,(\d*))?", rest):
+            rot = (a.group(2) or "N").upper()
+            h = int(a.group(3))
             fd = re.search(r"\^FD(.*)", rest, re.S)
             text = fd.group(1).replace("^FR", "").replace("\\&", "").strip() if fd else ""
             if fb := re.search(r"\^FB(\d+),(\d+)", rest):
                 w, lines = int(fb.group(1)), int(fb.group(2))
                 est = max(1, min(lines, int(len(text) * h * CHAR_W / max(w, 1)) + 1))
-                elements.append(("text", x, y - (h if kind == "FT" else 0), w, h * est))
+                bw, bh = (w, h * est) if rot in ("N", "I") else (h * est, w)
+                elements.append(("text", x, y - (h if kind == "FT" else 0), bw, bh))
             else:
-                w = int(len(text) * h * CHAR_W)
-                elements.append(("text", x, y - (h if kind == "FT" else 0), w, h))
+                tw = int(len(text) * h * CHAR_W)
+                bw, bh = (tw, h) if rot in ("N", "I") else (h, tw)
+                elements.append(("text", x, y - (h if kind == "FT" else 0), bw, bh))
     return pw, ll, elements
 
 
