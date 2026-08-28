@@ -357,11 +357,11 @@ Indicative, not final. Names and columns will be settled in P0.
 **Catalog**
 
 - `items` — one row per ingredient, packaging item or product. Carries
-  `kind`, `base_unit` (`kg` | `L` | `Units`), and a **required** shelf-life
-  rule. Ingredients and products share this table; that is what makes
-  product-into-product free. The shelf-life rule is required rather than
-  optional because it is the only source of a use-by for goods that arrive with
-  no printed date.
+  `kind`, `base_unit` (`kg` | `L` | `Units`), and a shelf-life in days that
+  defaults to seven. Ingredients and products share this table; that is what
+  makes product-into-product free. The shelf life is a fallback used only when
+  a delivery arrives with no printed date, so it needs a sensible default
+  rather than fifty agreed figures before the catalog can be filled.
 - `locations` — storage areas, with a kind (ambient, chill, freezer,
   production, dispatch).
 - `suppliers`, `customers`, `staff`.
@@ -377,7 +377,8 @@ Indicative, not final. Names and columns will be settled in P0.
 - `lots` — client-minted ULID, item, human-visible lot code, short fallback
   code, supplier lot and supplier, received or produced timestamp, use-by,
   status (`open` | `closed` | `held` | `written_off`), parent lots where the
-  lot came from a `COMBINE`. **No quantity column and no location column** —
+  lot came from a `COMBINE`, and whether the use-by was printed by the supplier
+  or derived from the item's shelf-life rule. **No quantity column and no location column** —
   both are derived from movements, so neither can disagree with the events
   beneath it.
 - `movements` — append-only. Lot, type, signed quantity in the item's base
@@ -497,10 +498,22 @@ These need Dean's answer before the phase that depends on them.
    the physical lot genuinely is not in the system. What that escape hatch
    looks like, and who is allowed to use it, determines whether staff comply
    with the rule or route around it.
-5. **Shelf-life ownership (blocks P0).** Now upgraded from a nice-to-have: the
-   shelf-life rule is the only source of a use-by for goods that arrive
-   undated, so every item needs one. Which figures are approved, and where they
-   come from, needs settling before the catalog is populated.
+5. **Shelf-life ownership — resolved 2026-08-28 (Dean).** The use-by is read
+   off the supplier's box wherever it is printed, and that always wins. Where
+   there is none, which is mostly fresh produce, staff assign one week from
+   delivery. So the shelf-life rule is a fallback rather than the primary
+   source, and a single default of seven days covers the catalog, with
+   per-item overrides added only where the kitchen knows better. **This
+   unblocks P0**: the catalog does not need fifty-odd individually agreed
+   shelf lives before it can be populated.
+
+   One thing follows from it. A lot must record **which source its use-by came
+   from** — printed by the supplier, or derived from the rule. Without that,
+   neither question can be answered later: if a supplier's date proves wrong,
+   which lots relied on it; and if seven days proves too generous for an
+   ingredient, which lots were dated by the rule rather than by evidence. It is
+   one column, and it is the difference between a date and a date you can
+   defend to an auditor.
 6. **Decant and merge discipline.** The system can model `COMBINE` honestly,
    but how often staff combine lots determines how much trace precision is
    lost in practice. Worth observing before assuming it is rare.
