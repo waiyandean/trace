@@ -422,7 +422,10 @@ Indicative, not final. Names and columns will be settled in P0.
   item is kept unopened, and how it must be kept once opened. Several
   ingredients are ambient on the shelf but have to be refrigerated after
   opening, so the two genuinely differ, and the Date Opened label prints the
-  after-opening one. Getting that wrong puts an opened jar back on a dry
+  after-opening one. Products additionally carry a flag for whether their label
+  needs the oval health mark: the broths do, most sauces and oils do not, and
+  which is which is a compliance determination held per item rather than
+  inferred from the recipe. Getting that wrong puts an opened jar back on a dry
   shelf, which is the error the label exists to prevent, so the label shows the
   post-opening state in its storage tag as well as spelling out the
   instruction. Ingredients and products share this table; that is what

@@ -10,6 +10,7 @@ questions around it.
 | --- | --- |
 | `tonkotsu-packet.zpl` | Product packet label, MR015 Tonkotsu Broth. |
 | `tonkotsu-box.zpl` | The case version of the same label. |
+| `sauce-packet.zpl` | Product label without the health mark, for items that do not need one. |
 | `goods-in.zpl` | Intake label. Replaces the handwritten Goods In form. |
 | `date-opened.zpl` | Applied when a container is opened or decanted. |
 | `png-to-zpl.py` | Converts an image into a ZPL `^GF` graphic field. |
@@ -131,6 +132,12 @@ identity:
   decanted, the new label has to carry the *same* lot, otherwise the lot's
   identity dies at the moment the box is opened. Its "Ensure product is
   properly sealed" note is kept from the original.
+
+**The oval health mark is conditional.** The broths carry it; most sauces and
+oils do not. That is a compliance determination per product, held as a flag on
+the item rather than inferred, so the same template serves both: with the mark
+absent, the SKU moves up into the space it occupied. `sauce-packet.zpl` is the
+worked example.
 
 Frozen ramen retail labels are a separate template, printed on a Brother
 printer because the Zebra stock does not fit the box, and are out of scope
