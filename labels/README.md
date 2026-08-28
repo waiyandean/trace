@@ -10,6 +10,7 @@ questions around it.
 | --- | --- |
 | `tonkotsu-packet.zpl` | Product packet label, MR015 Tonkotsu Broth. |
 | `png-to-zpl.py` | Converts an image into a ZPL `^GF` graphic field. |
+| `lint-zpl.py` | Reports overlapping or off-label elements in a label. |
 | `sync-to-drive.sh` | Copies the `.zpl` files to the shared Drive folder. |
 
 ## Where the files live
@@ -34,6 +35,23 @@ nc <printer-ip> 9100 < tonkotsu-packet.zpl
 ```
 
 Paste the file into labelary.com (203 dpi, 4 x 2) to preview without printing.
+
+## Checking a layout
+
+```
+python3 lint-zpl.py tonkotsu-packet.zpl
+```
+
+Prints a bounding box per element and fails if any two overlap or anything
+runs past the label edge. Text widths are estimated from the resident
+condensed font so they are approximate; boxes and ellipses are exact. A box or
+ellipse that fully contains another element is treated as a container rather
+than a clash, which is what makes the allergen box and the approval oval pass.
+
+QR dimensions are an estimate: the printer's own encoder picks the symbol
+version, and it has rendered larger than predicted in practice, so the tool
+deliberately assumes one version more than it calculates. Keep real clearance
+around a QR rather than trusting the number exactly.
 
 ## Label layout notes
 
