@@ -138,6 +138,22 @@ Frozen ramen retail labels are a separate template, printed on a Brother
 printer because the Zebra stock does not fit the box, and are out of scope
 here.
 
+## Vertical rhythm and the top edge
+
+Text starts 24 dots (3 mm) from the top edge. The header band itself bleeds to
+the edge, so a print that shifts up loses a sliver of black rather than the top
+of the product name.
+
+The band is 122 dots tall, which is what a **two-line** name needs at 44 dots
+plus that clearance. It has to accommodate two lines even though most names fit
+on one, because a field block that overruns draws its overflow on top of the
+first line rather than truncating, and a second line falling outside the band
+would print white on white.
+
+The item or product name is set at the same size as the use-by date. Those two
+are what the label is for — what is this, and how long is it good — so neither
+should dominate the other.
+
 ## Margins
 
 Content sits 24 dots (3 mm) from the left and right edges, matched on both
