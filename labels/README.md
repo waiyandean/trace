@@ -9,6 +9,8 @@ questions around it.
 | File | What |
 | --- | --- |
 | `tonkotsu-packet.zpl` | Product packet label, MR015 Tonkotsu Broth. |
+| `goods-in.zpl` | Intake label. Replaces the handwritten Goods In form. |
+| `date-opened.zpl` | Applied when a container is opened or decanted. |
 | `png-to-zpl.py` | Converts an image into a ZPL `^GF` graphic field. |
 | `lint-zpl.py` | Reports overlapping or off-label elements in a label. |
 | `preview.sh` | Renders a label to PNG through Labelary's ZPL engine. |
@@ -53,6 +55,29 @@ persisting on the printer — see the `^BY` section below.
 worst-case content — a long product name, a long product code, a seven-allergen
 declaration, a multi-pack quantity — and it is what catches the failures a
 label full of short strings hides.
+
+## The label set
+
+The existing printed labels fall into four templates, of which these carry lot
+identity:
+
+- **Product packet / box.** One template; the box variant differs only in its
+  quantity and product code, so it is the same layout with different values.
+- **Goods In.** Today this is a blank form staff fill in by hand: ingredient,
+  supplier, date delivered, batch number, use by, allergens, with a rotated
+  storage banner down each side. Being handwritten with no system identity is
+  the traceability gap in physical form, and it is why the old ledger could not
+  join a batch to the delivery it came from. The replacement is printed and
+  carries the lot's short code and QR.
+- **Date Opened.** Also a blank handwritten form today. It matters more than it
+  looks: it is the re-label flow. When a container is opened or its contents
+  decanted, the new label has to carry the *same* lot, otherwise the lot's
+  identity dies at the moment the box is opened. Its "Ensure product is
+  properly sealed" note is kept from the original.
+
+Frozen ramen retail labels are a separate template, printed on a Brother
+printer because the Zebra stock does not fit the box, and are out of scope
+here.
 
 ## Margins
 
