@@ -286,6 +286,70 @@ client-side, using the same mechanism that already has to mint idempotency
 keys. This has to be decided before P1, because getting it wrong means offline
 intake cannot print.
 
+## How intake and batching work today
+
+Described by Dean, 2026-08-28. This is the current practice the rebuild has to
+replace, and it explains the gap better than the data analysis does.
+
+**Receiving a delivery**
+
+1. Staff check the invoice.
+2. They print a Goods In label for **each case** of each ingredient. The labels
+   are premade per ingredient, with the name, supplier and allergens already on
+   them. The delivery date is autofilled with today's date, and the batch
+   number likewise.
+3. Labels go on the cases, and the cases go into storage.
+4. Separately, the delivery is recorded in the Goods In form, including the
+   use-by date.
+
+**Batching**
+
+1. Staff take the ingredients they need.
+2. They read the batch number off the label.
+3. They record the batch number, quantity and use-by date on the batching form.
+
+### What that tells us
+
+- **Printing the label and recording the delivery are two disconnected acts, in
+  two different systems.** This is the structural break. The label cannot carry
+  an identifier the record knows about, because at the moment the label prints
+  there is no record to refer to. Every later attempt to join the two is
+  therefore an inference, which is exactly what the old ledger was.
+- **The batch number is autofilled as today's date**, so every case of one
+  ingredient received on a given day carries the same code. Two deliveries of
+  the same ingredient on the same day are indistinguishable on the box. That is
+  a property of the scheme, not a data-entry error, and it is why 2,593 of
+  5,054 exact historical matches named more than one delivery.
+- **The use-by is captured in the form but cannot be on a premade label**,
+  since it varies per delivery. So at batching, staff read the batch number
+  from our label and the use-by from somewhere else — the supplier's packaging
+  or memory. Two of the three things they record come from different places.
+- **A premade label per ingredient means picking the right roll.** Take the
+  wrong template and the case is mislabelled with a real ingredient's name,
+  which is worse than an unlabelled one.
+
+### What P1 changes, and what it deliberately does not
+
+The one structural change is that **printing and recording become a single
+act**: staff enter the delivery line once, and the system opens the lot,
+records it, and prints that case's labels from the same transaction. Everything
+else follows from that.
+
+- Labels gain the lot's short code and QR, and the **real use-by**, so all
+  three things batching needs are on one label in one place.
+- Name, supplier and allergens are still filled in automatically, now from the
+  catalog rather than from a saved label template — which also removes the
+  wrong-roll error.
+- **The batch number stays exactly as it is**, printed on the label and stored
+  on the lot. Nothing staff currently read disappears; it simply stops being
+  the thing the system joins on.
+- The label count stays one per case, as now.
+
+At batching, reading the batch number becomes scanning the label, with the
+short code as a typed fallback and the batch number still accepted — resolving
+uniquely where it can, and asking which lot where it cannot, rather than
+guessing.
+
 ## Schema sketch
 
 Indicative, not final. Names and columns will be settled in P0.
