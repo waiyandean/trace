@@ -9,6 +9,7 @@ questions around it.
 | File | What |
 | --- | --- |
 | `tonkotsu-packet.zpl` | Product packet label, MR015 Tonkotsu Broth. |
+| `tonkotsu-box.zpl` | The case version of the same label. |
 | `goods-in.zpl` | Intake label. Replaces the handwritten Goods In form. |
 | `date-opened.zpl` | Applied when a container is opened or decanted. |
 | `png-to-zpl.py` | Converts an image into a ZPL `^GF` graphic field. |
@@ -81,6 +82,38 @@ persisting on the printer — see the `^BY` section below.
 worst-case content — a long product name, a long product code, a seven-allergen
 declaration, a multi-pack quantity — and it is what catches the failures a
 label full of short strings hides.
+
+## Telling the four types apart
+
+They have to be identifiable at a glance across a room, and on a monochrome
+thermal label the only thing that reads at that distance is where the solid
+black areas sit. So each type has a different silhouette:
+
+| Type | Black areas |
+| --- | --- |
+| Goods In | left bar, top band |
+| Date Opened | left bar, top band, **bottom band** |
+| Product packet | top band only |
+| Product box | top band, **bottom band** |
+
+The **left bar is the internal/product divide** — anything with a bar down the
+side belongs in storage, anything without goes to a customer. It carries the
+type name rotated, reusing the edge convention from the handwritten forms these
+replace, so it is also unambiguous close up.
+
+Goods In and Date Opened are the pair that actually gets confused, because they
+sit on the same shelves on the same containers, so they get the strongest
+separation. Product labels live in a different part of the building and are
+customer-facing, which is also why they stay clean rather than carrying heavy
+internal markings.
+
+Each bottom band earns its place rather than being decoration: the Date Opened
+one carries the sealing instruction from the original form, and the box one
+carries the case quantity, which is the actual difference between a case label
+and a packet label.
+
+Render `preview/all-four-distance.png` after any change — it is the four labels
+at a third scale, which is roughly what the eye gets from across a room.
 
 ## The label set
 
