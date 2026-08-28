@@ -40,13 +40,25 @@ Paste the file into labelary.com (203 dpi, 4 x 2) to preview without printing.
 Stock is 4 x 2 inches, confirmed 2026-08-28, so `^PW812 ^LL406` is correct
 at 203 dpi.
 
-`^LH0,24` shifts everything down 3 mm. Because the declared label length was
-right all along, that shift is correcting print registration rather than a
-wrong `^LL` — which means it belongs in the printer, not in every label
-format. Run a media calibration first, and only set Menu > Print > Print
-Position > Top Position by hand if calibration does not land it. Once the
-printer holds the offset, delete the `^LH` line and the layout regains 24
-dots of vertical space; it currently has only 8 dots of bottom margin.
+Print registration is held in the printer, not in the label. The label
+previously carried `^LH0,24` to push everything down 3 mm; that offset now
+lives in the printer's own print position setting, so the format is clean and
+carries no machine-specific fudge. Do not reintroduce `^LH` for alignment —
+if a printer prints high or low, correct it on that printer, otherwise the
+offset for one machine ends up baked into labels that any machine prints.
+
+The allergen box is sized for a single declaration line, which covers
+Tonkotsu Broth's three allergens. A product with enough allergens to wrap
+needs the box taller and the disclaimer moved down:
+
+```
+^FO15,282^GB570,102,2^FS
+^FO30,292^A0N,28,0^FB540,2,0,L^FDALLERGENS: ...^FS
+^FO30,356^A0N,20,0^FB540,1,0,L^FDMay contain other allergens^FS
+```
+
+Once labels are generated rather than hand-written, the Worker should size
+that box from the length of the allergen string instead of it being fixed.
 
 The QR currently carries the batch code. Once the trace endpoint exists it
 should carry a URL instead, so that any phone camera resolves it to the batch
