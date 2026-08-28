@@ -180,10 +180,19 @@ no space reserved for a second line.
 
 That fixes the character budget at a single number. Measured off real renders,
 the resident condensed font averages 0.44 of the character height per
-character, so 38-dot type gives about **44 characters** in the 732 dots
-between the keep-out margins. The longest current product name,
-`MR022  |  M&R Spicy Miso Tonkotsu Ramen`, is 37 and ends at x=724 against a
-772 limit.
+character, so 44-dot type gives about **38 characters** in the 732 dots between
+the keep-out margins.
+
+The `MR0xx` product code was dropped from the name (Dean, 2026-08-28), which
+freed roughly ten characters and let the name grow from 38 dots to 44. The
+longest current product name, `M&R Spicy Miso Tonkotsu Ramen`, is 29 characters
+and ends at x=635 against a 772 limit, so there is room for longer names than
+any currently in use.
+
+Note the product code no longer appears anywhere on the product labels. The
+supplier or customer SKU under the approval oval, `BF-TKBR-2K`, remains. If the
+`MR0xx` code is needed on the label it has to be placed deliberately rather
+than assumed to still be there.
 
 Without a field block, an over-long name clips at the edge rather than
 overprinting itself, so the failure is visible rather than a smear. It is
