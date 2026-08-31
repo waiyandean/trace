@@ -173,7 +173,26 @@ def after_opening(name, storage_unopened, rule, report):
     return storage_unopened
 
 
-def build_items(ingredients, products, overrides, rule, report):
+def product_storage(name, policy, report):
+    """Where a finished product is kept.
+
+    The workbook records no storage for products, so this comes entirely from
+    the kitchen: the frozen lines and the shelf-stable oils and sauces are
+    named, and everything else goes to the walk-in fridge.
+    """
+    if not policy:
+        return None
+    exception = policy.get("exceptions", {}).get(name)
+    if exception:
+        report.add(f"Product kept in {exception} storage, named by the kitchen", name)
+        return exception
+    default = policy.get("default")
+    if default:
+        report.tally(f"Product storage from the kitchen's default: {default}")
+    return default
+
+
+def build_items(ingredients, products, overrides, rule, policy, report):
     """One items row per ingredient and per finished product."""
     items = {}
 
@@ -230,6 +249,8 @@ def build_items(ingredients, products, overrides, rule, report):
         if not name or not item_id:
             report.add("Rows skipped: no id or no name", f"FinishedProducts tab: {row!r}")
             continue
+        override = overrides.get(name, {})
+        storage = override.get("storage_unopened") or product_storage(name, policy, report)
         items[item_id] = {
             "id": item_id,
             "name": name,
@@ -237,13 +258,12 @@ def build_items(ingredients, products, overrides, rule, report):
             # Products are counted in packets, tubs, bowls or boxes — all whole
             # things, so the base unit is Units whichever label the tab uses.
             "base_unit": "Units",
-            "storage_unopened": None,
-            "storage_opened": None,
-            "needs_health_mark": None,
+            "storage_unopened": storage,
+            "storage_opened": after_opening(name, storage, rule, report),
+            "needs_health_mark": override.get("needs_health_mark"),
         }
-        override = overrides.get(name, {})
-        items[item_id]["needs_health_mark"] = override.get("needs_health_mark")
-        report.tally("Products have no storage in the workbook, both columns left null")
+        if storage is None:
+            report.add("Product has no storage, left null", name)
         if override.get("needs_health_mark") is None:
             report.tally("Health mark not yet determined, left null")
 
@@ -513,7 +533,8 @@ def main():
     decisions, provenance = load_overrides(args.overrides)
     overrides = decisions.get("items", {})
     report = Report(provenance or "unrecorded")
-    items = build_items(ingredients, products, overrides, decisions.get("after_opening"), report)
+    items = build_items(ingredients, products, overrides, decisions.get("after_opening"),
+                        decisions.get("product_storage"), report)
     conversions = build_conversions(mapping, ingredients, items, overrides, report)
     locations = build_reference_rows(decisions, "locations", ("id", "name", "kind"), report)
     suppliers = build_reference_rows(decisions, "suppliers", ("id", "name"), report)

@@ -30,7 +30,11 @@
     "that it matches the unopened requirement everywhere except the items",
     "listed as exceptions, which move to the fridge. The rule is applied only",
     "where the unopened requirement is known, so products, which have none,",
-    "stay null on both."
+    "stay null on both.",
+    "",
+    "product_storage covers the finished products, which the workbook records",
+    "no storage for at all. The frozen lines and the shelf-stable oils and",
+    "sauces are named; everything else goes to the walk-in fridge."
   ],
   "recorded_by": "Dean",
   "recorded_on": "2026-08-31",
@@ -186,5 +190,21 @@
       "id": "trace:gunjesh",
       "name": "Gunjesh"
     }
-  ]
+  ],
+  "product_storage": {
+    "default": "chill",
+    "exceptions": {
+      "Tonkotsu Broth": "freezer",
+      "Chicken Broth": "freezer",
+      "Frozen Ramen : Black Garlic": "freezer",
+      "Frozen Ramen : Chicken Tori Paitan": "freezer",
+      "Frozen Ramen : Hell Ramen": "freezer",
+      "Frozen Ramen : Laksa Ramen": "freezer",
+      "Chilli Oil": "ambient",
+      "Garlic Oil": "ambient",
+      "Teriyaki Sauce": "ambient",
+      "Spicy Teriyaki": "ambient",
+      "Soba Sauce": "ambient"
+    }
+  }
 }

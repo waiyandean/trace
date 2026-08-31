@@ -22,8 +22,9 @@ the D1 catalog schema and a read-only catalog API now exist in `worker/`,
 with the migration applied locally and its constraints verified. The catalog
 is imported from the kitchen's Weekly Stock Check Records workbook: 91 items,
 114 conversions, four Glasgow storage areas, two suppliers and ten staff, with
-the kitchen's answers to what the workbook cannot say recorded alongside it,
-and anything still undecided left null and reported rather than guessed. Label artwork and ZPL live in `labels/` and print correctly
+the kitchen's answers to what the workbook cannot say recorded alongside it.
+Every item now carries both storage requirements; what is still undecided is
+left null and reported rather than guessed. Label artwork and ZPL live in `labels/` and print correctly
 over USB; the network path to the printer is still open.
 
 **Read `PLAN.md` first** — it carries the model, the decisions and their

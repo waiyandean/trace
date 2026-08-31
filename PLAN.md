@@ -538,9 +538,17 @@ with tests plus a supervised real submission before its line is ticked.
     the cans; both are treated as exceptions, since they differ only in pack
     format. All 64 ingredients now have both storage columns.
 
-    The columns stay nullable, because the 27 products still have neither: the
-    workbook records no storage for them at all, and null continues to mean
-    "not yet determined" rather than "no requirement".
+  - **Product storage — resolved 2026-08-31 (Dean).** The workbook records no
+    storage for finished products at all. Six go to the freezer: Tonkotsu
+    Broth, Chicken Broth and the four Frozen Ramen lines. Five are
+    shelf-stable and go to ambient: Chilli Oil, Garlic Oil, Teriyaki Sauce,
+    Spicy Teriyaki and Soba Sauce. The remaining sixteen go to the walk-in
+    fridge, recorded as a default rather than named one by one. Every item in
+    the catalog now carries both storage requirements.
+
+    The columns stay nullable all the same. Null means "not yet determined",
+    and a new item added before anyone has decided where it lives must be
+    distinguishable from one deliberately left with no requirement.
   - **The health mark is now set, and it corrected the plan.** Dean's list is
     eight raw animal items, all of them ingredients and none of them products:
     chicken carcass, wings and feet, hind feet, femur bones, pork fat, chicken

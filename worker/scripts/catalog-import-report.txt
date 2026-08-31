@@ -6,6 +6,21 @@ Moves to a different area once opened (3)
   - Hoi Sin Sauce Cans — chill
   - White Miso — chill
 
+Product kept in ambient storage, named by the kitchen (5)
+  - Chilli Oil
+  - Garlic Oil
+  - Soba Sauce
+  - Spicy Teriyaki
+  - Teriyaki Sauce
+
+Product kept in freezer storage, named by the kitchen (6)
+  - Chicken Broth
+  - Frozen Ramen : Black Garlic
+  - Frozen Ramen : Chicken Tori Paitan
+  - Frozen Ramen : Hell Ramen
+  - Frozen Ramen : Laksa Ramen
+  - Tonkotsu Broth
+
 Added from the overrides, not in the workbook (2)
   - Chicken Fillet
   - Pork Belly
@@ -13,8 +28,8 @@ Added from the overrides, not in the workbook (2)
 No case conversion, by decision (1)
   - Pork Belly — sold per kg, so there is no fixed case size to convert from
 
-After-opening storage taken from the kitchen's rule: same as unopened: 61 rows
+After-opening storage taken from the kitchen's rule: same as unopened: 88 rows
 Health mark not yet determined, left null: 83 rows
-Products have no storage in the workbook, both columns left null: 27 rows
+Product storage from the kitchen's default: chill: 16 rows
 Case count taken from Items per Case over the workbook's Kobas `1 x` form: 9 rows
 Products have no case size, so no conversion: 19 rows
