@@ -6,6 +6,19 @@ Moves to a different area once opened (3)
   - Hoi Sin Sauce Cans — chill
   - White Miso — chill
 
+Excluded from the catalog, imported inactive (11)
+  - Carrots — used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)
+  - Chicken Powder — used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)
+  - Chinese Leaves — used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)
+  - Dark Soy Sauce — used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)
+  - Green Oil — not made or held at Glasgow
+  - Hoi Sin Sauce Cans — used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)
+  - Ikigai Chicken Broth — not made or held at Glasgow
+  - Medium Eggs — used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)
+  - Sriracha Chilli Sauce — used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)
+  - Tomato Ketchup — used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)
+  - Tomato Puree Paste — used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)
+
 Product kept in ambient storage, named by the kitchen (5)
   - Chilli Oil
   - Garlic Oil
@@ -20,10 +33,6 @@ Product kept in freezer storage, named by the kitchen (6)
   - Frozen Ramen : Hell Ramen
   - Frozen Ramen : Laksa Ramen
   - Tonkotsu Broth
-
-Excluded from the catalog, imported inactive (2)
-  - Green Oil — not made or held at Glasgow
-  - Ikigai Chicken Broth — not made or held at Glasgow
 
 Added from the overrides, not in the workbook (2)
   - Chicken Fillet

@@ -735,9 +735,22 @@ with tests plus a supervised real submission before its line is ticked.
   the wrong supplier and leaves somebody at the door with a box they cannot
   book in.
 
-  Two further gaps are recorded rather than filled. Twelve ingredients have no
-  supplier anywhere in the records; they show under every supplier rather than
-  none, since hiding stock that has genuinely turned up is the worse failure.
+  **The twelve ingredients with no supplier are now settled (Dean,
+  2026-08-31).** Chicken Fillet comes from Lynas; Tahini and Dried Bird Eye
+  Chillies from Tazaki. The other nine — Carrots, Chicken Powder, Chinese
+  Leaves, Dark Soy Sauce, Hoi Sin Sauce Cans, Medium Eggs, Sriracha Chilli
+  Sauce, Tomato Ketchup and Tomato Puree Paste — are used at Edinburgh only
+  and are out of scope at Glasgow. They are imported inactive with that
+  reason, the same treatment as Ikigai Chicken Broth and Green Oil, rather
+  than deleted: a skip would let a later import add them back unnoticed.
+  Glasgow now holds 55 active ingredients and every one of them has a
+  supplier.
+
+  Those three answers live in `catalog-overrides.json` alongside the rest of
+  the kitchen's decisions, and the importer records them as `decided` rather
+  than as `delivered` or `registered`. A person saying so is a good source; it
+  is simply not the same source as a delivery note, and the row says which.
+
   Twenty-eight names in the workbook match no catalog ingredient — mostly
   packaging, or the same thing spelled differently — and are left out rather
   than matched approximately. The picker also always offers "Show everything",

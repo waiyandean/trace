@@ -18,6 +18,8 @@ INSERT INTO item_suppliers (item_id, supplier_id, source, note) VALUES ('mpv4uvj
   ON CONFLICT (item_id, supplier_id) DO UPDATE SET source = excluded.source, note = excluded.note, updated_at = datetime('now');
 INSERT INTO item_suppliers (item_id, supplier_id, source, note) VALUES ('mpv4x5mait4u', 'trace:lynas', 'delivered', '110 deliveries in the Goods In Records history, and on the kitchen''s maintained supplier list')
   ON CONFLICT (item_id, supplier_id) DO UPDATE SET source = excluded.source, note = excluded.note, updated_at = datetime('now');
+INSERT INTO item_suppliers (item_id, supplier_id, source, note) VALUES ('trace:chicken-fillet', 'trace:lynas', 'registered', 'on the kitchen''s maintained supplier list, but never seen in the delivery history')
+  ON CONFLICT (item_id, supplier_id) DO UPDATE SET source = excluded.source, note = excluded.note, updated_at = datetime('now');
 INSERT INTO item_suppliers (item_id, supplier_id, source, note) VALUES ('mpv4w2k806ce', 'trace:lynas', 'delivered', '19 deliveries in the Goods In Records history, and on the kitchen''s maintained supplier list')
   ON CONFLICT (item_id, supplier_id) DO UPDATE SET source = excluded.source, note = excluded.note, updated_at = datetime('now');
 INSERT INTO item_suppliers (item_id, supplier_id, source, note) VALUES ('mpucrpe8rlh5', 'trace:lynas', 'delivered', '24 deliveries in the Goods In Records history, and on the kitchen''s maintained supplier list')
@@ -27,6 +29,8 @@ INSERT INTO item_suppliers (item_id, supplier_id, source, note) VALUES ('mpucspu
 INSERT INTO item_suppliers (item_id, supplier_id, source, note) VALUES ('mpxzs2w0ltja', 'trace:tazaki', 'delivered', '14 deliveries in the Goods In Records history, and on the kitchen''s maintained supplier list')
   ON CONFLICT (item_id, supplier_id) DO UPDATE SET source = excluded.source, note = excluded.note, updated_at = datetime('now');
 INSERT INTO item_suppliers (item_id, supplier_id, source, note) VALUES ('mpv3vzatkfqx', 'trace:lynas', 'delivered', '181 deliveries in the Goods In Records history, and on the kitchen''s maintained supplier list')
+  ON CONFLICT (item_id, supplier_id) DO UPDATE SET source = excluded.source, note = excluded.note, updated_at = datetime('now');
+INSERT INTO item_suppliers (item_id, supplier_id, source, note) VALUES ('mpv2kmqueish', 'trace:tazaki', 'registered', 'on the kitchen''s maintained supplier list, but never seen in the delivery history')
   ON CONFLICT (item_id, supplier_id) DO UPDATE SET source = excluded.source, note = excluded.note, updated_at = datetime('now');
 INSERT INTO item_suppliers (item_id, supplier_id, source, note) VALUES ('mpv4ya5ookoo', 'trace:lynas', 'delivered', '188 deliveries in the Goods In Records history, and on the kitchen''s maintained supplier list')
   ON CONFLICT (item_id, supplier_id) DO UPDATE SET source = excluded.source, note = excluded.note, updated_at = datetime('now');
@@ -107,6 +111,8 @@ INSERT INTO item_suppliers (item_id, supplier_id, source, note) VALUES ('mpv43vq
 INSERT INTO item_suppliers (item_id, supplier_id, source, note) VALUES ('mpv452gsu2ll', 'trace:lynas', 'delivered', '29 deliveries in the Goods In Records history, and on the kitchen''s maintained supplier list')
   ON CONFLICT (item_id, supplier_id) DO UPDATE SET source = excluded.source, note = excluded.note, updated_at = datetime('now');
 INSERT INTO item_suppliers (item_id, supplier_id, source, note) VALUES ('mpudm0lkbvi8', 'trace:lynas', 'delivered', '55 deliveries in the Goods In Records history, and on the kitchen''s maintained supplier list')
+  ON CONFLICT (item_id, supplier_id) DO UPDATE SET source = excluded.source, note = excluded.note, updated_at = datetime('now');
+INSERT INTO item_suppliers (item_id, supplier_id, source, note) VALUES ('mpv3bqob8hyp', 'trace:tazaki', 'registered', 'on the kitchen''s maintained supplier list, but never seen in the delivery history')
   ON CONFLICT (item_id, supplier_id) DO UPDATE SET source = excluded.source, note = excluded.note, updated_at = datetime('now');
 INSERT INTO item_suppliers (item_id, supplier_id, source, note) VALUES ('mpv0637u6fag', 'trace:lynas', 'delivered', '13 deliveries in the Goods In Records history, and on the kitchen''s maintained supplier list')
   ON CONFLICT (item_id, supplier_id) DO UPDATE SET source = excluded.source, note = excluded.note, updated_at = datetime('now');

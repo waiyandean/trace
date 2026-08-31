@@ -296,17 +296,22 @@ function render() {
 // reading a name, and the kitchen already has a picture of every ingredient,
 // so this is a grid of pictures rather than a list to scroll. The grouping
 // and the location default are in lib/offline.js, where they are tested.
-function ingredients() {
-  const all = (state.catalog?.items || [])
+function allIngredients() {
+  return (state.catalog?.items || [])
     .filter((item) => item.kind === 'ingredient')
     .sort((a, b) => a.name.localeCompare(b.name));
+}
 
-  // Narrowed to the chosen supplier unless the person has asked to see
-  // everything. The escape hatch matters: the mapping came from the kitchen's
-  // records and is not complete, so a filter must never be the reason a
-  // delivery cannot be booked in.
-  if (state.showEveryIngredient) return all;
-  return forSupplier(all, state.catalog?.itemSuppliers || [], $('supplier').value || null);
+function ingredientsForSupplier() {
+  return forSupplier(allIngredients(), state.catalog?.itemSuppliers || [], $('supplier').value || null);
+}
+
+// Narrowed to the chosen supplier unless the person has asked to see
+// everything. The escape hatch matters: the mapping came from the kitchen's
+// records rather than from first principles, so a filter must never be the
+// reason a delivery cannot be booked in.
+function ingredients() {
+  return state.showEveryIngredient ? allIngredients() : ingredientsForSupplier();
 }
 
 // A photograph is served from this origin, so it works offline once cached.
@@ -382,10 +387,19 @@ function renderPickerScope() {
     return;
   }
 
+  // The "plus any with no supplier" clause is only true while some ingredient
+  // has no supplier recorded. Saying it when none do would describe a rule
+  // that is not currently doing anything.
+  const mapping = state.catalog?.itemSuppliers || [];
+  const mapped = new Set(mapping.map((row) => row.item_id));
+  const unmapped = ingredientsForSupplier().filter((item) => !mapped.has(item.id)).length;
+
   const label = document.createElement('span');
   label.textContent = state.showEveryIngredient
     ? 'Showing every ingredient. '
-    : `${supplier.name}’s ingredients, plus any with no supplier recorded. `;
+    : unmapped
+      ? `${supplier.name}’s ingredients, plus ${unmapped} with no supplier recorded. `
+      : `${supplier.name}’s ingredients. `;
   scope.append(label);
 
   const toggle = document.createElement('button');

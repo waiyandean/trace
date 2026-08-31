@@ -1,4 +1,4 @@
-59 item/supplier pairings over 52 of 64 ingredients -> scripts/item-suppliers.sql
+62 item/supplier pairings over 55 of 55 active ingredients (9 inactive, out of scope at Glasgow) -> scripts/item-suppliers.sql
 
 Ingredients arriving from more than one supplier (7)
   The premise that suppliers do not share ingredients does not hold in the
@@ -14,22 +14,11 @@ Ingredients arriving from more than one supplier (7)
   - Shimaya Konbudashi: Lynas (delivered), Tazaki (delivered)
   - Toban Djan Chilli Bean Sauce: Lynas (delivered), Tazaki (delivered)
 
-Ingredients with no supplier at all (12)
-  These appear under every supplier in the picker rather than none, because
-  hiding an ingredient nobody has mapped would be worse than showing it.
+Supplier decided by the kitchen rather than found in the records (3)
 
-  - Carrots
-  - Chicken Fillet
-  - Chicken Powder
-  - Chinese Leaves
-  - Dark Soy Sauce
-  - Dried Bird Eye Chillies
-  - Hoi Sin Sauce Cans
-  - Medium Eggs
-  - Sriracha Chilli Sauce
-  - Tahini
-  - Tomato Ketchup
-  - Tomato Puree Paste
+  - Chicken Fillet: Lynas
+  - Dried Bird Eye Chillies: Tazaki
+  - Tahini: Tazaki
 
 Names in the workbook that match no catalog ingredient (28)
   Left out rather than matched approximately. Most are packaging, or the

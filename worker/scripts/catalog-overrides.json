@@ -214,6 +214,21 @@
   },
   "excluded": {
     "Ikigai Chicken Broth": "not made or held at Glasgow",
-    "Green Oil": "not made or held at Glasgow"
+    "Green Oil": "not made or held at Glasgow",
+    "Carrots": "used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)",
+    "Chicken Powder": "used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)",
+    "Chinese Leaves": "used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)",
+    "Dark Soy Sauce": "used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)",
+    "Hoi Sin Sauce Cans": "used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)",
+    "Medium Eggs": "used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)",
+    "Sriracha Chilli Sauce": "used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)",
+    "Tomato Ketchup": "used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)",
+    "Tomato Puree Paste": "used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)"
+  },
+  "item_suppliers": {
+    "_comment": "Which supplier an ingredient comes from, where the kitchen's records could not say. Applied on top of the Goods In Records mapping.",
+    "Chicken Fillet": "Lynas",
+    "Tahini": "Tazaki",
+    "Dried Bird Eye Chillies": "Tazaki"
   }
 }

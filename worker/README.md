@@ -176,12 +176,16 @@ labelled on each row: `registered` is its maintained supplier list, and
 2,600-odd real deliveries. Where both apply, `delivered` wins, because a
 pairing the history proves is stronger than one only written down.
 
+Where the records cannot say, the kitchen's answer is taken from
+`scripts/catalog-overrides.json` — the same file the catalog importer reads —
+and recorded as `decided`, so a decision is never mistaken for evidence.
+
 The relationship is many-to-many. **The kitchen's records do not support the
 idea that suppliers never share an ingredient**: seven ingredients arrive from
 both Lynas and Tazaki, five of them proven by deliveries from each. Read
-`scripts/item-suppliers-report.txt`; it lists those seven, the twelve
-ingredients with no supplier recorded anywhere, and every workbook name that
-matches no catalog item. Nothing is matched approximately — the two
+`scripts/item-suppliers-report.txt`; it lists those seven and every workbook
+name that matches no catalog item. All 55 active ingredients now have a
+supplier. Nothing is matched approximately — the two
 spreadsheets spell several things differently, and a fuzzy match would put an
 ingredient behind the wrong supplier and hide it at the door.
 

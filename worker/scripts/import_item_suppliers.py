@@ -19,6 +19,10 @@ entirely agree and the disagreement is worth keeping rather than flattening.
 Where the maintained list names a supplier that has never delivered the item,
 that is recorded too — the list may be right and the history merely short.
 
+Where the records cannot say, the kitchen's answer is taken from
+`scripts/catalog-overrides.json` — the same file the catalog importer reads —
+and recorded as `decided`, so a decision is never mistaken for evidence.
+
 Names are matched after normalising case and spacing only. Anything that does
 not match a catalog item is reported, never guessed at: the two spreadsheets
 spell several things differently, and a fuzzy match here would put an
@@ -85,6 +89,7 @@ def main():
     parser.add_argument("--api", default="http://localhost:8799")
     parser.add_argument("--out", default="scripts/item-suppliers.sql")
     parser.add_argument("--report", default="scripts/item-suppliers-report.txt")
+    parser.add_argument("--overrides", default="scripts/catalog-overrides.json")
     args = parser.parse_args()
 
     try:
@@ -126,6 +131,23 @@ def main():
     for (item_name, supplier_name), count in delivered.items():
         note(item_name, supplier_name, "delivered", count)
 
+    # The kitchen's own answers, applied last and recorded as decided rather
+    # than as evidence. A person saying so is a perfectly good source; it is
+    # simply a different one from a delivery note, and the difference is worth
+    # keeping on the row.
+    overrides_path = pathlib.Path(args.overrides)
+    overrides = json.loads(overrides_path.read_text()) if overrides_path.exists() else {}
+    decided = {
+        name: supplier
+        for name, supplier in (overrides.get("item_suppliers") or {}).items()
+        if not name.startswith("_")
+    }
+    provenance = ""
+    if decided:
+        provenance = f" ({overrides.get('recorded_by')}, {overrides.get('recorded_on')})"
+    for item_name, supplier_name in decided.items():
+        note(item_name, supplier_name, "decided")
+
     names = {item["id"]: item["name"] for item in items}
     supplier_names = {row["id"]: row["name"] for row in suppliers}
 
@@ -165,11 +187,18 @@ def main():
 
     shared = {names[i]: sorted(v) for i, v in by_item.items() if len(v) > 1}
     ingredients = [item for item in items if item["kind"] == "ingredient"]
-    unmapped = sorted(item["name"] for item in ingredients if item["id"] not in by_item)
+
+    # Only an active ingredient with no supplier is a gap. An inactive one is
+    # a decision already taken — it is out of scope at Glasgow, and the picker
+    # does not show it at all — so listing it as unanswered would be noise
+    # that never goes away.
+    active = [item for item in ingredients if item.get("active")]
+    unmapped = sorted(item["name"] for item in active if item["id"] not in by_item)
+    dropped = sorted(item["name"] for item in ingredients if not item.get("active"))
 
     report = [
-        f"{len(rows)} item/supplier pairings over {len(by_item)} of {len(ingredients)} ingredients "
-        f"-> {args.out}",
+        f"{len(rows)} item/supplier pairings over {len(by_item)} of {len(active)} active ingredients "
+        f"({len(dropped)} inactive, out of scope at Glasgow) -> {args.out}",
         "",
     ]
     if shared:
@@ -184,6 +213,11 @@ def main():
         for name, entries in sorted(shared.items()):
             report.append(f"  - {name}: " + ", ".join(f"{supplier} ({source})" for supplier, source in entries))
         report.append("")
+    if decided:
+        report += [
+            f"Supplier decided by the kitchen rather than found in the records ({len(decided)})",
+            "",
+        ] + [f"  - {name}: {supplier}" for name, supplier in sorted(decided.items())] + [""]
     if unmapped:
         report += [
             f"Ingredients with no supplier at all ({len(unmapped)})",

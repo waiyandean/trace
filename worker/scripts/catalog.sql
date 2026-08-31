@@ -86,7 +86,7 @@ ON CONFLICT (id) DO UPDATE SET
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    needs_health_mark, active, note)
-VALUES ('mpv49dty4hdf', 'Carrots', 'ingredient', 'kg', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('mpv49dty4hdf', 'Carrots', 'ingredient', 'kg', 'chill', 'chill', NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -138,7 +138,7 @@ ON CONFLICT (id) DO UPDATE SET
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    needs_health_mark, active, note)
-VALUES ('mpv4ep7cxb5t', 'Chicken Powder', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpv4ep7cxb5t', 'Chicken Powder', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -164,7 +164,7 @@ ON CONFLICT (id) DO UPDATE SET
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    needs_health_mark, active, note)
-VALUES ('mpv46rcpaytv', 'Chinese Leaves', 'ingredient', 'Units', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('mpv46rcpaytv', 'Chinese Leaves', 'ingredient', 'Units', 'chill', 'chill', NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -216,7 +216,7 @@ ON CONFLICT (id) DO UPDATE SET
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    needs_health_mark, active, note)
-VALUES ('mpuzhbhus7w8', 'Dark Soy Sauce', 'ingredient', 'L', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpuzhbhus7w8', 'Dark Soy Sauce', 'ingredient', 'L', 'ambient', 'ambient', NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -372,7 +372,7 @@ ON CONFLICT (id) DO UPDATE SET
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    needs_health_mark, active, note)
-VALUES ('mpuzrf5htyrc', 'Hoi Sin Sauce Cans', 'ingredient', 'Units', 'ambient', 'chill', NULL, 1, NULL)
+VALUES ('mpuzrf5htyrc', 'Hoi Sin Sauce Cans', 'ingredient', 'Units', 'ambient', 'chill', NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -476,7 +476,7 @@ ON CONFLICT (id) DO UPDATE SET
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    needs_health_mark, active, note)
-VALUES ('mpv4dmq37alr', 'Medium Eggs', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpv4dmq37alr', 'Medium Eggs', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -710,7 +710,7 @@ ON CONFLICT (id) DO UPDATE SET
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    needs_health_mark, active, note)
-VALUES ('mpv4frxnle13', 'Sriracha Chilli Sauce', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpv4frxnle13', 'Sriracha Chilli Sauce', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -762,7 +762,7 @@ ON CONFLICT (id) DO UPDATE SET
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    needs_health_mark, active, note)
-VALUES ('mpv4gpc6mcvn', 'Tomato Ketchup', 'ingredient', 'kg', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpv4gpc6mcvn', 'Tomato Ketchup', 'ingredient', 'kg', 'ambient', 'ambient', NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -775,7 +775,7 @@ ON CONFLICT (id) DO UPDATE SET
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    needs_health_mark, active, note)
-VALUES ('mpv4j0ic2j14', 'Tomato Puree Paste', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpv4j0ic2j14', 'Tomato Puree Paste', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
