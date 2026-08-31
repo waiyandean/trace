@@ -733,6 +733,19 @@ with tests plus a supervised real submission before its line is ticked.
   written on the case by hand — which is no worse than today, where the code
   is a date.
 
+  **The device identifies itself, and its section is a footnote (Dean,
+  2026-08-31).** Nothing in it is an instruction, so it sits at the foot of
+  the page rather than above the work: the codes held, the catalog's age and
+  the running app version are for the moment somebody asks why the iPad is
+  behaving oddly.
+
+  Going further — letting a device register *itself* on first use, so the
+  choice could never appear even with several devices — is deliberately not
+  done yet. Registration is currently a deliberate act in the database, and
+  that is the only thing presently stopping anyone who loads the URL from
+  minting a device and a code pool. It becomes safe once there is
+  authentication, and should be revisited then.
+
   **The form does not ask which device it is (Dean, 2026-08-31).** The kitchen
   has one iPad, so where exactly one device is registered the form uses it and
   the row stays hidden — choosing the only candidate is not a guess. The

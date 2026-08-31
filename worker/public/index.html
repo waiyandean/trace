@@ -110,6 +110,14 @@ button:disabled { opacity: 0.45; }
 
 .note { padding: 0 16px 14px; font-size: 14px; color: var(--muted); }
 
+/* Diagnostics, not a step. Nothing in here is an instruction — the device
+   identifies itself — so it sits at the foot of the page and stays out of the
+   way until somebody is asking why the iPad is behaving oddly. */
+.footnote { background: none; border: none; }
+.footnote > h2 { padding-left: 0; }
+.footnote .note { padding-left: 0; }
+.footnote .row { padding-left: 0; padding-right: 0; }
+
 /* The attestations. Big targets, and unticked by default: a box that starts
    ticked records that the form was submitted, not that anybody checked. */
 .attest { list-style: none; margin: 0; padding: 4px 16px 12px; }
@@ -235,20 +243,6 @@ dialog header { border-radius: 16px 16px 0 0; }
 <main>
   <div id="alerts"></div>
 
-  <!-- The device row is shown only when there is a genuine choice to make.
-       The kitchen has one iPad, so normally there is not, and asking would be
-       a question with one possible answer. -->
-  <section id="device-section">
-    <h2>This device</h2>
-    <div class="row" id="device-row" hidden>
-      <div class="field">
-        <label for="device">Device</label>
-        <select id="device"></select>
-      </div>
-    </div>
-    <p class="note" id="device-note"></p>
-  </section>
-
   <section>
     <h2>Delivery</h2>
     <div class="row">
@@ -322,6 +316,20 @@ dialog header { border-radius: 16px 16px 0 0; }
       <button id="submit" disabled>Save goods in record</button>
       <button class="secondary" id="discard">Clear this delivery</button>
     </div>
+  </section>
+
+  <!-- The device row is shown only when there is a genuine choice to make.
+       The kitchen has one iPad, so normally there is not, and asking would be
+       a question with one possible answer. -->
+  <section id="device-section" class="footnote">
+    <h2>This device</h2>
+    <div class="row" id="device-row" hidden>
+      <div class="field">
+        <label for="device">Device</label>
+        <select id="device"></select>
+      </div>
+    </div>
+    <p class="note" id="device-note"></p>
   </section>
 
 </main>
