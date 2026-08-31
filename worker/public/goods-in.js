@@ -348,7 +348,7 @@ function renderSubmitNote() {
   }
 
   if (problems.length) {
-    note.textContent = `Still needed: ${problems.join(', ')}.`;
+    note.textContent = `Before this record can be saved: ${problems.join(', ')}.`;
     $('submit').disabled = true;
     return;
   }
@@ -367,7 +367,8 @@ function renderSubmitNote() {
 
   const withoutCode = state.lines.filter((line) => !line.short_code).length;
   note.textContent = withoutCode
-    ? `${state.lines.length} line(s). ${withoutCode} has no short code — book it in anyway and relabel when codes are back.`
+    ? `${state.lines.length} line(s). ${withoutCode} without a short code — save the record anyway and ` +
+      'relabel those cases once codes are available.'
     : `${state.lines.length} line(s). Write each short code on that case's label before it goes into storage.`;
   $('submit').disabled = false;
 }
@@ -682,8 +683,8 @@ async function saveLine() {
     const div = document.createElement('div');
     div.className = 'banner warn';
     div.textContent =
-      `${productTemp}°C is above the ${limit}°C limit. This case will be booked in and held ` +
-      'until somebody rechecks it. Add it if the reading is right; take another if it is not.';
+      `${productTemp}°C is above the ${limit}°C limit. This case will be recorded and held ` +
+      'until it is rechecked. Add it if the reading is right; take another if it is not.';
     if (!state.acknowledgedBreach) {
       state.acknowledgedBreach = true;
       $('line-error').replaceChildren(div);
@@ -744,7 +745,11 @@ async function submitDelivery() {
   // Queued before it is sent, always. If this device dies on the next line
   // the delivery is still on it.
   if (!queue.add(submission)) {
-    notify('This device would not store the submission, so it has NOT been sent. Do not clear the screen: write the delivery down.', 'bad');
+    notify(
+      'This device could not store the record, so it has NOT been saved. Do not clear the screen: '
+        + 'write the delivery down.',
+      'bad',
+    );
     return;
   }
 
@@ -756,7 +761,7 @@ async function submitDelivery() {
   for (const id of ['vehicle-chilled', 'vehicle-frozen', 'vehicle-note']) $(id).value = '';
   $('vehicle-condition').value = 'good';
   render();
-  notify('Booked in and queued. Write each short code on its case.', 'ok');
+  notify('Goods in record saved. Write each short code on its case.', 'ok');
 
   await drainQueue();
 }
@@ -770,8 +775,8 @@ async function drainQueue() {
     }),
   );
 
-  if (results.rejected) notify(`${results.rejected} submission(s) were refused. Open the queue to see why.`, 'bad');
-  if (results.waiting) notify('Waiting for a connection. Nothing is lost; it will send itself.', 'warn');
+  if (results.rejected) notify(`${results.rejected} record(s) were refused. Open the queue to see why.`, 'bad');
+  if (results.waiting) notify('Waiting for a connection. Nothing is lost; it will send when the form is next opened.', 'warn');
 
   // The server decides what the pool holds, so a successful sync is the right
   // moment to reconcile: codes bound by a submission this device never heard
@@ -912,7 +917,7 @@ function renderQueue() {
   if (!entries.length) {
     const p = document.createElement('p');
     p.className = 'empty';
-    p.textContent = 'Nothing waiting. Every delivery keyed on this device has been accepted.';
+    p.textContent = 'Nothing waiting. Every record keyed on this device has been accepted.';
     body.append(p);
     return;
   }
@@ -1042,7 +1047,7 @@ $('line-cancel').addEventListener('click', () => $('line-dialog').close());
 $('submit').addEventListener('click', submitDelivery);
 $('discard').addEventListener('click', () => {
   if (!state.lines.length) return;
-  if (!window.confirm('Discard every line on this delivery?')) return;
+  if (!window.confirm('Clear every line on this delivery?')) return;
   for (const line of state.lines) pool.giveBack(line.short_code);
   state.lines = [];
   render();
