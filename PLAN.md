@@ -504,8 +504,8 @@ with tests plus a supervised real submission before its line is ticked.
   workbook the kitchen already maintains (`Ingredients`, `FinishedProducts`
   and `map` tabs), by `worker/scripts/import_catalog.py`. 91 items — 64
   ingredients and 27 products — plus two ingredients the workbook does not
-  carry, and 114 conversions, four locations and two suppliers, loaded into
-  the local database and read back through the API. Items keep the workbook's own ids,
+  carry, and 114 conversions, four locations, two suppliers and ten staff,
+  loaded into the local database and read back through the API. Items keep the workbook's own ids,
   so a re-import updates rows rather than duplicating them.
 
   Where the workbook cannot answer, the kitchen's answers are recorded in
@@ -528,12 +528,19 @@ with tests plus a supervised real submission before its line is ticked.
     was set up differently and that column was written for it. Items per Case
     is the authority for the case count everywhere; the Case Size string is
     read only for the item size after the `x`.
-  - **After-opening storage is null on all 62 ingredients**, and both storage
-    columns are null on all 27 products, because the workbook has no such
-    field. This is the column the Date Opened label prints, so it cannot be
-    inferred from the unopened one — that inference is exactly the error the
-    label exists to prevent. The migration makes both columns nullable for
-    this reason, with null meaning "not yet determined".
+  - **After-opening storage — resolved 2026-08-31 (Dean).** The workbook has
+    no such column, and it is the one the Date Opened label prints, so it
+    could not be inferred. Dean's rule settles it: an item is kept as it was
+    unopened, except for hoi sin sauce and white miso, which move to the
+    fridge. That is now recorded as a rule with its three exceptions rather
+    than copied value by value, so a reader can see which items were decided
+    and which follow the rule. Hoi sin is two catalog rows, the 20 kg tub and
+    the cans; both are treated as exceptions, since they differ only in pack
+    format. All 64 ingredients now have both storage columns.
+
+    The columns stay nullable, because the 27 products still have neither: the
+    workbook records no storage for them at all, and null continues to mean
+    "not yet determined" rather than "no requirement".
   - **The health mark is now set, and it corrected the plan.** Dean's list is
     eight raw animal items, all of them ingredients and none of them products:
     chicken carcass, wings and feet, hind feet, femur bones, pork fat, chicken
@@ -543,6 +550,7 @@ with tests plus a supervised real submission before its line is ticked.
     catalog and are flagged. Chicken Fillet and Pork Belly were absent from
     the workbook and were added from the overrides on Dean's figures: chicken
     fillet as 2 × 2.5 kg per case, pork belly sold per kg with no fixed case,
+    both kept in the Walk In Fridge,
     so it carries no case conversion at all — recorded as a decision rather
     than left looking like an omission. The flag stays null on the other 83
     items, meaning not yet determined rather than no mark.
@@ -561,18 +569,22 @@ with tests plus a supervised real submission before its line is ticked.
   Kite becomes relevant only if packaging is brought into scope, which is
   still open question 8.
 
-  `customers` and `staff` remain empty. The Goods In Records sheet does carry
-  staff names, but as free text with the same person spelled several ways —
-  Nikin, Nikin Shrestha and Nikn; Nilesh and Nilesh Shrestha; Aaron and Aarom;
-  Dean and dean. Importing that would put exactly the ambiguity this project
-  exists to remove into the audit trail on day one, so the staff list needs to
-  come from Dean rather than from the records. It is bound up with open
-  question 7 either way.
+  **Staff settled 2026-08-31 (Dean)**, as ten people: Nikin, Nilesh, Surendra,
+  Mateus, Paulo, Siku, Rogerio, Aaron, Dean and Gunjesh. The list was taken
+  from Dean rather than from the Goods In Records sheet deliberately. That
+  sheet holds the names as free text with the same person spelled several ways
+  — Nikin, Nikin Shrestha and Nikn; Nilesh and Nilesh Shrestha; Aaron and
+  Aarom; Dean and dean — and importing it would have put exactly the ambiguity
+  this project exists to remove into the audit trail on day one. One canonical
+  row per person is what an amendment trail needs to name. How a person proves
+  they are that row is still open question 7.
+
+  `customers` remains empty; dispatch is P4 and nothing needs it yet.
 
   **The remote database exists as of 2026-08-31** (`trace`, WEUR), with the
   migration applied and the catalog loaded: 91 items, 114
-  conversions, four locations and two suppliers, read back from the remote
-  database to confirm. The Worker itself is not deployed
+  conversions, four locations, two suppliers and ten staff, read back from the
+  remote database to confirm. The Worker itself is not deployed
   yet, because a workers.dev deploy would put the catalog on a public URL with
   no authentication, and authentication is still open question 7.
 - **P1 — Receive.** Goods intake form opening lots and writing `RECEIVE`

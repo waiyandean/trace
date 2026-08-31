@@ -71,10 +71,8 @@ not written, and the columns still null because neither the workbook nor the
 overrides say. Those are decisions for the kitchen, not for the importer, and
 nothing fills them in by guessing.
 
-`locations` and `suppliers` are listed in the overrides in full rather than
-derived from the workbook: four Glasgow storage areas, and Lynas and Tazaki.
-Only Glasgow is in scope.
+`locations`, `suppliers` and `staff` are listed in the overrides in full
+rather than derived from the workbook: four Glasgow storage areas, Lynas and
+Tazaki, and ten people. Only Glasgow is in scope.
 
-Still empty: `customers` and `staff`. Staff names exist in the old Goods In
-Records sheet, but as free text with one person spelled several ways, so that
-list has to come from the kitchen rather than from the records.
+`customers` is still empty. Dispatch is P4 and nothing needs it yet.
