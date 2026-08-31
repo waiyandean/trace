@@ -68,20 +68,46 @@ async function loadCatalog() {
 
 // ------------------------------------------------------------------ pool
 
+// Why the pool is the size it is, in words, so an empty pool is never a
+// mystery to somebody stood at the door. Every path through refillPool sets
+// it.
+state.poolReason = null;
+
 async function refillPool({ force = false } = {}) {
-  if (!state.deviceId || !online()) return;
+  if (!state.deviceId) {
+    state.poolReason = 'No codes yet: choose which device this is first.';
+    render();
+    return;
+  }
+  if (!online()) {
+    state.poolReason = 'Offline, so no more codes can be fetched. What is held will be used.';
+    render();
+    return;
+  }
   if (!force && !pool.isLow()) return;
 
-  const response = await api('/api/codes', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ device_id: state.deviceId, want: POOL_TARGET }),
-  });
+  try {
+    const response = await api('/api/codes', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ device_id: state.deviceId, want: POOL_TARGET }),
+    });
 
-  if (response.ok) {
-    pool.replace(state.deviceId, response.body.codes.map((row) => row.code));
-  } else {
-    notify(`Codes: ${response.body.error || response.status}`, 'bad');
+    if (response.ok) {
+      pool.replace(state.deviceId, response.body.codes.map((row) => row.code));
+      state.poolReason = null;
+      // Lines added while the pool was empty get a code as soon as one
+      // exists. They have not been submitted yet, so nothing has been printed
+      // against them and there is no relabelling to do.
+      for (const line of state.lines) {
+        if (!line.short_code) line.short_code = pool.take();
+      }
+    } else {
+      state.poolReason = `The server would not issue codes: ${response.body.error || response.status}`;
+      notify(state.poolReason, 'bad');
+    }
+  } catch {
+    state.poolReason = 'Could not reach the server for codes. What is held will be used.';
   }
   render();
 }
@@ -238,13 +264,17 @@ function renderSubmitNote() {
 function renderDeviceNote() {
   const note = $('device-note');
   if (!state.deviceId) {
-    note.textContent = 'Choose which device this is before booking anything in. Codes are issued per device, so two iPads never print the same one.';
+    note.textContent = 'Choose which device this is before adding anything. Codes are issued per device, so two iPads never print the same one.';
     return;
   }
+
+  const parts = [`${pool.remaining()} short codes held.`];
+  if (state.poolReason) parts.push(state.poolReason);
   const cached = state.catalog?.cached_at;
-  note.textContent = cached
+  parts.push(cached
     ? `Catalog last refreshed ${new Date(cached).toLocaleString()}.`
-    : 'Catalog has never been cached on this device.';
+    : 'Catalog has never been cached on this device.');
+  note.textContent = parts.join(' ');
 }
 
 function render() {
@@ -323,11 +353,22 @@ function renderPicker(filter = '') {
   }
 }
 
-function openPicker() {
+async function openPicker() {
   if (!state.catalog) {
     notify('The catalog has not been loaded on this device yet. Connect once, then this will work offline.', 'bad');
     return;
   }
+  // Codes are issued per device, so a line added before the device is chosen
+  // could only ever be codeless. Better to ask for the one missing answer
+  // than to hand back a label with nothing on it.
+  if (!state.deviceId) {
+    notify('Choose which device this is first — short codes are issued per device.', 'bad');
+    $('device').focus();
+    return;
+  }
+  // Top up before the codes are needed rather than after, so the first line
+  // of the morning gets one.
+  await refillPool();
   $('picker-search').value = '';
   renderPicker();
   $('picker-dialog').showModal();
@@ -367,7 +408,7 @@ function fillUnits(item) {
     'applied and recorded as a rule rather than as the supplier\u2019s date.';
 }
 
-function saveLine() {
+async function saveLine() {
   const problems = [];
   const item = state.editing;
   const quantity = Number($('line-quantity').value);
@@ -387,7 +428,11 @@ function saveLine() {
   }
 
   // The code is taken now, at the moment the line is added, because that is
-  // when the label is written. If the pool is empty the line is still added.
+  // when the label is written. An empty pool is worth one attempt to refill
+  // before giving up on a code — being online with an empty pool is a
+  // recoverable state, and a codeless lot means somebody relabels a box
+  // later.
+  if (!pool.remaining() && online()) await refillPool({ force: true });
   const shortCode = pool.take();
 
   state.lines.push({

@@ -177,6 +177,17 @@ dialog header { border-radius: 16px 16px 0 0; }
   <div id="alerts"></div>
 
   <section>
+    <h2>This device</h2>
+    <div class="row">
+      <div class="field">
+        <label for="device">Device</label>
+        <select id="device"></select>
+      </div>
+    </div>
+    <p class="note" id="device-note"></p>
+  </section>
+
+  <section>
     <h2>Delivery</h2>
     <div class="row">
       <div class="field">
@@ -218,16 +229,6 @@ dialog header { border-radius: 16px 16px 0 0; }
     </div>
   </section>
 
-  <section>
-    <h2>This device</h2>
-    <div class="row">
-      <div class="field">
-        <label for="device">Device</label>
-        <select id="device"></select>
-      </div>
-    </div>
-    <p class="note" id="device-note"></p>
-  </section>
 </main>
 
 <dialog id="line-dialog">
