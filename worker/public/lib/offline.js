@@ -181,6 +181,36 @@ export function unitsFor(item, conversions) {
   return [...units];
 }
 
+// The picker's grouping. Stock is shown in the order somebody walks the
+// kitchen — fridge, freezer, dry store — because that is the order boxes come
+// off the pallet in. Items whose storage nobody has decided yet get their own
+// group rather than being quietly filed under one: an undecided value is
+// shown as undecided, the same rule the catalog follows.
+export const STORAGE_GROUPS = [
+  { key: 'chill', label: 'Fridge' },
+  { key: 'freezer', label: 'Freezer' },
+  { key: 'ambient', label: 'Dry store' },
+  { key: null, label: 'Storage not yet decided' },
+];
+
+export function groupByStorage(items, filter = '') {
+  const wanted = filter.trim().toLowerCase();
+  const matching = items.filter((item) => item.name.toLowerCase().includes(wanted));
+  return STORAGE_GROUPS
+    .map((group) => ({ ...group, items: matching.filter((item) => (item.storage_unopened || null) === group.key) }))
+    .filter((group) => group.items.length);
+}
+
+// Where an item goes is usually not a question: an item that must be kept
+// chilled has exactly one chilled area to go to. Where the kitchen has more
+// than one area of that kind — the dry store and the allergen-free shelf —
+// nothing is chosen, because picking for somebody there would be a guess
+// about allergens, which is not a guess this system is allowed to make.
+export function soleLocationFor(item, locations) {
+  const candidates = locations.filter((row) => row.kind === item.storage_unopened);
+  return candidates.length === 1 ? candidates[0].id : '';
+}
+
 // The batch code staff already write on the case: today's date. Kept exactly
 // as it is (PLAN.md, "What P1 changes, and what it deliberately does not") —
 // it is printed and stored, it is simply no longer what anything joins on.

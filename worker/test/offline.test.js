@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ulid, makeStore, makeQueue, makePool, unitsFor, defaultBatchCode, buildSubmission, syncQueue,
+  groupByStorage, soleLocationFor,
 } from '../public/lib/offline.js';
 
 // A localStorage stand-in, with a switch for the case that matters: storage
@@ -209,4 +210,52 @@ test('a queued submission keeps its key across a retry', async () => {
     return { ok: true, status: 200, body: { duplicate: true } };
   });
   assert.deepEqual(keys, [submission.idempotency_key]);
+});
+
+// The picker groups stock the way somebody walks the kitchen, and refuses to
+// choose a location on their behalf where the choice is a real one.
+
+const PICKER_ITEMS = [
+  { id: 'i1', name: 'Chicken Carcass', storage_unopened: 'freezer' },
+  { id: 'i2', name: 'Pak Choi', storage_unopened: 'chill' },
+  { id: 'i3', name: 'Rapeseed Oil', storage_unopened: 'ambient' },
+  { id: 'i4', name: 'Something New', storage_unopened: null },
+];
+
+const AREAS = [
+  { id: 'loc:fridge', name: 'Walk In Fridge', kind: 'chill' },
+  { id: 'loc:freezer', name: 'Walk In Freezer', kind: 'freezer' },
+  { id: 'loc:dry', name: 'Dry Store', kind: 'ambient' },
+  { id: 'loc:allergen', name: 'Dry Store Allergen Free Shelf', kind: 'ambient' },
+];
+
+test('stock is grouped in the order the kitchen is walked', () => {
+  const groups = groupByStorage(PICKER_ITEMS);
+  assert.deepEqual(groups.map((group) => group.label), ['Fridge', 'Freezer', 'Dry store', 'Storage not yet decided']);
+});
+
+test('an item whose storage nobody has decided is shown as undecided, not filed under one', () => {
+  const groups = groupByStorage(PICKER_ITEMS);
+  const undecided = groups.find((group) => group.key === null);
+  assert.deepEqual(undecided.items.map((item) => item.name), ['Something New']);
+});
+
+test('searching narrows the grid and drops the groups it empties', () => {
+  const groups = groupByStorage(PICKER_ITEMS, 'chick');
+  assert.equal(groups.length, 1);
+  assert.deepEqual(groups[0].items.map((item) => item.name), ['Chicken Carcass']);
+});
+
+test('an item with one possible area has it chosen for them', () => {
+  assert.equal(soleLocationFor(PICKER_ITEMS[0], AREAS), 'loc:freezer');
+  assert.equal(soleLocationFor(PICKER_ITEMS[1], AREAS), 'loc:fridge');
+});
+
+test('nothing is chosen where the dry store and the allergen shelf both fit', () => {
+  // Choosing between those two for somebody would be a guess about allergens.
+  assert.equal(soleLocationFor(PICKER_ITEMS[2], AREAS), '');
+});
+
+test('an item with no storage decided gets no location chosen either', () => {
+  assert.equal(soleLocationFor(PICKER_ITEMS[3], AREAS), '');
 });

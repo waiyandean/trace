@@ -1,0 +1,74 @@
+59 of 64 ingredients have a photograph, copied from the kitchen's existing catalog and resized to 320px.
+
+No photograph in the source catalog (2)
+  - Chicken Fillet
+  - Pork Belly
+
+  These show as a plain named tile. A photograph is worth adding, but a
+  stand-in picture of something else would be worse than none.
+
+Could not be copied (3)
+  - Apple Juice — the source is not an image — a Google Drive link that is not publicly readable (https://batching-api.waiyandean.workers.dev/catalog/image/17vKsxbcSTRiV5CxFe_7zS7ZRKyUOTUl9)
+  - Ground White Pepper — the source is not an image — a Google Drive link that is not publicly readable (https://batching-api.waiyandean.workers.dev/catalog/image/1fVr3CAvNunQitsLK6l0-sk0gT2Co1sPk)
+  - Japanese Soy Sauce — the source is not an image — a Google Drive link that is not publicly readable (https://batching-api.waiyandean.workers.dev/catalog/image/1uQf3yw2EMX1vVh0qFvPL3OAkEACDHSaC)
+
+Copied
+  - 100% Rapeseed Oil — 44 kB
+  - Aji-no Moto MSG — 17 kB
+  - Ariake Tonkotsu Paste — 20 kB
+  - Balsamic Vinegar — 23 kB
+  - Blended Sesame Oil — 61 kB
+  - Carrots — 34 kB
+  - Chicken Carcass — 16 kB
+  - Chicken Feet — 26 kB
+  - Chicken Powder — 21 kB
+  - Chicken Wings — 20 kB
+  - Chinese Leaves — 32 kB
+  - Cider Vinegar — 21 kB
+  - Cracked Black Pepper — 32 kB
+  - Curry Laksa Paste — 55 kB
+  - Dark Soy Sauce — 17 kB
+  - Diced Onions — 31 kB
+  - Dried Bird Eye Chillies — 29 kB
+  - Femur Bones — 12 kB
+  - Fine Salt — 29 kB
+  - Ginger Root — 36 kB
+  - Granulated Sugar — 31 kB
+  - Ground Bean Sauce — 22 kB
+  - Haepyo Gochujang — 22 kB
+  - Hind Feet — 14 kB
+  - Hoi Sin Sauce 20kg — 113 kB
+  - Hoi Sin Sauce Cans — 16 kB
+  - JA Yuzu Seasoning — 11 kB
+  - Korean Hot Pepper Powder — 34 kB
+  - Mae Ploy Green Curry Paste — 26 kB
+  - Mae Ploy Red Curry Paste — 26 kB
+  - Mae Ploy Tom Yum Paste — 27 kB
+  - Maggi Seasoning — 27 kB
+  - Medium Eggs — 14 kB
+  - Mirin Style Seasoning — 17 kB
+  - Paprika Sweet — 29 kB
+  - Peeled Garlic — 35 kB
+  - Peeled Potatoes — 29 kB
+  - Pork Fat — 92 kB
+  - Rajah Whole Red Chillies — 25 kB
+  - Red Bean Curd — 23 kB
+  - Red Chillies — 40 kB
+  - Rice Vinegar — 17 kB
+  - Shimaya Konbudashi — 32 kB
+  - Shio G — 16 kB
+  - Shio Paitan — 20 kB
+  - Sichuan Toban Chilli Sauce — 22 kB
+  - Spicy Bean Sauce (Mapo) — 23 kB
+  - Spinach — 33 kB
+  - Spring Onion — 40 kB
+  - Sriracha Chilli Sauce — 15 kB
+  - Syrup — 27 kB
+  - Tahini — 23 kB
+  - Toban Djan Chilli Bean Sauce — 144 kB
+  - Tomato Ketchup — 14 kB
+  - Tomato Puree Paste — 17 kB
+  - White Miso — 16 kB
+  - White Truffle Oil — 29 kB
+  - Yakisoba Sauce — 15 kB
+  - Yutaka Gochujang — 123 kB

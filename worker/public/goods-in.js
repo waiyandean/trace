@@ -1,6 +1,7 @@
 import {
   ulid, makeStore, makeQueue, makePool, makeCatalogCache,
   unitsFor, defaultBatchCode, buildSubmission, syncQueue, POOL_TARGET,
+  groupByStorage, soleLocationFor,
 } from './lib/offline.js';
 
 // The goods intake form. Everything it needs to accept a delivery is on the
@@ -144,6 +145,15 @@ function renderLines() {
     const location = locationById(line.location_id);
 
     const li = document.createElement('li');
+    if (item) {
+      const image = thumbnail(item);
+      image.style.width = '44px';
+      image.style.height = '44px';
+      image.style.borderRadius = '10px';
+      image.style.objectFit = 'cover';
+      image.style.flex = 'none';
+      li.append(image);
+    }
 
     const grow = document.createElement('div');
     grow.className = 'grow';
@@ -246,53 +256,124 @@ function render() {
 
 // ------------------------------------------------------------ line dialog
 
-function openLineDialog() {
+// The picker. Staff recognise their stock by the photograph faster than by
+// reading a name, and the kitchen already has a picture of every ingredient,
+// so this is a grid of pictures rather than a list to scroll. The grouping
+// and the location default are in lib/offline.js, where they are tested.
+function ingredients() {
+  return (state.catalog?.items || [])
+    .filter((item) => item.kind === 'ingredient')
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+// A photograph is served from this origin, so it works offline once cached.
+// An item without one gets its name on a plain tile: a stand-in picture of
+// something else would be worse than no picture at all.
+function thumbnail(item, className = '') {
+  const image = document.createElement('img');
+  image.src = `/photos/${item.id}.jpg`;
+  image.alt = '';
+  image.loading = 'lazy';
+  image.className = className;
+  image.addEventListener('error', () => {
+    const fallback = document.createElement('div');
+    fallback.className = `noimg ${className}`;
+    fallback.textContent = 'no photo';
+    image.replaceWith(fallback);
+  });
+  return image;
+}
+
+function renderPicker(filter = '') {
+  const groups = $('picker-groups');
+  groups.replaceChildren();
+
+  for (const group of groupByStorage(ingredients(), filter)) {
+    const inGroup = group.items;
+
+    const heading = document.createElement('div');
+    heading.className = 'group-head';
+    heading.textContent = group.label;
+    groups.append(heading);
+
+    const tiles = document.createElement('div');
+    tiles.className = 'tiles';
+    for (const item of inGroup) {
+      const tile = document.createElement('button');
+      tile.className = 'tile';
+      tile.type = 'button';
+      tile.append(thumbnail(item));
+      const name = document.createElement('span');
+      name.textContent = item.name;
+      tile.append(name);
+      tile.addEventListener('click', () => {
+        $('picker-dialog').close();
+        openLineDialog(item);
+      });
+      tiles.append(tile);
+    }
+    groups.append(tiles);
+  }
+
+  if (!groups.children.length) {
+    const empty = document.createElement('p');
+    empty.className = 'empty';
+    empty.textContent = `Nothing matches “${filter}”.`;
+    groups.append(empty);
+  }
+}
+
+function openPicker() {
   if (!state.catalog) {
     notify('The catalog has not been loaded on this device yet. Connect once, then this will work offline.', 'bad');
     return;
   }
+  $('picker-search').value = '';
+  renderPicker();
+  $('picker-dialog').showModal();
+}
 
-  const ingredients = state.catalog.items
-    .filter((item) => item.kind === 'ingredient')
-    .sort((a, b) => a.name.localeCompare(b.name));
+function openLineDialog(item) {
+  state.editing = item;
 
-  fillSelect($('line-item'), ingredients, { placeholder: 'Choose an ingredient' });
-  fillSelect($('line-location'), state.catalog.locations, { placeholder: 'Choose where it is going' });
+  const chosen = $('line-chosen');
+  chosen.replaceChildren();
+  chosen.append(thumbnail(item));
+  const name = document.createElement('b');
+  name.textContent = item.name;
+  chosen.append(name);
+
+  fillSelect($('line-location'), state.catalog.locations, {
+    placeholder: 'Choose where it is going',
+    selected: soleLocationFor(item, state.catalog.locations),
+  });
   $('line-quantity').value = '';
   $('line-use-by').value = '';
   $('line-batch').value = defaultBatchCode();
   $('line-error').replaceChildren();
-  onItemChange();
+  fillUnits(item);
   $('line-dialog').showModal();
 }
 
 // The units offered are exactly the ones the conversions master can reach the
 // base unit from. Offering anything else would put a refusal in front of
 // somebody holding a box.
-function onItemChange() {
-  const item = itemById($('line-item').value);
-  const unitSelect = $('line-unit');
-  if (!item) {
-    fillSelect(unitSelect, [], { placeholder: 'Choose an ingredient first' });
-    $('line-use-by-note').textContent = '';
-    return;
-  }
+function fillUnits(item) {
   const units = unitsFor(item, state.catalog.conversions).map((unit) => ({ id: unit, name: unit }));
-  fillSelect(unitSelect, units, { selected: units.length > 1 ? 'case' : item.base_unit });
+  fillSelect($('line-unit'), units, { selected: units.some((u) => u.id === 'case') ? 'case' : item.base_unit });
 
   $('line-use-by-note').textContent =
     `Leave the use-by empty if the box has no printed date: ${item.shelf_life_days} days from today will be ` +
-    'applied and recorded as a rule rather than as the supplier’s date.';
+    'applied and recorded as a rule rather than as the supplier\u2019s date.';
 }
 
 function saveLine() {
   const problems = [];
-  const item = itemById($('line-item').value);
+  const item = state.editing;
   const quantity = Number($('line-quantity').value);
   const unit = $('line-unit').value;
   const locationId = $('line-location').value;
 
-  if (!item) problems.push('choose an ingredient');
   if (!(quantity > 0)) problems.push('enter how many');
   if (!unit) problems.push('choose a unit');
   if (!locationId) problems.push('choose where it is going');
@@ -451,9 +532,14 @@ $('device').addEventListener('change', (event) => {
   refillPool({ force: true });
 });
 
-$('add-line').addEventListener('click', openLineDialog);
-$('line-item').addEventListener('change', onItemChange);
+$('add-line').addEventListener('click', openPicker);
+$('picker-search').addEventListener('input', (event) => renderPicker(event.target.value));
+$('picker-cancel').addEventListener('click', () => $('picker-dialog').close());
 $('line-save').addEventListener('click', saveLine);
+$('line-back').addEventListener('click', () => {
+  $('line-dialog').close();
+  openPicker();
+});
 $('line-cancel').addEventListener('click', () => $('line-dialog').close());
 
 $('submit').addEventListener('click', submitDelivery);

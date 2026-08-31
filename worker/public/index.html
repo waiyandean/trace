@@ -106,6 +106,40 @@ dialog {
 }
 dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
 dialog header { border-radius: 16px 16px 0 0; }
+/* The ingredient picker. Staff recognise their stock by the photograph far
+   faster than by reading a name off a list, and the kitchen already has a
+   picture of every ingredient, so the picker is a grid of pictures grouped by
+   where the stock lives — the same order somebody walks the kitchen in. */
+.picker-search { padding: 10px 16px; position: sticky; top: 0; background: var(--surface); z-index: 5; }
+.picker-groups { overflow-y: auto; max-height: 62vh; padding-bottom: 8px; }
+.group-head {
+  font-size: 13px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
+  color: var(--tint); padding: 14px 16px 6px; position: sticky; top: 64px; background: var(--bg);
+}
+.tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 0 16px; }
+@media (max-width: 520px) { .tiles { grid-template-columns: 1fr; } }
+.tile {
+  display: flex; align-items: center; gap: 12px; text-align: left;
+  background: var(--surface); color: var(--text); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 10px; min-height: 64px; font-weight: 500;
+}
+.tile:active { background: var(--tint-soft); border-color: var(--tint); }
+.tile img, .tile .noimg {
+  width: 48px; height: 48px; border-radius: 10px; object-fit: cover;
+  background: var(--sunk); flex: none;
+}
+.tile .noimg {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--muted); text-align: center; line-height: 1.1; padding: 2px;
+}
+.tile span { min-width: 0; overflow-wrap: anywhere; }
+.chosen { display: flex; align-items: center; gap: 12px; padding: 12px 16px 4px; }
+.chosen img, .chosen .noimg {
+  width: 56px; height: 56px; border-radius: 10px; object-fit: cover; background: var(--sunk); flex: none;
+}
+.chosen .noimg { display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--muted); }
+.chosen b { font-size: 19px; }
+
 .queue-entry { border-top: 1px solid var(--line); padding: 12px 16px; font-size: 15px; }
 .queue-entry .why { color: var(--bad); font-size: 14px; margin-top: 4px; }
 .queue-entry .when { color: var(--muted); font-size: 13px; }
@@ -179,12 +213,7 @@ dialog header { border-radius: 16px 16px 0 0; }
 
 <dialog id="line-dialog">
   <header><h1 id="line-dialog-title">Add an ingredient</h1></header>
-  <div class="row">
-    <div class="field">
-      <label for="line-item">Ingredient</label>
-      <select id="line-item"></select>
-    </div>
-  </div>
+  <div class="chosen" id="line-chosen"></div>
   <div class="row">
     <div class="field">
       <label for="line-quantity">How many</label>
@@ -215,7 +244,19 @@ dialog header { border-radius: 16px 16px 0 0; }
   <div id="line-error"></div>
   <div class="actions">
     <button id="line-save">Add to the delivery</button>
+    <button class="secondary" id="line-back">Pick a different one</button>
     <button class="secondary" id="line-cancel">Cancel</button>
+  </div>
+</dialog>
+
+<dialog id="picker-dialog">
+  <header><h1>Tap an ingredient</h1></header>
+  <div class="picker-search">
+    <input id="picker-search" type="search" placeholder="Search by name" autocomplete="off" />
+  </div>
+  <div class="picker-groups" id="picker-groups"></div>
+  <div class="actions">
+    <button class="secondary" id="picker-cancel">Cancel</button>
   </div>
 </dialog>
 

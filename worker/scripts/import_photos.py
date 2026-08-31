@@ -62,6 +62,18 @@ def absolute(photo):
     return FORMS_ORIGIN + photo
 
 
+# Three of the source photographs are Google Drive links from before the
+# kitchen moved its images into R2, and Drive serves an HTML interstitial
+# rather than the file unless the caller is signed in. Saving that as a .jpg
+# would put a broken image on the picker and look like a photograph that
+# simply failed to load, so the bytes are checked before anything is written.
+IMAGE_MAGIC = (b"\xff\xd8\xff", b"\x89PNG\r\n\x1a\n", b"RIFF", b"GIF8")
+
+
+def looks_like_an_image(data):
+    return any(data.startswith(magic) for magic in IMAGE_MAGIC)
+
+
 def thumbnail(path):
     """Resize in place. sips ships with macOS, so there is no dependency to add."""
     subprocess.run(
@@ -100,7 +112,13 @@ def main():
 
         target = out / f"{item['id']}.jpg"
         try:
-            target.write_bytes(fetch(absolute(photo)))
+            data = fetch(absolute(photo))
+            if not looks_like_an_image(data):
+                raise ValueError(
+                    "the source is not an image — a Google Drive link that is not "
+                    f"publicly readable ({photo})"
+                )
+            target.write_bytes(data)
             thumbnail(target)
         except Exception as error:  # noqa: BLE001
             target.unlink(missing_ok=True)

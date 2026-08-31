@@ -73,6 +73,16 @@ delivery is on the device before the network is asked for anything.
 - **Only convertible units are offered.** The unit list per item comes from
   the conversions master, so the form cannot put a refusal in front of
   somebody holding a box.
+- **Ingredients are picked from a grid of photographs**, not a list to
+  scroll. Staff recognise their stock by the picture faster than by the name,
+  and the kitchen already has a photograph of every ingredient. Tiles are
+  grouped fridge, freezer, dry store — the order somebody walks the kitchen —
+  and an item whose storage nobody has decided gets its own group rather than
+  being quietly filed under one.
+- **A location is chosen only where there is one to choose.** An item that
+  must be chilled has exactly one chilled area, so it is preselected. An
+  ambient item is not: the dry store and the allergen-free shelf both fit, and
+  picking between them for somebody would be a guess about allergens.
 - **Ids are minted on the device** as ULIDs, so a lot exists the moment the
   person says it does.
 
@@ -127,6 +137,26 @@ Everything else refuses rather than assumes. An unknown item, an inactive
 location, a unit with no recorded conversion, a short code belonging to
 another device, a lot id already booked — each is a `400` naming what is
 wrong. A guess at intake is a wrong balance for the life of the lot.
+
+## Ingredient photographs
+
+`public/photos/<item id>.jpg`, copied once from the kitchen's existing catalog
+and committed here, so the form serves them from its own origin and works
+offline. This is a copy, not a live dependency: the old stack stays a frozen
+archive.
+
+    npm run dev                      # in another terminal, so the API answers
+    python3 scripts/import_photos.py
+
+Matching is by item id, which both catalogs share because both came from the
+same workbook, so a photograph lands on the item it was taken of and nothing
+is matched by guessing at a name. Read
+`scripts/photo-import-report.txt` afterwards: 59 of 64 ingredients have one.
+Chicken Fillet and Pork Belly have no photograph in the source at all, and
+three more are Google Drive links from before the kitchen moved its images to
+R2 which Drive will not serve to anyone not signed in. Those five show their
+name on a plain tile. A stand-in picture of a different ingredient would be
+worse than none.
 
 ## Devices
 

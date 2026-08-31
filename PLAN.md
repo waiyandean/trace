@@ -678,6 +678,30 @@ with tests plus a supervised real submission before its line is ticked.
   the walk-in fridge. 74 tests pass, including the queue, the pool, id minting
   and the submission shape.
 
+  **The picker is a grid of photographs, 2026-08-31 (Dean).** Staff recognise
+  their stock by the picture faster than by reading a name off a list, and the
+  current forms already work that way. `worker/scripts/import_photos.py`
+  copies the kitchen's existing ingredient photographs into
+  `worker/public/photos/`, once, matched by item id — both catalogs share ids
+  because both came from the same workbook, so a photograph lands on the item
+  it was taken of and nothing is matched by guessing at a name. They are
+  committed and served from trace's own origin, so the picker works offline
+  and the old stack stays a frozen archive rather than becoming a live
+  dependency.
+
+  59 of the 64 ingredients have one. Chicken Fillet and Pork Belly have no
+  photograph in the source, and three others are Google Drive links from
+  before the kitchen moved its images into R2 which Drive will not serve to
+  anyone not signed in. Those five show their name on a plain tile: a stand-in
+  picture of a different ingredient would be worse than no picture.
+
+  Tiles are grouped fridge, freezer, dry store — the order somebody walks the
+  kitchen — with an item whose storage nobody has decided in its own group
+  rather than quietly filed under one. Choosing an item preselects where it
+  goes only where there is one area of that kind; an ambient item is left
+  unset, because the dry store and the allergen-free shelf both fit and
+  choosing between them for somebody would be a guess about allergens.
+
   Labels are still not printed from the form. That is the separate workstream
   in `labels/`, and until it lands the form shows each line's short code to be
   written on the case by hand — which is no worse than today, where the code
