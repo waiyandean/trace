@@ -75,7 +75,7 @@ state.poolReason = null;
 
 async function refillPool({ force = false } = {}) {
   if (!state.deviceId) {
-    state.poolReason = 'No codes yet: choose which device this is first.';
+    state.poolReason = 'No codes yet: this iPad is not registered as a device.';
     render();
     return;
   }
@@ -245,7 +245,7 @@ function renderSubmitNote() {
   const problems = [];
   if (!$('staff').value) problems.push('who is booking it in');
   if (!$('supplier').value) problems.push('the supplier');
-  if (!state.deviceId) problems.push('which device this is');
+  if (!state.deviceId) problems.push('a registered device');
   if (!state.lines.length) problems.push('at least one ingredient');
 
   if (problems.length) {
@@ -263,12 +263,17 @@ function renderSubmitNote() {
 
 function renderDeviceNote() {
   const note = $('device-note');
+  const devices = state.catalog?.devices || [];
+
   if (!state.deviceId) {
-    note.textContent = 'Choose which device this is before adding anything. Codes are issued per device, so two iPads never print the same one.';
+    note.textContent = devices.length
+      ? 'Choose which device this is before adding anything. Codes are issued per device, so two iPads never print the same one.'
+      : 'No device is registered, so no short codes can be issued to this one. Register it in the database before using this at the door.';
     return;
   }
 
-  const parts = [`${pool.remaining()} short codes held.`];
+  const name = devices.find((row) => row.id === state.deviceId)?.name || state.deviceId;
+  const parts = [`${name}. ${pool.remaining()} short codes held.`];
   if (state.poolReason) parts.push(state.poolReason);
   const cached = state.catalog?.cached_at;
   parts.push(cached
@@ -362,7 +367,12 @@ async function openPicker() {
   // could only ever be codeless. Better to ask for the one missing answer
   // than to hand back a label with nothing on it.
   if (!state.deviceId) {
-    notify('Choose which device this is first — short codes are issued per device.', 'bad');
+    notify(
+      (state.catalog?.devices || []).length
+        ? 'Choose which device this is first — short codes are issued per device.'
+        : 'No device is registered, so this one cannot be issued short codes.',
+      'bad',
+    );
     $('device').focus();
     return;
   }
@@ -550,10 +560,26 @@ async function boot() {
     fillSelect($('supplier'), state.catalog.suppliers, { placeholder: 'Choose the supplier' });
   }
 
-  // Which of the registered devices this iPad is. Registration itself is a
-  // deliberate act in the database; this only records the choice, and it is
-  // remembered so nobody has to make it twice.
+  // Which registered device this is. The kitchen has one iPad, so this is
+  // normally not a question at all: where exactly one device is registered it
+  // is used and the row stays hidden. Picking the only candidate is not a
+  // guess.
+  //
+  // The concept stays in the schema regardless, because short codes are
+  // reserved per device and two devices must never be able to mint the same
+  // one. The day a second iPad or a phone is registered, the choice appears
+  // on its own.
   const devices = state.catalog?.devices || [];
+  if (devices.length === 1) {
+    state.deviceId = devices[0].id;
+    store.write(DEVICE_KEY, state.deviceId);
+  } else if (state.deviceId && !devices.some((row) => row.id === state.deviceId)) {
+    // The remembered device is no longer registered — retired, or renamed.
+    // Silently carrying on with it would fail at the first submission.
+    state.deviceId = null;
+  }
+
+  $('device-row').hidden = devices.length < 2;
   fillSelect($('device'), devices, { placeholder: 'Not set', selected: state.deviceId });
 
   const now = new Date();

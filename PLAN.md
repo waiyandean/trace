@@ -707,8 +707,17 @@ with tests plus a supervised real submission before its line is ticked.
   written on the case by hand — which is no worse than today, where the code
   is a date.
 
+  **The form does not ask which device it is (Dean, 2026-08-31).** The kitchen
+  has one iPad, so where exactly one device is registered the form uses it and
+  the row stays hidden — choosing the only candidate is not a guess. The
+  concept stays in the schema, because short codes are reserved per device and
+  two devices must never be able to mint the same one; the choice reappears by
+  itself the day a second device is registered. A remembered device that is no
+  longer registered is dropped rather than carried on with, since it would
+  fail at the first submission anyway.
+
   Still to do before P1 can be called finished: authentication, registering
-  the real devices, and the supervised real delivery that ends the phase.
+  the real iPad, and the supervised real delivery that ends the phase.
 - **P2 — Store, move, waste.** Location tracking, `MOVE` between areas, and the
   waste/hold log that the old project never started. Waste is early here, not
   late, because without it stock can only ever go missing rather than be

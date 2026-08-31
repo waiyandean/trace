@@ -168,7 +168,15 @@ that a typo in a device name cannot quietly mint a second pool:
 
 There is no admin endpoint for this yet; it is a deliberate, occasional act.
 `GET /api/catalog?action=devices` lists them, which is how the form knows what
-to offer.
+exists.
+
+The kitchen has one iPad, so the form does not ask which device it is: where
+exactly one device is registered it uses it, and the row stays hidden.
+Choosing the only candidate is not a guess. The concept stays in the schema
+regardless — short codes are reserved per device so two devices can never mint
+the same one — and the choice appears on its own the day a second device is
+registered. A remembered device that is no longer registered is dropped rather
+than carried on with, since it would fail at the first submission.
 
 ## Working on it
 

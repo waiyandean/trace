@@ -176,9 +176,12 @@ dialog header { border-radius: 16px 16px 0 0; }
 <main>
   <div id="alerts"></div>
 
-  <section>
+  <!-- The device row is shown only when there is a genuine choice to make.
+       The kitchen has one iPad, so normally there is not, and asking would be
+       a question with one possible answer. -->
+  <section id="device-section">
     <h2>This device</h2>
-    <div class="row">
+    <div class="row" id="device-row" hidden>
       <div class="field">
         <label for="device">Device</label>
         <select id="device"></select>
