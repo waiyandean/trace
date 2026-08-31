@@ -487,6 +487,21 @@ with tests plus a supervised real submission before its line is ticked.
 - **P0 — Foundations.** Worker, D1, migrations, staff identity, and the catalog
   tables (items, locations, suppliers, units and conversions). No capture forms
   yet. Ends with the catalog populated and readable.
+
+  **Progress 2026-08-31.** `worker/` holds the Worker, `wrangler.toml`, the
+  first migration (`items`, `locations`, `suppliers`, `customers`, `staff`,
+  `unit_conversions`) and a read-only `/api/catalog` over them, with unit
+  tests against a fake D1 binding. The migration applies to a local D1 and its
+  constraints were checked there: the health-mark flag is rejected on anything
+  that is not a product, and a conversion cannot reference an item that does
+  not exist. Items carry both storage requirements, the seven-day shelf-life
+  fallback, and the health-mark flag as decided above.
+
+  Two things remain before the line is ticked. The remote database does not
+  exist yet — `wrangler.toml` carries a placeholder `database_id` until
+  `wrangler d1 create trace` is run. And the catalog is empty: the importer is
+  waiting on the source for the item, supplier and conversion lists, since
+  nothing here may be invented to fill it.
 - **P1 — Receive.** Goods intake form opening lots and writing `RECEIVE`
   movements, offline queue and idempotency in place from the first form rather
   than retrofitted. Ends with a real delivery booked in.

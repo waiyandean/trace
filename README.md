@@ -16,8 +16,13 @@ around it, rather than the other way round.
 
 ## Status
 
-Planning. Scope, stack, offline model and history handling are decided
-(2026-08-27); schema and phases are drafted. Nothing built yet.
+P0 in progress (2026-08-31). Scope, stack, offline model and history
+handling are decided (2026-08-27); schema and phases are drafted. The Worker,
+the D1 catalog schema and a read-only catalog API now exist in `worker/`,
+with the migration applied locally and its constraints verified. The catalog
+itself is still empty, pending the source for the item, supplier and
+conversion lists. Label artwork and ZPL live in `labels/` and print correctly
+over USB; the network path to the printer is still open.
 
 **Read `PLAN.md` first** — it carries the model, the decisions and their
 reasoning, the delivery phases, and the open questions still blocking

@@ -1,0 +1,16 @@
+# The `trace` Worker — ingredient traceability and kitchen production records.
+# P0 scope: catalog tables only, read-only API. Capture forms arrive in P1.
+name = "trace"
+main = "src/index.js"
+compatibility_date = "2026-08-31"
+workers_dev = true
+
+# The traceability database. This is a NEW database, deliberately empty: the
+# old `forms-traceability` D1 and the Sheets before it are frozen as a
+# read-only archive (PLAN.md, "History: clean start, legacy read-only").
+# database_id is filled in by `wrangler d1 create trace`.
+[[d1_databases]]
+binding = "DB"
+database_name = "trace"
+database_id = "PLACEHOLDER_RUN_WRANGLER_D1_CREATE"
+migrations_dir = "migrations"
