@@ -397,10 +397,19 @@ function renderDeviceNote() {
   note.textContent = parts.join(' ');
 }
 
+function renderAddButton() {
+  const ready = Boolean(state.deviceId && $('supplier').value);
+  $('add-line').disabled = !ready;
+  $('add-line').textContent = $('supplier').value
+    ? 'Add an ingredient'
+    : 'Choose the supplier first';
+}
+
 function render() {
   renderStatus();
   renderLines();
   renderVehicle();
+  renderAddButton();
   renderSubmitNote();
   renderDeviceNote();
 }
@@ -575,6 +584,16 @@ async function openPicker() {
     $('device').focus();
     return;
   }
+  // The picker shows one supplier's ingredients, so opening it without a
+  // supplier would show all fifty-five and quietly defeat the narrowing. The
+  // line's supplier is the delivery's supplier in any case: there is nothing
+  // to add an ingredient to yet.
+  if (!$('supplier').value) {
+    notify('Choose the supplier first — the ingredient list is theirs.', 'bad');
+    $('supplier').focus();
+    return;
+  }
+
   // Top up before the codes are needed rather than after, so the first line
   // of the morning gets one.
   await refillPool();
@@ -978,7 +997,24 @@ $('staff').addEventListener('change', (event) => {
   store.write(STAFF_KEY, event.target.value);
   renderSubmitNote();
 });
-$('supplier').addEventListener('change', renderSubmitNote);
+$('supplier').addEventListener('change', () => {
+  // Changing the supplier changes which ingredients the picker offers, so
+  // lines already added may no longer belong to it. They are left alone and
+  // named rather than silently dropped: the person put them there.
+  const mapping = state.catalog?.itemSuppliers || [];
+  const theirs = new Set(
+    mapping.filter((row) => row.supplier_id === $('supplier').value).map((row) => row.item_id),
+  );
+  const mapped = new Set(mapping.map((row) => row.item_id));
+  const strangers = state.lines
+    .filter((line) => mapped.has(line.item_id) && !theirs.has(line.item_id))
+    .map((line) => itemById(line.item_id)?.name)
+    .filter(Boolean);
+  if (strangers.length) {
+    notify(`${strangers.join(', ')} already on this delivery is not from that supplier.`, 'warn');
+  }
+  render();
+});
 // The batch code is the arrival date, so changing one changes the other.
 $('occurred').addEventListener('change', render);
 for (const id of ['vehicle-condition', 'vehicle-chilled', 'vehicle-frozen', 'vehicle-note',
