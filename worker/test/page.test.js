@@ -9,6 +9,9 @@ import { readFileSync, existsSync } from 'node:fs';
 
 const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
 const script = readFileSync(new URL('../public/goods-in.js', import.meta.url), 'utf8');
+// Both forms share one stylesheet, so the rules that are load-bearing for
+// behaviour — the hidden attribute, the checkbox tick — are checked there.
+const css = readFileSync(new URL('../public/app.css', import.meta.url), 'utf8');
 
 const declared = new Set([...html.matchAll(/id="([^"]+)"/g)].map((match) => match[1]));
 const used = new Set([...script.matchAll(/\$\('([^']+)'\)/g)].map((match) => match[1]));
@@ -25,7 +28,7 @@ test('the page loads its script as a module, so imports work', () => {
 test('the form is sized for a thumb rather than a cursor', () => {
   // 44px is the smallest target a wet finger hits reliably; the whole point
   // of this form is that it is used standing up, holding a box.
-  assert.match(html, /min-height: 44px/);
+  assert.match(css, /min-height: 44px/);
   assert.match(html, /viewport-fit=cover/);
 });
 
@@ -34,8 +37,7 @@ test('no rule sets display on a dialog unless it is scoped to [open]', () => {
   // rule that sets `display` on a dialog selector without `[open]` beats it,
   // and the sheet then sits in the page flow below the form, permanently
   // open. It cost a round trip to spot, so it is pinned here.
-  const styles = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
-  const rules = styles.split('}');
+  const rules = css.split('}');
 
   const offenders = rules
     .filter((rule) => /(^|[\s,>+~])(dialog|#[\w-]*dialog)\b/.test(rule.split('{')[0] || ''))
@@ -52,22 +54,33 @@ test('no rule sets display on a dialog unless it is scoped to [open]', () => {
 
 const serviceWorker = readFileSync(new URL('../public/sw.js', import.meta.url), 'utf8');
 
-test('every file the service worker precaches exists', () => {
-  const shell = serviceWorker.match(/const SHELL = \[([^\]]+)\]/)[1];
-  const paths = [...shell.matchAll(/'([^']+)'/g)].map((match) => match[1]);
+// The precache list carries comments explaining two of its entries, so the
+// paths are read from the quoted strings rather than from the whole block.
+function shellPaths() {
+  const block = serviceWorker.match(/const SHELL = \[([\s\S]*?)\];/)[1];
+  const withoutComments = block.replace(/\/\/[^\n]*/g, '');
+  return [...withoutComments.matchAll(/'([^']+)'/g)].map((match) => match[1]);
+}
 
-  const missing = paths.filter((path) => {
-    if (path === '/') return false; // served from index.html
-    return !existsSync(new URL(`../public${path}`, import.meta.url));
+test('every file the service worker precaches exists', () => {
+  // A renamed or moved file means install() rejects and the worker never
+  // activates, which shows up as "offline stopped working" long after the
+  // change that caused it.
+  const missing = shellPaths().filter((path) => {
+    const file = path === '/' ? '/index.html' : path;
+    // Workers' static assets serve an extensionless URL from the .html file.
+    return !existsSync(new URL(`../public${file}`, import.meta.url))
+      && !existsSync(new URL(`../public${file}.html`, import.meta.url));
   });
   assert.deepEqual(missing, []);
 });
 
-test('the shell precaches / rather than /index.html', () => {
-  // Workers' static assets answer /index.html with a 307 to /, and a cached
-  // redirect cannot satisfy a navigation. Checked because the failure only
-  // appears offline, which is the one time nobody can debug it.
-  assert.doesNotMatch(serviceWorker.match(/const SHELL = \[([^\]]+)\]/)[1], /index\.html/);
+test('the shell precaches extensionless paths, not .html ones', () => {
+  // Workers' static assets answer /index.html and /stock.html with a 307 to
+  // the extensionless form, and a cached redirect cannot satisfy a
+  // navigation. Checked because the failure only appears offline, which is
+  // the one time nobody can debug it.
+  assert.deepEqual(shellPaths().filter((path) => path.endsWith('.html')), []);
 });
 
 test('the service worker leaves the API alone', () => {
@@ -91,8 +104,7 @@ test('a checkbox keeps the tick the browser draws for it', () => {
   // `appearance: none` on a bare `input` selector strips a checkbox's tick
   // entirely: it goes on toggling while showing nothing, which reads as a
   // broken control. The generic field styling must exclude checkboxes.
-  const styles = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
-  const offenders = styles
+  const offenders = css
     .split('}')
     .filter((rule) => /appearance\s*:\s*none/.test(rule))
     .map((rule) => (rule.split('{')[0] || '').trim())
@@ -117,8 +129,7 @@ test('the hidden attribute beats the classes that set display', () => {
   // hides — the device picker and the product temperature box — carry such a
   // class, and both were on screen because of it. The override is what makes
   // `el.hidden = true` mean anything here.
-  const styles = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
-  assert.match(styles, /\[hidden\]\s*\{[^}]*display:\s*none\s*!important/);
+  assert.match(css, /\[hidden\]\s*\{[^}]*display:\s*none\s*!important/);
 });
 
 test('everything the page hides is hidden by that attribute, not by a class', () => {
@@ -128,4 +139,30 @@ test('everything the page hides is hidden by that attribute, not by a class', ()
   const hiddenInScript = [...script.matchAll(/\$\('([^']+)'\)\.hidden\s*=/g)].map((m) => m[1]);
   const unmanaged = hiddenInMarkup.filter((id) => !hiddenInScript.includes(id));
   assert.deepEqual(unmanaged, [], 'these start hidden and nothing ever shows them');
+});
+
+// The stock screen is a second page over the same API. Its wiring is checked
+// the same way as the goods-in form's.
+
+const stockHtml = readFileSync(new URL('../public/stock.html', import.meta.url), 'utf8');
+const stockScript = readFileSync(new URL('../public/stock.js', import.meta.url), 'utf8');
+
+test('every element the stock screen reaches for exists in its page', () => {
+  const declared = new Set([...stockHtml.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+  const used = new Set([...stockScript.matchAll(/\$\('([^']+)'\)/g)].map((m) => m[1]));
+  const missing = [...used].filter((id) => !declared.has(id));
+  assert.deepEqual(missing, []);
+});
+
+test('both pages share one stylesheet', () => {
+  // Two copies of 225 lines of CSS would drift, and the rules that are
+  // load-bearing for behaviour are only checked in one place.
+  for (const page of [html, stockHtml]) assert.match(page, /<link rel="stylesheet" href="\/app\.css" \/>/);
+});
+
+test('the stock screen does not pretend to work offline', () => {
+  // It reads live balances that a cached copy would get wrong the moment
+  // somebody else moved something, so it says so rather than showing stale
+  // numbers as though they were current.
+  assert.match(stockScript, /this screen needs a connection/);
 });

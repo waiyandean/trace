@@ -881,6 +881,35 @@ with tests plus a supervised real submission before its line is ticked.
   waste/hold log that the old project never started. Waste is early here, not
   late, because without it stock can only ever go missing rather than be
   accounted for.
+  **Progress 2026-08-31.** The ledger side is built: `MOVE` between areas,
+  `WASTE` against a controlled reason, and a hold that is not about
+  temperature. `worker/public/stock.html` is the screen over them — what is in
+  each area, first-expiring first, searchable by name or short code, with the
+  three actions behind a tap.
+
+  The rule underneath all of it is that a lot's balance at a location is the
+  sum of its movements there and may never go below zero. A refusal names the
+  figure rather than saying no, because the person is stood in front of the
+  shelf and "there are 16" is the whole message. Held stock cannot be moved or
+  wasted, only released, since moving it first is how a hold gets worked
+  around.
+
+  Waste reasons were chosen with Dean on 2026-08-31: out of date, damaged or
+  spoiled, spillage or dropped. **Trim and preparation loss is deliberately
+  not among them** — bones and peel are a yield matter belonging to the recipe
+  at batching, and putting them in the waste log would bury the three reasons
+  worth looking at under the one that is simply normal. A fourth reason exists
+  for stock that failed a temperature check, which the system writes and
+  nobody can choose; that closed the P1 gap where a disposed deviation changed
+  a lot's status but left its quantity on the balance for ever.
+
+  The stock screen is deliberately not offline-first. It is used inside, on
+  wifi, at the racking, and it reads live balances a cached copy would get
+  wrong the moment somebody else moved something — the distinction recorded
+  under "Where the iPad actually is". It needs no device either: goods intake
+  must name one because its short codes come from that device's pool, but
+  moving stock is done on whatever is to hand.
+
 - **P3 — Produce.** Recipe-driven batching with mandatory lot selection, split
   allocation across lots, and use-by derived once from the recipe rule rather
   than typed or auto-calculated per form.

@@ -79,8 +79,19 @@ export async function validateEnvelope(db, payload, { requireDevice = true } = {
   if (!staff) throw new BadRequest(`unknown staff ${JSON.stringify(payload.staff_id)}`);
   if (staff.active !== 1) throw new BadRequest(`${staff.name} is not active`);
 
+  // Goods intake must name its device, because the short codes it prints come
+  // from that device's pool. Moving or wasting stock does not: it is done at
+  // the racking, on whatever is to hand, and demanding a device would stop a
+  // phone that has never booked a delivery from recording that something was
+  // thrown away.
+  //
+  // A device given is still checked. Quietly dropping an id that turns out to
+  // be wrong would put a submission on the record with no device at all and
+  // nothing to say one was ever offered.
   let deviceId = null;
-  if (requireDevice) {
+  const offered = payload.device_id !== undefined && payload.device_id !== null;
+  if (requireDevice || offered) {
+    if (!offered) throw new BadRequest('device_id is required');
     const device = await lookupRow(db, 'SELECT id, active FROM devices WHERE id = ?', payload.device_id);
     if (!device) throw new BadRequest(`unknown device ${JSON.stringify(payload.device_id)}`);
     if (device.active !== 1) throw new BadRequest(`device is not active: ${device.id}`);

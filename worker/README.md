@@ -22,6 +22,8 @@ is the structural change the whole rebuild rests on.
   the idempotency key and its payload fingerprint.
 - `src/ledger/stock.js` — moving stock, throwing it away, holding it.
 - `public/index.html` — the goods intake form, served from the same origin.
+- `public/stock.html`, `public/stock.js` — the stock screen: move, waste, hold.
+- `public/app.css` — the styling both pages share.
 - `public/goods-in.js` — the form's wiring to the DOM.
 - `public/lib/offline.js` — id minting, the queue, the pool. No DOM, so it is
   unit tested.
@@ -60,9 +62,10 @@ is active rows only. Items out of scope at Glasgow are held as inactive rows
 rather than removed, so they stay out of every picker without disappearing
 from the record.
 
-## The form
+## The forms
 
     /            the goods intake form
+    /stock       what is in each area, and what can be done to it
 
 Served as static assets from the same origin as the API, so there is no CORS
 and no second thing to keep deployed in step. `run_worker_first` in
@@ -266,6 +269,26 @@ roles, and every workbook name that matches no catalog item. All 55 active
 ingredients have a supplier. Nothing is matched approximately — the two
 spreadsheets spell several things differently, and a fuzzy match would put an
 ingredient behind the wrong supplier and hide it at the door.
+
+## The stock screen
+
+    /stock
+
+What is in each area, first-expiring first, with a search over ingredient
+names and short codes. Tapping a lot offers the three things that can be done
+to it. Held stock offers only the release, because moving or wasting it first
+is how a hold gets worked around.
+
+**It is deliberately not offline-first, unlike goods-in.** It is used inside,
+on wifi, stood at the racking (PLAN.md, "Where the iPad actually is"), and it
+reads live balances that a cached copy would get wrong the moment somebody
+else moved something. With no connection it says so rather than showing stale
+numbers as though they were current.
+
+It does not need a device either. Goods intake must name one, because the
+short codes it prints come from that device's pool; moving stock is done on
+whatever is to hand, and a phone that has never booked a delivery can still
+record that something was thrown away.
 
 ## Moving, wasting and holding
 

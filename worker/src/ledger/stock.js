@@ -82,7 +82,7 @@ async function takeFrom(db, lotRow, locationRow, quantity, what) {
 // ------------------------------------------------------------------- move
 
 export async function move(db, payload) {
-  const envelope = await validateEnvelope(db, payload);
+  const envelope = await validateEnvelope(db, payload, { requireDevice: false });
   const hash = await payloadHash(payload);
   const existing = await alreadyAccepted(db, envelope.idempotency_key, hash);
   if (existing) return { duplicate: true, ...(await moveResult(db, existing.id)) };
@@ -144,7 +144,7 @@ async function moveResult(db, eventId) {
 // ------------------------------------------------------------------ waste
 
 export async function waste(db, payload) {
-  const envelope = await validateEnvelope(db, payload);
+  const envelope = await validateEnvelope(db, payload, { requireDevice: false });
   const hash = await payloadHash(payload);
   const existing = await alreadyAccepted(db, envelope.idempotency_key, hash);
   if (existing) return { duplicate: true, ...(await moveResult(db, existing.id)) };
@@ -202,7 +202,7 @@ export function wasteRow(db, eventId, lotId, quantity, locationId, reasonId, env
 // ------------------------------------------------------------------- hold
 
 export async function hold(db, payload) {
-  const envelope = await validateEnvelope(db, payload);
+  const envelope = await validateEnvelope(db, payload, { requireDevice: false });
   const hash = await payloadHash(payload);
   const existing = await alreadyAccepted(db, envelope.idempotency_key, hash);
   if (existing) return { duplicate: true, event_id: existing.id };

@@ -20,7 +20,7 @@
 // deleted, so a stale cache cannot outlive the code it belongs to. It is also
 // shown on screen, so the iPad can be asked what it is running rather than
 // guessed at.
-const VERSION = '2026-08-31.1';
+const VERSION = '2026-08-31.2';
 
 const SHELL_CACHE = `trace-shell-${VERSION}`;
 const PHOTO_CACHE = 'trace-photos';
@@ -29,7 +29,16 @@ const PHOTO_CACHE = 'trace-photos';
 // a 307 to `/`, and a cached redirect cannot satisfy a navigation — the
 // browser refuses it with "Response served by service worker has redirected".
 // Caching the canonical URL avoids the whole question.
-const SHELL = ['/', '/goods-in.js', '/lib/offline.js', '/manifest.webmanifest'];
+const SHELL = [
+  '/', '/goods-in.js', '/lib/offline.js', '/app.css', '/manifest.webmanifest',
+  // The stock screen needs a connection anyway, so caching it buys nothing
+  // operationally — but caching the shell means it opens and says so, rather
+  // than showing a browser error page with no explanation.
+  // '/stock' and not '/stock.html': Workers' static assets answer the .html
+  // form with a 307 to the extensionless one, and a cached redirect cannot
+  // satisfy a navigation. The same trap as '/index.html'.
+  '/stock', '/stock.js',
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
