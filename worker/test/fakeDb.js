@@ -5,12 +5,21 @@
 
 export function fakeDb(rowsFor = () => []) {
   const calls = [];
+  const batches = [];
   return {
     calls,
+    // Statements handed to batch(), flattened, so a test can assert what one
+    // submission actually wrote without a database.
+    batches,
+    async batch(statements) {
+      batches.push(statements);
+      return statements.map(() => ({ success: true }));
+    },
     prepare(sql) {
       const call = { sql, params: [] };
       calls.push(call);
       const statement = {
+        call,
         bind(...params) {
           call.params = params;
           return statement;

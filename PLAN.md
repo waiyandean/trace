@@ -605,6 +605,60 @@ with tests plus a supervised real submission before its line is ticked.
 - **P1 — Receive.** Goods intake form opening lots and writing `RECEIVE`
   movements, offline queue and idempotency in place from the first form rather
   than retrofitted. Ends with a real delivery booked in.
+
+  **Progress 2026-08-31.** The ledger and the intake endpoint are built and
+  run against a local database; `migrations/0002_ledger.sql` adds `events`,
+  `devices`, `lots`, `movements` and `short_codes`, and `POST /api/receive`
+  books a delivery. Reads to go with it: `/api/ledger?action=lots` with the
+  balance attached and first-expiring first, `/api/ledger?action=stock` per
+  lot per location, and `/api/lookup?code=` for a scanned or typed code.
+
+  Four things in it are worth recording, because each is a decision the schema
+  now enforces rather than a convention someone has to remember.
+
+  - **Recording and printing became one act.** A submission carries the short
+    code the device has already popped from its pool and printed, and the same
+    transaction opens the lot and binds that code to it. There is no later
+    join between a label and a record to get wrong, which was the structural
+    break in the old system.
+  - **`movements` are append-only in the database**, not by convention. Two
+    triggers reject any `UPDATE` or `DELETE` with the message that a
+    correction is a compensating movement. `lots` carries no quantity and no
+    location column, so a balance is always the sum of the movements and
+    cannot drift from them. Both were checked by trying it.
+  - **Idempotency is a fingerprint, not just a key.** `events` stores a
+    SHA-256 of the canonical payload beside the client's key. A resend of an
+    accepted submission is answered with what it wrote and writes nothing; a
+    reused key carrying different content is a 400 rather than a silent
+    duplicate or a silent overwrite. A lot id that already exists is refused
+    the same way and names the event that booked it.
+  - **The use-by records its own source**, as open question 5 requires. A date
+    supplied by the form is the supplier's printed date; its absence means the
+    item's shelf life filled in, and the lot says which. The conversion from
+    what staff keyed — "3 case" — to the base unit runs only over conversions
+    somebody entered, in both directions, and an unconvertible unit is a
+    refusal naming the missing hop rather than a guess. What was keyed is
+    stored beside the converted figure, so a wrong factor found later can be
+    told apart from a wrong entry.
+
+  Verified locally end to end: a two-line Lynas delivery booked, three cases
+  of chicken carcass converting to 24 kg and two of femur bones to 20 kg, the
+  first dated from the box and the second by the seven-day rule; the same
+  submission replayed and refused as a duplicate; the stock view showing both
+  lots in their areas; and a batch-code lookup returning both lots at once,
+  which is the ambiguity that scheme has always had and the reason the system
+  no longer joins on it. 51 tests pass.
+
+  **Not deployed.** The live Worker is still the P0 read-only build. P1's
+  endpoints write, so deploying them to a URL with no authentication would let
+  anyone book a delivery that never happened. That is open question 7, and it
+  now blocks the deployment rather than merely being untidy. The remote
+  database has not been migrated either, so nothing about the live state has
+  changed.
+
+  Still to do before P1 can be called finished: authentication, the offline
+  queue on the device side, the form itself, registering the real devices, and
+  the supervised real delivery that ends the phase.
 - **P2 — Store, move, waste.** Location tracking, `MOVE` between areas, and the
   waste/hold log that the old project never started. Waste is early here, not
   late, because without it stock can only ever go missing rather than be

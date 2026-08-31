@@ -16,17 +16,25 @@ around it, rather than the other way round.
 
 ## Status
 
-P0 complete (2026-08-31). Scope, stack, offline model and history handling
-are decided (2026-08-27); schema and phases are drafted. The Worker, the D1
-catalog schema and a read-only catalog API are deployed at
+P0 complete, P1 under way (2026-08-31). Scope, stack, offline model and
+history handling are decided (2026-08-27); schema and phases are drafted.
+
+The Worker, the D1 catalog schema and a read-only catalog API are deployed at
 `https://trace.waiyandean.workers.dev`, with no authentication yet. The
 catalog is imported from the kitchen's Weekly Stock Check Records workbook:
 91 items, 114 conversions, four Glasgow storage areas, two suppliers and ten
 staff, with the kitchen's answers to what the workbook cannot say recorded
 alongside it. Every item carries both storage requirements; what is still
-undecided is left null and reported rather than guessed. Label artwork and
-ZPL live in `labels/` and print correctly over USB; the network path to the
-printer is still open.
+undecided is left null and reported rather than guessed.
+
+P1 adds the ledger — events, lots, append-only movements and the per-device
+short-code pool — and a goods intake endpoint that opens lots, converts what
+staff keyed into the item's base unit, and binds the printed short code in the
+same transaction. It runs against a local database and is not deployed: the
+endpoints write, and the live URL still has no authentication.
+
+Label artwork and ZPL live in `labels/` and print correctly over USB; the
+network path to the printer is still open.
 
 **Read `PLAN.md` first** — it carries the model, the decisions and their
 reasoning, the delivery phases, and the open questions still blocking

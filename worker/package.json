@@ -11,6 +11,6 @@
     "test": "node --test",
     "migrate:local": "wrangler d1 migrations apply trace --local",
     "migrate": "wrangler d1 migrations apply trace --remote",
-    "catalog:import": "node scripts/importCatalog.mjs"
+    "catalog:import": "python3 scripts/import_catalog.py"
   }
 }

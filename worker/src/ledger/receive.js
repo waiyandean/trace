@@ -108,6 +108,19 @@ async function prepareLine(db, line, index, envelope) {
   const where = `lines[${index}]`;
   const lotId = requireUlid(line.lot_id, `${where}.lot_id`);
 
+  // A lot id is minted once, on the device, for one physical delivery line.
+  // Seeing it again under a new idempotency key means a queued submission was
+  // edited and resent rather than retried, and accepting it would book the
+  // same cases twice. The earlier submission is named so the difference can
+  // be looked at rather than guessed.
+  const already = await lookup(db, 'SELECT id, event_id FROM lots WHERE id = ?', lotId);
+  if (already) {
+    throw new BadRequest(
+      `${where}: lot ${lotId} already exists, booked by event ${already.event_id}. ` +
+        'Retry the original submission with its own idempotency key, or mint a new lot.',
+    );
+  }
+
   const item = await lookup(db, 'SELECT id, name, base_unit, shelf_life_days, active FROM items WHERE id = ?', line.item_id);
   if (!item) throw new BadRequest(`${where}: unknown item ${JSON.stringify(line.item_id)}`);
   if (item.active !== 1) throw new BadRequest(`${where}: ${item.name} is not an active item`);
