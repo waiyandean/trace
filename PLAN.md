@@ -1068,6 +1068,18 @@ These need Dean's answer before the phase that depends on them.
    "consume immediate" state urgency with no number, and a date cannot be
    derived from urgency.
 
+   **The six weeks binds in theory rather than in practice (Dean,
+   2026-08-31): ingredients turn over within a week at most.** So the rule
+   costs nothing and is worth keeping strict — the concern that a date
+   expiring while the stock is visibly fine teaches staff to ignore dates does
+   not arise at this turnover.
+
+   Yakisoba sauce is decanted a whole bottle at a time, so there is never a
+   part-used bottle and it is `whole_pack` rather than a shortened use-by.
+   That is also a data point for the decant question below: at least some
+   decanting here empties the container rather than splitting it, which leaves
+   the lot intact and nothing to trace apart.
+
    What remains is the event: recording that a pack was opened, and applying
    the rule to that lot's use-by. That belongs with P3, where the opened pack
    is what a batch is drawn from. Products are left undetermined — the fifteen
@@ -1097,6 +1109,13 @@ These need Dean's answer before the phase that depends on them.
 7. **Decant and merge discipline.** The system can model `COMBINE` honestly,
    but how often staff combine lots determines how much trace precision is
    lost in practice. Worth observing before assuming it is rare.
+
+   **One case is already known (Dean, 2026-08-31):** yakisoba sauce is
+   decanted a whole bottle at a time. That is the harmless kind — the
+   container changes but the lot does not, nothing is mixed, and nothing is
+   left behind. The kind that costs precision is decanting *part* of a lot
+   into a container that already holds some of another, and whether that
+   happens here is still the open part.
 8. **Authentication.** The current forms use a staff picker with no real login.
    An audit trail naming who recorded and who approved an amendment is weaker
    if anyone can pick any name. Whether that changes, and to what, is open.
