@@ -204,7 +204,7 @@ def product_storage(name, policy, report):
     return default
 
 
-def opening_for(name, opening, report):
+def opening_for(name, base_unit, opening, report):
     """What opening this pack does to it.
 
     Three states, and the difference between them matters: a period shortens
@@ -220,6 +220,14 @@ def opening_for(name, opening, report):
                  if not k.startswith("_")}
     house = opening.get("house_rule") or []
     house_days = opening.get("house_rule_days")
+
+    # A countable item cannot be part-used: a case of twelve jars is consumed
+    # a whole jar at a time, which is why every Units ingredient in this
+    # catalog is whole_pack. Not enforced on twenty-one observations, but
+    # worth a second look if one ever appears.
+    if base_unit == "Units" and (name in (opening.get("from_supplier_spec") or {})
+                                 or name in (opening.get("house_rule") or [])):
+        report.add("Counted in whole items but marked as opened — worth checking", name)
 
     if name in from_spec:
         report.add("Opened pack shortens the use-by, per the supplier's specification",
@@ -278,7 +286,7 @@ def build_items(ingredients, products, overrides, rule, policy, excluded, openin
         if not storage:
             report.add("No unopened storage, left null", name)
 
-        opening_rule, days_after_opening = opening_for(name, opening, report)
+        opening_rule, days_after_opening = opening_for(name, base_unit, opening, report)
 
         items[item_id] = {
             "id": item_id,
@@ -353,7 +361,7 @@ def build_items(ingredients, products, overrides, rule, policy, excluded, openin
             # fifteen, so they come out whole_pack — which is right, and would
             # have been left undetermined if this path were special-cased.
             **dict(zip(("opening_rule", "days_after_opening"),
-                       opening_for(name, opening, report)
+                       opening_for(name, override["base_unit"], opening, report)
                        if override["kind"] == "ingredient" else (None, None))),
             "storage_opened": override.get("storage_opened")
             or after_opening(name, override.get("storage_unopened"), rule, report),

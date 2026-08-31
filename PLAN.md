@@ -1068,6 +1068,28 @@ These need Dean's answer before the phase that depends on them.
    "consume immediate" state urgency with no number, and a date cannot be
    derived from urgency.
 
+   **Why the list is fifteen and not longer (Dean, 2026-08-31): most
+   ingredients are consumed a whole unit at a time.** Toban djan arrives
+   twelve bottles to a case and a batch uses a whole number of jars, so there
+   is never a part-used jar to label. The fifteen that do get a label are the
+   bulk containers somebody draws from — the 20 kg hoi sin tub, the oils, the
+   vinegars, the salt and the peppers.
+
+   The catalog agrees with that account. **All twenty-one ingredients counted
+   in `Units` are whole-pack**, which follows from the mechanism: a countable
+   jar cannot be part-used. The fifteen that open are all `kg` or `L`. The
+   converse does not hold — eighteen kg and litre ingredients are whole-pack
+   too, because a case of chicken carcass goes into the pot entire — so the
+   base unit does not decide it, and the list stays a stated one. The importer
+   does flag a `Units` ingredient marked as opening, since on this evidence
+   that would more likely be a slip than a new case.
+
+   This also settles how batching should ask for quantities in P3: in the pack
+   unit staff actually handle — three jars, not 1.75 kg — with the conversions
+   master turning that into the base unit. Asking for a weight staff would
+   have to work out is how a form starts collecting arithmetic instead of
+   observations.
+
    **The six weeks binds in theory rather than in practice (Dean,
    2026-08-31): ingredients turn over within a week at most.** So the rule
    costs nothing and is worth keeping strict — the concern that a date
