@@ -224,6 +224,36 @@ def build_items(ingredients, products, overrides, report):
         if override.get("needs_health_mark") is None:
             report.tally("Health mark not yet determined, left null")
 
+    # Items the workbook does not carry at all. They declare their own id,
+    # kind and base unit, so there is nothing to derive and nothing to guess;
+    # what is absent here stays null exactly as it does for a workbook row.
+    known = {item["name"] for item in items.values()}
+    for name, override in overrides.items():
+        if name in known:
+            continue
+        if not override.get("id"):
+            report.add("Override names an item that is not in the catalog", name)
+            continue
+        missing = [field for field in ("kind", "base_unit") if not override.get(field)]
+        if missing:
+            report.add(
+                "Override would create an item but is incomplete",
+                f"{name} — missing {' and '.join(missing)}",
+            )
+            continue
+        items[override["id"]] = {
+            "id": override["id"],
+            "name": name,
+            "kind": override["kind"],
+            "base_unit": override["base_unit"],
+            "storage_unopened": override.get("storage_unopened"),
+            "storage_opened": override.get("storage_opened"),
+            "needs_health_mark": override.get("needs_health_mark"),
+        }
+        report.add("Added from the overrides, not in the workbook", name)
+        if not override.get("storage_unopened"):
+            report.add("Added item has no storage, left null", name)
+
     return items
 
 
@@ -282,6 +312,13 @@ def build_conversions(mapping, ingredients, items, overrides, report):
             continue
         covered.add(name)
         source = f"catalog-overrides.json ({report.provenance})"
+
+        if case.get("none"):
+            # Bought by weight with no case at all, so there is no conversion
+            # to write. Recorded so that a later reader can tell a decided
+            # absence from an oversight.
+            report.add("No case conversion, by decision", f"{name} — {case.get('reason', 'no reason given')}")
+            continue
 
         if "case_size" in case:
             # Bulk: a case is a weight, with no countable item inside it.

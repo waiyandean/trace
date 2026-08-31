@@ -15,7 +15,16 @@
     "               It follows animal origin, so it sits on the raw meat and",
     "               bone ingredients rather than on the products made from",
     "               them. Anything absent from this file stays null, meaning",
-    "               not yet determined rather than no mark."
+    "               not yet determined rather than no mark.",
+    "",
+    "An entry may also create an item the workbook does not have at all. Those",
+    "carry an explicit id, kind and base_unit, and their ids are prefixed",
+    "`trace:` so it is obvious at a glance which rows came from the workbook",
+    "and which this project minted.",
+    "",
+    "locations and suppliers are listed here in full rather than derived: the",
+    "workbook records a storage word per ingredient and two sites, but never",
+    "which physical areas exist. Only Glasgow is in scope."
   ],
   "recorded_by": "Dean",
   "recorded_on": "2026-08-31",
@@ -67,10 +76,57 @@
       "needs_health_mark": true
     },
     "Chicken Fillet": {
+      "id": "trace:chicken-fillet",
+      "kind": "ingredient",
+      "base_unit": "kg",
+      "case": {
+        "per_case": 2,
+        "item_size": 2500,
+        "item_unit": "g"
+      },
       "needs_health_mark": true
     },
     "Pork Belly": {
+      "id": "trace:pork-belly",
+      "kind": "ingredient",
+      "base_unit": "kg",
+      "case": {
+        "none": true,
+        "reason": "sold per kg, so there is no fixed case size to convert from"
+      },
       "needs_health_mark": true
     }
-  }
+  },
+  "locations": [
+    {
+      "id": "trace:dry-store",
+      "name": "Dry Store",
+      "kind": "ambient"
+    },
+    {
+      "id": "trace:dry-store-allergen-free",
+      "name": "Dry Store Allergen Free Shelf",
+      "kind": "ambient"
+    },
+    {
+      "id": "trace:walk-in-fridge",
+      "name": "Walk In Fridge",
+      "kind": "chill"
+    },
+    {
+      "id": "trace:walk-in-freezer",
+      "name": "Walk In Freezer",
+      "kind": "freezer"
+    }
+  ],
+  "suppliers": [
+    {
+      "id": "trace:lynas",
+      "name": "Lynas"
+    },
+    {
+      "id": "trace:tazaki",
+      "name": "Tazaki"
+    }
+  ]
 }
