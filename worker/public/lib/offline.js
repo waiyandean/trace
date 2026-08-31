@@ -252,11 +252,17 @@ export function soleLocationFor(item, locations) {
   return candidates.length === 1 ? candidates[0].id : '';
 }
 
-// The batch code staff already write on the case: today's date. Kept exactly
-// as it is (PLAN.md, "What P1 changes, and what it deliberately does not") —
-// it is printed and stored, it is simply no longer what anything joins on.
+// The batch code staff already write on the case: today's date, as ddmmyy
+// (Dean, 2026-08-31). Kept exactly as the kitchen writes it (PLAN.md, "What
+// P1 changes, and what it deliberately does not") — it is printed and stored,
+// it is simply no longer what anything joins on.
+//
+// It is a default rather than a format the field enforces. Staff sometimes
+// copy the supplier's own batch number instead, and refusing that would lose
+// the better identifier of the two.
 export function defaultBatchCode(date = new Date()) {
-  return date.toISOString().slice(0, 10);
+  const pad = (value) => String(value).padStart(2, '0');
+  return `${pad(date.getDate())}${pad(date.getMonth() + 1)}${pad(date.getFullYear() % 100)}`;
 }
 
 // One delivery, as the form holds it, turned into the submission the server

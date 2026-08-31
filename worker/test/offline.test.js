@@ -160,8 +160,9 @@ test('an item with no conversions can still be keyed in its base unit', () => {
   assert.deepEqual(unitsFor({ id: 'i1', base_unit: 'Units' }, []), ['Units']);
 });
 
-test('the batch code is the date, as the kitchen already writes it', () => {
-  assert.equal(defaultBatchCode(new Date('2026-08-31T14:00:00Z')), '2026-08-31');
+test('the batch code is the date as ddmmyy, the way the kitchen writes it', () => {
+  assert.equal(defaultBatchCode(new Date(2026, 7, 31, 14)), '310826');
+  assert.equal(defaultBatchCode(new Date(2027, 0, 5, 9)), '050127', 'single digits are padded');
 });
 
 test('a draft becomes the submission the server takes', () => {

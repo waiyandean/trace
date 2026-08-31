@@ -120,7 +120,7 @@ of it:
           "unit":        "case",
           "location_id": "trace:walk-in-fridge",
           "use_by":      "2026-09-04",
-          "batch_code":  "2026-08-31"
+          "batch_code":  "310826"
         }
       ]
     }
