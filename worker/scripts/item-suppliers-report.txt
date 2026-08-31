@@ -1,0 +1,70 @@
+59 item/supplier pairings over 52 of 64 ingredients -> scripts/item-suppliers.sql
+
+Ingredients arriving from more than one supplier (7)
+  The premise that suppliers do not share ingredients does not hold in the
+  kitchen's own records. Each of these needs confirming: if a pairing is
+  wrong the picker will hide that ingredient behind the wrong supplier, and
+  somebody is stuck at the door with a box they cannot book in.
+
+  - Ground Bean Sauce: Lynas (registered), Tazaki (delivered)
+  - Japanese Soy Sauce: Lynas (delivered), Tazaki (delivered)
+  - Mirin Style Seasoning: Lynas (delivered), Tazaki (delivered)
+  - Red Bean Curd: Lynas (registered), Tazaki (delivered)
+  - Rice Vinegar: Lynas (delivered), Tazaki (delivered)
+  - Shimaya Konbudashi: Lynas (delivered), Tazaki (delivered)
+  - Toban Djan Chilli Bean Sauce: Lynas (delivered), Tazaki (delivered)
+
+Ingredients with no supplier at all (12)
+  These appear under every supplier in the picker rather than none, because
+  hiding an ingredient nobody has mapped would be worse than showing it.
+
+  - Carrots
+  - Chicken Fillet
+  - Chicken Powder
+  - Chinese Leaves
+  - Dark Soy Sauce
+  - Dried Bird Eye Chillies
+  - Hoi Sin Sauce Cans
+  - Medium Eggs
+  - Sriracha Chilli Sauce
+  - Tahini
+  - Tomato Ketchup
+  - Tomato Puree Paste
+
+Names in the workbook that match no catalog ingredient (28)
+  Left out rather than matched approximately. Most are packaging, or the
+  same ingredient spelled differently; either way a guess here would put an
+  ingredient behind the wrong supplier.
+
+  - Ariake Ramen Soup (1)
+  - Birds Eye Chillies (1)
+  - Black bag (1)
+  - Chicken Wing Tips (1)
+  - Chicken fillet sliced (2)
+  - Chilli bean sauce (1)
+  - Clear refuse sack (1)
+  - Clear sack (1)
+  - Coconut Milk (1)
+  - Coriander (1)
+  - Green curry (1)
+  - Hairnet (1)
+  - Hoi Sin Sauce (1)
+  - Inner compartment tray for ramen (1)
+  - Maggi seasoning sauce (1)
+  - Pak choi (2)
+  - Ramen Noodles (2)
+  - Ramen noodles (1)
+  - Red Pepper Powder (1)
+  - Round ikigai bowl (1)
+  - Shio tare (1)
+  - Sichuan Style Toban Chilli Sauce (1)
+  - Sliced chicken fillet (1)
+  - Spicy Bean / Ma Po Sauce (1)
+  - Tom yum (1)
+  - White trffle (1)
+  - Yuzu oil (1)
+  - Yuzu seasoning (1)
+
+Suppliers not in the catalog (1)
+  - Alfa Wholesale (2)
+
