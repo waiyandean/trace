@@ -18,6 +18,9 @@ is the structural change the whole rebuild rests on.
 - `src/ledger/units.js` — converting what was keyed into the item's base unit.
 - `src/ledger/codes.js` — the short-code pool issued per device.
 - `src/ledger/reads.js` — lots, stock on hand, and code lookup.
+- `src/ledger/envelope.js` — the parts every submission shares: ids, clocks,
+  the idempotency key and its payload fingerprint.
+- `src/ledger/stock.js` — moving stock, throwing it away, holding it.
 - `public/index.html` — the goods intake form, served from the same origin.
 - `public/goods-in.js` — the form's wiring to the DOM.
 - `public/lib/offline.js` — id minting, the queue, the pool. No DOM, so it is
@@ -37,6 +40,7 @@ is the structural change the whole rebuild rests on.
     GET /api/catalog?action=conversions &item=<item id>
     GET /api/catalog?action=item_suppliers &supplier=<supplier id>
     GET /api/catalog?action=temperature_limits
+    GET /api/catalog?action=waste_reasons
 
     GET  /api/ledger?action=lots       &item=<item id> &status=open|all|held|…
     GET  /api/ledger?action=stock      &item=<item id> &location=<location id>
@@ -46,6 +50,10 @@ is the structural change the whole rebuild rests on.
     POST /api/receive                  book a delivery
     GET  /api/deviations               temperature holds nobody has closed
     POST /api/deviations               close one: a reading, an outcome, a name
+    GET  /api/holds                    lots held by hand, and why
+    POST /api/move                     move stock between storage areas
+    POST /api/waste                    throw stock away, with a reason
+    POST /api/hold                     hold a lot; add ?release to let it go
 
 Every catalog action takes `&active=all` to include retired rows; the default
 is active rows only. Items out of scope at Glasgow are held as inactive rows
@@ -258,6 +266,31 @@ roles, and every workbook name that matches no catalog item. All 55 active
 ingredients have a supplier. Nothing is matched approximately — the two
 spreadsheets spell several things differently, and a fuzzy match would put an
 ingredient behind the wrong supplier and hide it at the door.
+
+## Moving, wasting and holding
+
+One rule underneath all three: **a lot's balance at a location is the sum of
+its movements there, and it may never go below zero.** Stock that is not there
+cannot be moved or thrown away, and the refusal names the figure — "only 16 kg
+of Chicken Carcass is in Walk In Freezer". A system that allows a negative
+balance can no longer tell a mistake from a theft from a missing record.
+
+A `MOVE` is two rows in one event, negative where the stock left and positive
+where it landed, rather than one row with a from and a to. A single row can be
+half-applied by a later reader that only looks at one of the columns; two
+cannot.
+
+`WASTE` needs a reason from `waste_reasons`: out of date, damaged or spoiled,
+or spillage. **Trim and preparation loss is deliberately not one of them** —
+bones and peel are a yield matter belonging to the recipe at batching, and
+putting them here would bury the three reasons worth looking at under the one
+that is simply normal. A fourth reason, "failed a temperature check", is
+written by the system when a deviation is disposed and cannot be chosen.
+
+Held stock cannot be moved, which is how held stock otherwise finds its way
+back into the usable racking. A lot is held by a temperature deviation or by a
+hold somebody opened by hand, and it returns to `open` only when **nothing at
+all** is holding it.
 
 ## Devices
 

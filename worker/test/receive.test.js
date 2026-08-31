@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { receive, deriveUseBy, payloadHash } from '../src/ledger/receive.js';
+import { receive, deriveUseBy } from '../src/ledger/receive.js';
+import { payloadHash } from '../src/ledger/envelope.js';
 
 // A stand-in database holding one delivery's worth of catalog, so a
 // submission can be followed all the way to the statements it would write

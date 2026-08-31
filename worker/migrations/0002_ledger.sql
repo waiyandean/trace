@@ -23,11 +23,15 @@
 CREATE TABLE events (
   id              TEXT PRIMARY KEY,
 
-  -- Only 'receive' is written in P1. The rest are named now so that the
-  -- constraint does not have to be relaxed later under time pressure, and so
-  -- a reader can see the shape the ledger is growing into.
+  -- The forms that write to the ledger. Naming them up front was meant to
+  -- save relaxing the constraint later; it did not, because holds were not
+  -- thought of as submissions at the time. 'hold' and 'release' were added in
+  -- P2 by editing this file, which was only safe because these migrations had
+  -- never run anywhere but a local copy. Widening it after a deploy means
+  -- rebuilding the table, since SQLite cannot alter a CHECK.
   kind            TEXT NOT NULL CHECK (kind IN (
-                    'receive', 'move', 'waste', 'produce', 'dispatch', 'count', 'adjust'
+                    'receive', 'move', 'waste', 'hold', 'release',
+                    'produce', 'dispatch', 'count', 'adjust'
                   )),
 
   -- What makes offline sync safe. Minted with the submission on the device

@@ -2,6 +2,9 @@ import { BadRequest } from '../http.js';
 import { toBaseUnit } from './units.js';
 import { isCode } from './codes.js';
 import { loadLimits, probeKindFor, withinLimit, requireReading, recheckDueAt } from './temperature.js';
+import {
+  requireUlid, requireTimestamp, requireDate, payloadHash, alreadyAccepted, eventRow, lookupRow,
+} from './envelope.js';
 
 // Goods intake. One submission books one delivery: it opens a lot per
 // delivery line and writes the RECEIVE movement that puts that lot's quantity
@@ -25,51 +28,6 @@ import { loadLimits, probeKindFor, withinLimit, requireReading, recheckDueAt } f
 // naming what is missing. A guess at intake is a wrong balance for the life
 // of the lot and a wrong answer at the one moment this system exists for.
 
-// Key order must not change a payload's identity, so the fingerprint is taken
-// over a canonical form rather than the bytes as they arrived.
-function canonical(value) {
-  if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
-  if (value && typeof value === 'object') {
-    return `{${Object.keys(value)
-      .sort()
-      .map((key) => `${JSON.stringify(key)}:${canonical(value[key])}`)
-      .join(',')}}`;
-  }
-  return JSON.stringify(value === undefined ? null : value);
-}
-
-export async function payloadHash(payload) {
-  const bytes = new TextEncoder().encode(canonical(payload));
-  const digest = await crypto.subtle.digest('SHA-256', bytes);
-  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
-const ULID = /^[0-9A-HJKMNP-TV-Z]{26}$/;
-
-function requireUlid(value, field) {
-  if (typeof value !== 'string' || !ULID.test(value)) {
-    throw new BadRequest(`${field} must be a ULID minted on the device, got ${JSON.stringify(value)}`);
-  }
-  return value;
-}
-
-const TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(\.\d+)?(Z|[+-]\d{2}:\d{2})$/;
-const DATE = /^\d{4}-\d{2}-\d{2}$/;
-
-function requireTimestamp(value, field) {
-  if (typeof value !== 'string' || !TIMESTAMP.test(value) || Number.isNaN(Date.parse(value))) {
-    throw new BadRequest(`${field} must be an ISO 8601 timestamp with a zone, got ${JSON.stringify(value)}`);
-  }
-  return value;
-}
-
-function requireDate(value, field) {
-  if (typeof value !== 'string' || !DATE.test(value) || Number.isNaN(Date.parse(value))) {
-    throw new BadRequest(`${field} must be a date as YYYY-MM-DD, got ${JSON.stringify(value)}`);
-  }
-  return value;
-}
-
 // The shelf-life fallback, applied only where the supplier printed no date
 // (PLAN.md open question 5). Whole days from the day the delivery arrived.
 export function deriveUseBy(occurredAt, shelfLifeDays) {
@@ -77,10 +35,6 @@ export function deriveUseBy(occurredAt, shelfLifeDays) {
   const useBy = new Date(Date.UTC(arrived.getUTCFullYear(), arrived.getUTCMonth(), arrived.getUTCDate()));
   useBy.setUTCDate(useBy.getUTCDate() + shelfLifeDays);
   return useBy.toISOString().slice(0, 10);
-}
-
-async function lookup(db, sql, id) {
-  return db.prepare(sql).bind(id).first();
 }
 
 // Reads back what one submission wrote. Used both for a fresh submission and
@@ -121,7 +75,7 @@ async function prepareLine(db, line, index, envelope, limits) {
   // edited and resent rather than retried, and accepting it would book the
   // same cases twice. The earlier submission is named so the difference can
   // be looked at rather than guessed.
-  const already = await lookup(db, 'SELECT id, event_id FROM lots WHERE id = ?', lotId);
+  const already = await lookupRow(db, 'SELECT id, event_id FROM lots WHERE id = ?', lotId);
   if (already) {
     throw new BadRequest(
       `${where}: lot ${lotId} already exists, booked by event ${already.event_id}. ` +
@@ -132,7 +86,7 @@ async function prepareLine(db, line, index, envelope, limits) {
   // storage_unopened is what decides whether this line needs a probe reading,
   // so it has to come back with the row. Selecting only what was needed before
   // made every item look ambient and silently skipped every temperature check.
-  const item = await lookup(
+  const item = await lookupRow(
     db,
     'SELECT id, name, base_unit, shelf_life_days, storage_unopened, active FROM items WHERE id = ?',
     line.item_id,
@@ -140,7 +94,7 @@ async function prepareLine(db, line, index, envelope, limits) {
   if (!item) throw new BadRequest(`${where}: unknown item ${JSON.stringify(line.item_id)}`);
   if (item.active !== 1) throw new BadRequest(`${where}: ${item.name} is not an active item`);
 
-  const location = await lookup(db, 'SELECT id, name, active FROM locations WHERE id = ?', line.location_id);
+  const location = await lookupRow(db, 'SELECT id, name, active FROM locations WHERE id = ?', line.location_id);
   if (!location) throw new BadRequest(`${where}: unknown location ${JSON.stringify(line.location_id)}`);
   if (location.active !== 1) throw new BadRequest(`${where}: ${location.name} is not an active location`);
 
@@ -174,7 +128,7 @@ async function prepareLine(db, line, index, envelope, limits) {
     if (!isCode(line.short_code)) {
       throw new BadRequest(`${where}.short_code is not a valid code: ${JSON.stringify(line.short_code)}`);
     }
-    const held = await lookup(db, 'SELECT code, device_id, lot_id FROM short_codes WHERE code = ?', line.short_code);
+    const held = await lookupRow(db, 'SELECT code, device_id, lot_id FROM short_codes WHERE code = ?', line.short_code);
     if (!held) throw new BadRequest(`${where}: short code ${line.short_code} was never issued`);
     if (held.device_id !== envelope.device_id) {
       throw new BadRequest(`${where}: short code ${line.short_code} belongs to another device`);
@@ -240,15 +194,15 @@ async function validateEnvelope(db, payload) {
   }
   const occurredAt = requireTimestamp(payload.occurred_at, 'occurred_at');
 
-  const staff = await lookup(db, 'SELECT id, name, active FROM staff WHERE id = ?', payload.staff_id);
+  const staff = await lookupRow(db, 'SELECT id, name, active FROM staff WHERE id = ?', payload.staff_id);
   if (!staff) throw new BadRequest(`unknown staff ${JSON.stringify(payload.staff_id)}`);
   if (staff.active !== 1) throw new BadRequest(`${staff.name} is not active`);
 
-  const device = await lookup(db, 'SELECT id, active FROM devices WHERE id = ?', payload.device_id);
+  const device = await lookupRow(db, 'SELECT id, active FROM devices WHERE id = ?', payload.device_id);
   if (!device) throw new BadRequest(`unknown device ${JSON.stringify(payload.device_id)}`);
   if (device.active !== 1) throw new BadRequest(`device is not active: ${device.id}`);
 
-  const supplier = await lookup(db, 'SELECT id, name, active FROM suppliers WHERE id = ?', payload.supplier_id);
+  const supplier = await lookupRow(db, 'SELECT id, name, active FROM suppliers WHERE id = ?', payload.supplier_id);
   if (!supplier) throw new BadRequest(`unknown supplier ${JSON.stringify(payload.supplier_id)}`);
   if (supplier.active !== 1) throw new BadRequest(`${supplier.name} is not an active supplier`);
 
