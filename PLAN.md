@@ -351,6 +351,16 @@ intake cannot print.
 Described by Dean, 2026-08-28. This is the current practice the rebuild has to
 replace, and it explains the gap better than the data analysis does.
 
+**Where the iPad actually is.** Goods-in is the one form taken outside — to
+the van, the yard, the back door — and the wifi drops out there (Dean,
+2026-08-31). Batching and the weekly count stay indoors on wifi and do not
+have that problem. That is why the offline work is concentrated here rather
+than spread across every form: the device pre-holds its short codes, mints its
+own lot ids, queues submissions and caches the app, precisely because the one
+form that must keep working is the one most likely to have no network. P3 and
+P5 can be built expecting a connection, and should not pay for machinery they
+do not need.
+
 **Receiving a delivery**
 
 1. Staff check the invoice.
