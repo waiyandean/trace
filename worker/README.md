@@ -22,6 +22,8 @@ is the structural change the whole rebuild rests on.
 - `public/goods-in.js` — the form's wiring to the DOM.
 - `public/lib/offline.js` — id minting, the queue, the pool. No DOM, so it is
   unit tested.
+- `public/sw.js` — the service worker: caches the app so it opens with no
+  network. **Bump its `VERSION` on every deploy.**
 - `test/` — `node --test`, run against a fake D1 binding.
 
 ## Endpoints
@@ -93,6 +95,29 @@ delivery is on the device before the network is asked for anything.
   picking between them for somebody would be a guess about allergens.
 - **Ids are minted on the device** as ULIDs, so a lot exists the moment the
   person says it does.
+
+**It opens with no network at all.** `sw.js` caches the app and the
+photographs, so a reload on dead wifi gets the form rather than a browser
+error. Two choices in it are deliberate:
+
+- **Network first for the app, cache only as the fallback.** Cache-first would
+  load marginally faster and would reintroduce the exact failure the `forms`
+  repo already suffered (see its `apps/_headers`): a fix is deployed, the iPad
+  serves last week's code, and nobody can tell by looking. The cache name
+  carries `VERSION`, a deploy deletes the old one, and the running version is
+  shown on screen next to the code count so the iPad can be asked rather than
+  guessed at. **Bump `VERSION` in `sw.js` on every deploy.**
+- **`/api/*` is never intercepted.** The queue in `lib/offline.js` is the only
+  retry mechanism. A second one hiding in the cache layer would make a stuck
+  submission impossible to reason about.
+
+Add it to the home screen. iOS clears site data after seven unused days and
+installed web apps are exempt, and the queue lives in that storage.
+
+One iOS limitation: Safari has no Background Sync, so a queued submission
+sends when someone next opens the form rather than silently in the background.
+For a form opened at every delivery that is not a practical difference, but it
+is not what "background sync" would mean elsewhere.
 
 Labels are not printed from here yet — that is the separate workstream in
 `../labels/`. The form shows each line's short code so it can be written on

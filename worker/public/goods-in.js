@@ -21,6 +21,25 @@ const queue = makeQueue(store);
 const pool = makePool(store);
 const catalogCache = makeCatalogCache(store);
 
+// Registered as early as possible so a first visit on kitchen wifi caches the
+// app before anybody walks away from the router. It is not required for the
+// form to work; a browser without it simply loses the offline start-up.
+function installServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.register('/sw.js').catch(() => {
+    // Blocked, or a browser that will not have it. Nothing else changes.
+  });
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data?.version) {
+      state.appVersion = event.data.version;
+      renderDeviceNote();
+    }
+  });
+  navigator.serviceWorker.ready.then((registration) => {
+    registration.active?.postMessage('version');
+  });
+}
+
 const DEVICE_KEY = 'trace.intake.device';
 const STAFF_KEY = 'trace.intake.staff';
 
@@ -284,6 +303,10 @@ function renderDeviceNote() {
 
   const name = devices.find((row) => row.id === state.deviceId)?.name || state.deviceId;
   const parts = [`${name}. ${pool.remaining()} short codes held.`];
+  // What this iPad is actually running. A cached app that has quietly outlived
+  // a deploy is invisible otherwise, and that is exactly the failure a cache
+  // introduces.
+  if (state.appVersion) parts.push(`App version ${state.appVersion}.`);
   if (state.poolReason) parts.push(state.poolReason);
   const cached = state.catalog?.cached_at;
   parts.push(cached
@@ -739,4 +762,5 @@ window.addEventListener('online', () => {
 });
 window.addEventListener('offline', render);
 
+installServiceWorker();
 boot();

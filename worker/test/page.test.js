@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 
 // The form's JavaScript reaches for elements by id. A renamed or dropped id
 // is a runtime failure on an iPad at the goods-in door rather than anything
@@ -44,4 +44,45 @@ test('no rule sets display on a dialog unless it is scoped to [open]', () => {
     .map((rule) => (rule.split('{')[0] || '').trim());
 
   assert.deepEqual(offenders, []);
+});
+
+// The service worker caches a fixed list of files by path. A renamed or moved
+// file means install() rejects and the worker never activates, which shows up
+// as "offline stopped working" long after the change that caused it.
+
+const serviceWorker = readFileSync(new URL('../public/sw.js', import.meta.url), 'utf8');
+
+test('every file the service worker precaches exists', () => {
+  const shell = serviceWorker.match(/const SHELL = \[([^\]]+)\]/)[1];
+  const paths = [...shell.matchAll(/'([^']+)'/g)].map((match) => match[1]);
+
+  const missing = paths.filter((path) => {
+    if (path === '/') return false; // served from index.html
+    return !existsSync(new URL(`../public${path}`, import.meta.url));
+  });
+  assert.deepEqual(missing, []);
+});
+
+test('the shell precaches / rather than /index.html', () => {
+  // Workers' static assets answer /index.html with a 307 to /, and a cached
+  // redirect cannot satisfy a navigation. Checked because the failure only
+  // appears offline, which is the one time nobody can debug it.
+  assert.doesNotMatch(serviceWorker.match(/const SHELL = \[([^\]]+)\]/)[1], /index\.html/);
+});
+
+test('the service worker leaves the API alone', () => {
+  // The queue in lib/offline.js is the only retry mechanism. A second one
+  // hiding in the cache layer would make a stuck submission impossible to
+  // reason about.
+  assert.match(serviceWorker, /url\.pathname\.startsWith\('\/api\/'\)\) return/);
+});
+
+test('the cache name carries a version, so a deploy cannot be outlived', () => {
+  assert.match(serviceWorker, /const VERSION = '[\d.-]+'/);
+  assert.match(serviceWorker, /trace-shell-\$\{VERSION\}/);
+});
+
+test('the page registers the service worker and shows its version', () => {
+  assert.match(script, /navigator\.serviceWorker\.register\('\/sw\.js'\)/);
+  assert.match(script, /App version/);
 });

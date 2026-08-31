@@ -773,6 +773,37 @@ with tests plus a supervised real submission before its line is ticked.
   than matched approximately. The picker also always offers "Show everything",
   so a filter can never be the reason a delivery cannot be booked in.
 
+  **The form opens with no network, 2026-08-31.** `worker/public/sw.js` caches
+  the app and the photographs, so a reload on dead kitchen wifi gets the form
+  rather than a browser error. That was the last real offline hole: ids were
+  already minted on the device, short codes already pre-issued, and
+  submissions already queued before being sent, but none of it helped if the
+  page itself could not load.
+
+  Two choices in it are deliberate. The app is fetched network-first with the
+  cache only as a fallback, because cache-first would reintroduce the failure
+  the `forms` repo already suffered — a fix deployed, the iPad still serving
+  last week's code, and nobody able to tell by looking. The cache name carries
+  a version, a deploy deletes the old one, and the running version is shown on
+  screen. And `/api/*` is never intercepted: the queue is the only retry
+  mechanism, and a second one hidden in the cache layer would make a stuck
+  submission impossible to reason about.
+
+  The routing was checked against a fake cache and network rather than assumed
+  — offline, a navigation and the app's scripts come from the cache, a
+  photograph comes from the cache without even attempting the network, and an
+  API call is left alone to fail into the queue. Two things that only bite
+  offline were found that way: `/index.html` is answered with a 307 to `/` by
+  Workers' static assets, and a cached redirect cannot satisfy a navigation,
+  so the shell caches `/`.
+
+  A note against expectations: iOS Safari has no Background Sync, so a queued
+  submission sends when somebody next opens the form rather than silently in
+  the background. For a form opened at every delivery that is not a practical
+  difference, but it is not what the phrase means elsewhere. The form should
+  also be added to the home screen — iOS clears site data after seven unused
+  days, installed web apps are exempt, and the queue lives in that storage.
+
   Still to do before P1 can be called finished: authentication, registering
   the real iPad, and the supervised real delivery that ends the phase.
 - **P2 — Store, move, waste.** Location tracking, `MOVE` between areas, and the

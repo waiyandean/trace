@@ -1,0 +1,9 @@
+{
+  "name": "Goods In — trace",
+  "short_name": "Goods In",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f2f2f7",
+  "theme_color": "#f2f2f7",
+  "description": "Book a delivery in: opens the lots, records them, and prints the codes."
+}

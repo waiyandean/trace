@@ -7,6 +7,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-title" content="Goods In" />
 <meta name="theme-color" content="#f2f2f7" />
+<!-- Added to the home screen the form keeps its stored queue: iOS clears site
+     data after seven unused days, and installed web apps are exempt. -->
+<link rel="manifest" href="/manifest.webmanifest" />
 <style>
 /* The form is used one-handed on a wet iPad at the goods-in door, so
    everything here is sized for a thumb rather than a cursor: 44px minimum
