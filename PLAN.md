@@ -1090,6 +1090,23 @@ These need Dean's answer before the phase that depends on them.
    have to work out is how a form starts collecting arithmetic instead of
    observations.
 
+   **The bulk meat is the same story in a different unit (Dean, 2026-08-31):
+   a case is tipped into the pot entire and nothing is weighed.** Chicken
+   carcass, femur bones, hind feet and pork fat already convert a case
+   straight to kilograms in a single hop — 8 kg, 10 kg, 10 kg, 10 kg — which
+   is how they were set up in P0, because a case of bones is a weight with
+   nothing countable in it. So batching asks for cases there too, and the
+   fractional kilogram never appears.
+
+   One consequence to carry into P6 rather than discover there. **Those
+   kilograms are nominal, not measured.** A case sold as 10 kg is not exactly
+   10 kg, and since nothing is weighed at intake or at batching, the ledger
+   holds the stated figure at both ends. For traceability that is irrelevant —
+   which lot went into which batch is exact either way. For mass balance it
+   means small apparent variance that is really the difference between a
+   case's label and its contents, and a report that treats it as loss will be
+   chasing the packaging.
+
    **The six weeks binds in theory rather than in practice (Dean,
    2026-08-31): ingredients turn over within a week at most.** So the rule
    costs nothing and is worth keeping strict — the concern that a date
