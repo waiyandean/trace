@@ -103,18 +103,37 @@ button:disabled { opacity: 0.45; }
 dialog {
   border: none; border-radius: 16px 16px 0 0; padding: 0; width: 100%; max-width: 620px;
   margin: auto auto 0; background: var(--surface); color: var(--text);
+  max-height: 92vh;
 }
+/* The picker is the one sheet that is always full height: it is a list to
+   scan, and a short sheet that grows and shrinks with the search results
+   moves the tiles under the thumb between taps. */
+#picker-dialog {
+  height: 92vh; display: flex; flex-direction: column;
+}
+#picker-dialog > header,
+#picker-dialog > .picker-search,
+#picker-dialog > .actions { flex: none; position: static; }
+#picker-dialog > .actions { border-top: 1px solid var(--line); padding-top: 12px; }
 dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
 dialog header { border-radius: 16px 16px 0 0; }
 /* The ingredient picker. Staff recognise their stock by the photograph far
    faster than by reading a name off a list, and the kitchen already has a
    picture of every ingredient, so the picker is a grid of pictures grouped by
    where the stock lives — the same order somebody walks the kitchen in. */
-.picker-search { padding: 10px 16px; position: sticky; top: 0; background: var(--surface); z-index: 5; }
-.picker-groups { overflow-y: auto; max-height: 62vh; padding-bottom: 8px; }
+.picker-search { padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.picker-groups { flex: 1; overflow-y: auto; padding-bottom: 8px; overscroll-behavior: contain; }
+
+/* Sticky to the top of the scrolling list, which is this element's own
+   container — `top` here is measured against that, not against the page. It
+   also needs an opaque background and to sit above the tiles, or the row
+   scrolling underneath shows through it. */
 .group-head {
+  position: sticky; top: 0; z-index: 2;
   font-size: 13px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
-  color: var(--tint); padding: 14px 16px 6px; position: sticky; top: 64px; background: var(--bg);
+  color: var(--tint); background: var(--surface);
+  padding: 14px 16px 8px; margin-bottom: 2px;
+  box-shadow: 0 1px 0 var(--line);
 }
 .tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 0 16px; }
 @media (max-width: 520px) { .tiles { grid-template-columns: 1fr; } }
