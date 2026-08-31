@@ -210,6 +210,30 @@ export function forSupplier(items, mapping, supplierId) {
   return items.filter((item) => theirs.has(item.id) || !mapped.has(item.id));
 }
 
+// Which of a supplier's ingredients are the everyday ones and which they only
+// supply when the usual source cannot. Seven ingredients are normally bought
+// from Tazaki and come from Lynas only as a fallback, so under Lynas they
+// belong at the end rather than mixed into the grid — but they belong there,
+// because a Lynas delivery of them is a real thing that happens.
+export function splitByRole(items, mapping, supplierId) {
+  if (!supplierId) return { everyday: items, backup: [] };
+
+  const backupIds = new Set(
+    mapping.filter((row) => row.supplier_id === supplierId && row.role === 'backup').map((row) => row.item_id),
+  );
+  return {
+    everyday: items.filter((item) => !backupIds.has(item.id)),
+    backup: items.filter((item) => backupIds.has(item.id)),
+  };
+}
+
+// Who normally supplies an item, for explaining a backup tile: "normally
+// Tazaki". Null where nobody has said, or where the item has one supplier.
+export function usualSupplierFor(itemId, mapping) {
+  const primary = mapping.find((row) => row.item_id === itemId && row.role === 'primary');
+  return primary ? primary.supplier_id : null;
+}
+
 export function groupByStorage(items, filter = '') {
   const wanted = filter.trim().toLowerCase();
   const matching = items.filter((item) => item.name.toLowerCase().includes(wanted));

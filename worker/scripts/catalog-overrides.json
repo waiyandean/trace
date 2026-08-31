@@ -226,9 +226,20 @@
     "Tomato Puree Paste": "used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)"
   },
   "item_suppliers": {
-    "_comment": "Which supplier an ingredient comes from, where the kitchen's records could not say. Applied on top of the Goods In Records mapping.",
-    "Chicken Fillet": "Lynas",
-    "Tahini": "Tazaki",
-    "Dried Bird Eye Chillies": "Tazaki"
+    "_comment": "Which supplier an ingredient comes from, where the kitchen's records could not say, and which pairings are an emergency backup rather than the normal source. Applied on top of the Goods In Records mapping.",
+    "primary": {
+      "Chicken Fillet": "Lynas",
+      "Tahini": "Tazaki",
+      "Dried Bird Eye Chillies": "Tazaki"
+    },
+    "backup": {
+      "Ground Bean Sauce": "Lynas",
+      "Japanese Soy Sauce": "Lynas",
+      "Mirin Style Seasoning": "Lynas",
+      "Red Bean Curd": "Lynas",
+      "Rice Vinegar": "Lynas",
+      "Shimaya Konbudashi": "Lynas",
+      "Toban Djan Chilli Bean Sauce": "Lynas"
+    }
   }
 }

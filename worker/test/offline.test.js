@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ulid, makeStore, makeQueue, makePool, unitsFor, defaultBatchCode, buildSubmission, syncQueue,
-  groupByStorage, soleLocationFor, forSupplier,
+  groupByStorage, soleLocationFor, forSupplier, splitByRole, usualSupplierFor,
 } from '../public/lib/offline.js';
 
 // A localStorage stand-in, with a switch for the case that matters: storage
@@ -270,11 +270,12 @@ const SUPPLIER_ITEMS = [
   { id: 'i4', name: 'Carrots' },
 ];
 
+// Rice Vinegar is normally Tazaki and comes from Lynas only as a fallback.
 const MAPPING = [
-  { item_id: 'i1', supplier_id: 'sup:lynas' },
-  { item_id: 'i2', supplier_id: 'sup:tazaki' },
-  { item_id: 'i3', supplier_id: 'sup:lynas' },
-  { item_id: 'i3', supplier_id: 'sup:tazaki' },
+  { item_id: 'i1', supplier_id: 'sup:lynas', role: 'primary' },
+  { item_id: 'i2', supplier_id: 'sup:tazaki', role: 'primary' },
+  { item_id: 'i3', supplier_id: 'sup:lynas', role: 'backup' },
+  { item_id: 'i3', supplier_id: 'sup:tazaki', role: 'primary' },
 ];
 
 test('a supplier shows their own ingredients', () => {
@@ -304,4 +305,29 @@ test("another supplier's ingredient is hidden", () => {
 
 test('with no supplier chosen nothing is narrowed', () => {
   assert.equal(forSupplier(SUPPLIER_ITEMS, MAPPING, null).length, 4);
+});
+
+test('a backup ingredient is set apart under the supplier that is the fallback', () => {
+  const shown = forSupplier(SUPPLIER_ITEMS, MAPPING, 'sup:lynas');
+  const { everyday, backup } = splitByRole(shown, MAPPING, 'sup:lynas');
+  assert.deepEqual(backup.map((item) => item.name), ['Rice Vinegar']);
+  assert.equal(everyday.some((item) => item.id === 'i3'), false);
+});
+
+test('the same ingredient is ordinary stock under the supplier it normally comes from', () => {
+  const shown = forSupplier(SUPPLIER_ITEMS, MAPPING, 'sup:tazaki');
+  const { everyday, backup } = splitByRole(shown, MAPPING, 'sup:tazaki');
+  assert.deepEqual(backup, []);
+  assert.ok(everyday.some((item) => item.id === 'i3'));
+});
+
+test('a backup tile can say who normally supplies it', () => {
+  assert.equal(usualSupplierFor('i3', MAPPING), 'sup:tazaki');
+  assert.equal(usualSupplierFor('i1', MAPPING), 'sup:lynas');
+});
+
+test('with no supplier chosen nothing is set apart', () => {
+  const { everyday, backup } = splitByRole(SUPPLIER_ITEMS, MAPPING, null);
+  assert.equal(everyday.length, 4);
+  assert.deepEqual(backup, []);
 });

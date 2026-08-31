@@ -1,7 +1,7 @@
 import {
   ulid, makeStore, makeQueue, makePool, makeCatalogCache,
   unitsFor, defaultBatchCode, buildSubmission, syncQueue, POOL_TARGET,
-  groupByStorage, soleLocationFor, forSupplier,
+  groupByStorage, soleLocationFor, forSupplier, splitByRole, usualSupplierFor,
 } from './lib/offline.js';
 
 // The goods intake form. Everything it needs to accept a delivery is on the
@@ -338,31 +338,57 @@ function renderPicker(filter = '') {
 
   renderPickerScope();
 
-  for (const group of groupByStorage(ingredients(), filter)) {
-    const inGroup = group.items;
+  // Backups are drawn after everything else, under their own heading, so the
+  // everyday grid stays the everyday grid.
+  const { everyday, backup } = state.showEveryIngredient
+    ? { everyday: ingredients(), backup: [] }
+    : splitByRole(ingredients(), state.catalog?.itemSuppliers || [], $('supplier').value || null);
 
+  const tileFor = (item) => {
+    const tile = document.createElement('button');
+    tile.className = 'tile';
+    tile.type = 'button';
+    tile.append(thumbnail(item));
+    const name = document.createElement('span');
+    name.textContent = item.name;
+    tile.append(name);
+    tile.addEventListener('click', () => {
+      $('picker-dialog').close();
+      openLineDialog(item);
+    });
+    return tile;
+  };
+
+  const drawGroup = (label, items, isBackup = false) => {
     const heading = document.createElement('div');
-    heading.className = 'group-head';
-    heading.textContent = group.label;
+    heading.className = isBackup ? 'group-head backup' : 'group-head';
+    heading.textContent = label;
     groups.append(heading);
 
     const tiles = document.createElement('div');
-    tiles.className = 'tiles';
-    for (const item of inGroup) {
-      const tile = document.createElement('button');
-      tile.className = 'tile';
-      tile.type = 'button';
-      tile.append(thumbnail(item));
-      const name = document.createElement('span');
-      name.textContent = item.name;
-      tile.append(name);
-      tile.addEventListener('click', () => {
-        $('picker-dialog').close();
-        openLineDialog(item);
-      });
-      tiles.append(tile);
-    }
+    tiles.className = isBackup ? 'tiles backup' : 'tiles';
+    for (const item of items) tiles.append(tileFor(item));
     groups.append(tiles);
+  };
+
+  for (const group of groupByStorage(everyday, filter)) drawGroup(group.label, group.items);
+
+  if (backup.length) {
+    const wanted = filter.trim().toLowerCase();
+    const matching = backup.filter((item) => item.name.toLowerCase().includes(wanted));
+    if (matching.length) {
+      const mapping = state.catalog?.itemSuppliers || [];
+      const usual = (item) => {
+        const id = usualSupplierFor(item.id, mapping);
+        return (state.catalog?.suppliers || []).find((row) => row.id === id)?.name;
+      };
+      const names = [...new Set(matching.map(usual).filter(Boolean))];
+      drawGroup(
+        names.length === 1 ? `Backup only — normally ${names[0]}` : 'Backup only',
+        matching,
+        true,
+      );
+    }
   }
 
   if (!groups.children.length) {

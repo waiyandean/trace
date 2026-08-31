@@ -23,6 +23,12 @@ Where the records cannot say, the kitchen's answer is taken from
 `scripts/catalog-overrides.json` — the same file the catalog importer reads —
 and recorded as `decided`, so a decision is never mistaken for evidence.
 
+That file also says which pairings are an emergency backup rather than the
+normal source. Seven ingredients arrive from both suppliers, and both
+pairings are real, but they are not equal: the history cannot tell "bought
+here every week" apart from "bought here twice when the usual supplier could
+not deliver", and only a person can.
+
 Names are matched after normalising case and spacing only. Anything that does
 not match a catalog item is reported, never guessed at: the two spreadsheets
 spell several things differently, and a fuzzy match here would put an
@@ -137,16 +143,29 @@ def main():
     # keeping on the row.
     overrides_path = pathlib.Path(args.overrides)
     overrides = json.loads(overrides_path.read_text()) if overrides_path.exists() else {}
-    decided = {
-        name: supplier
-        for name, supplier in (overrides.get("item_suppliers") or {}).items()
-        if not name.startswith("_")
-    }
+    stated = overrides.get("item_suppliers") or {}
+    decided = {name: supplier for name, supplier in (stated.get("primary") or {}).items()}
+    backups = {normalise(name): supplier for name, supplier in (stated.get("backup") or {}).items()}
     provenance = ""
     if decided:
         provenance = f" ({overrides.get('recorded_by')}, {overrides.get('recorded_on')})"
     for item_name, supplier_name in decided.items():
         note(item_name, supplier_name, "decided")
+
+    # Which of the pairings is the everyday one. A backup is still a real
+    # pairing and stays in the table; it is simply marked, so the picker can
+    # show it without padding the everyday grid with the exceptional case.
+    backup_pairs = set()
+    for item_name, supplier_name in (stated.get("backup") or {}).items():
+        item = item_by_name.get(normalise(item_name))
+        supplier = supplier_by_name.get(normalise(supplier_name))
+        if not item:
+            unknown_items[item_name] += 1
+            continue
+        if not supplier:
+            unknown_suppliers[supplier_name] += 1
+            continue
+        backup_pairs.add((item["id"], supplier["id"]))
 
     names = {item["id"]: item["name"] for item in items}
     supplier_names = {row["id"]: row["name"] for row in suppliers}
@@ -163,7 +182,10 @@ def main():
                 detail += ", and on the kitchen's maintained supplier list"
         else:
             detail = "on the kitchen's maintained supplier list, but never seen in the delivery history"
-        rows.append((item_id, supplier_id, source, detail))
+        role = "backup" if (item_id, supplier_id) in backup_pairs else "primary"
+        if role == "backup":
+            detail += f"; an emergency backup rather than the usual source{provenance}"
+        rows.append((item_id, supplier_id, source, role, detail))
 
     lines = [
         "-- Which supplier each ingredient comes from.",
@@ -171,19 +193,21 @@ def main():
         "-- Do not edit: re-run the importer instead.",
         "",
     ]
-    for item_id, supplier_id, source, detail in rows:
+    for item_id, supplier_id, source, role, detail in rows:
         lines.append(
-            "INSERT INTO item_suppliers (item_id, supplier_id, source, note) VALUES "
-            f"({sql_str(item_id)}, {sql_str(supplier_id)}, {sql_str(source)}, {sql_str(detail)})\n"
+            "INSERT INTO item_suppliers (item_id, supplier_id, source, role, note) VALUES "
+            f"({sql_str(item_id)}, {sql_str(supplier_id)}, {sql_str(source)}, {sql_str(role)}, "
+            f"{sql_str(detail)})\n"
             "  ON CONFLICT (item_id, supplier_id) DO UPDATE SET "
-            "source = excluded.source, note = excluded.note, updated_at = datetime('now');"
+            "source = excluded.source, role = excluded.role, note = excluded.note, "
+            "updated_at = datetime('now');"
         )
     pathlib.Path(args.out).write_text("\n".join(lines) + "\n")
 
     # ---- the report -------------------------------------------------------
     by_item = collections.defaultdict(list)
-    for item_id, supplier_id, source, _ in rows:
-        by_item[item_id].append((supplier_names[supplier_id], source))
+    for item_id, supplier_id, source, role, _ in rows:
+        by_item[item_id].append((supplier_names[supplier_id], source, role))
 
     shared = {names[i]: sorted(v) for i, v in by_item.items() if len(v) > 1}
     ingredients = [item for item in items if item["kind"] == "ingredient"]
@@ -201,18 +225,31 @@ def main():
         f"({len(dropped)} inactive, out of scope at Glasgow) -> {args.out}",
         "",
     ]
+    unsettled = {
+        name: entries for name, entries in shared.items()
+        if not any(role == "backup" for _, _, role in entries)
+    }
     if shared:
         report += [
             f"Ingredients arriving from more than one supplier ({len(shared)})",
-            "  The premise that suppliers do not share ingredients does not hold in the",
-            "  kitchen's own records. Each of these needs confirming: if a pairing is",
-            "  wrong the picker will hide that ingredient behind the wrong supplier, and",
-            "  somebody is stuck at the door with a box they cannot book in.",
+            "  Both pairings are real. Where one is marked backup the kitchen has said",
+            "  which is the everyday source and which is the fallback, and the picker",
+            "  sets the fallback apart instead of padding the everyday grid with it.",
             "",
         ]
         for name, entries in sorted(shared.items()):
-            report.append(f"  - {name}: " + ", ".join(f"{supplier} ({source})" for supplier, source in entries))
+            report.append(
+                f"  - {name}: "
+                + ", ".join(f"{supplier} ({role}, {source})" for supplier, source, role in entries)
+            )
         report.append("")
+    if unsettled:
+        report += [
+            f"Shared ingredients where nobody has said which supplier is the usual one "
+            f"({len(unsettled)})",
+            "  Both show as ordinary stock under both suppliers until somebody says.",
+            "",
+        ] + [f"  - {name}" for name in sorted(unsettled)] + [""]
     if decided:
         report += [
             f"Supplier decided by the kitchen rather than found in the records ({len(decided)})",

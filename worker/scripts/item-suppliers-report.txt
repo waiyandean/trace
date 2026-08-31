@@ -1,18 +1,17 @@
 62 item/supplier pairings over 55 of 55 active ingredients (9 inactive, out of scope at Glasgow) -> scripts/item-suppliers.sql
 
 Ingredients arriving from more than one supplier (7)
-  The premise that suppliers do not share ingredients does not hold in the
-  kitchen's own records. Each of these needs confirming: if a pairing is
-  wrong the picker will hide that ingredient behind the wrong supplier, and
-  somebody is stuck at the door with a box they cannot book in.
+  Both pairings are real. Where one is marked backup the kitchen has said
+  which is the everyday source and which is the fallback, and the picker
+  sets the fallback apart instead of padding the everyday grid with it.
 
-  - Ground Bean Sauce: Lynas (registered), Tazaki (delivered)
-  - Japanese Soy Sauce: Lynas (delivered), Tazaki (delivered)
-  - Mirin Style Seasoning: Lynas (delivered), Tazaki (delivered)
-  - Red Bean Curd: Lynas (registered), Tazaki (delivered)
-  - Rice Vinegar: Lynas (delivered), Tazaki (delivered)
-  - Shimaya Konbudashi: Lynas (delivered), Tazaki (delivered)
-  - Toban Djan Chilli Bean Sauce: Lynas (delivered), Tazaki (delivered)
+  - Ground Bean Sauce: Lynas (backup, registered), Tazaki (primary, delivered)
+  - Japanese Soy Sauce: Lynas (backup, delivered), Tazaki (primary, delivered)
+  - Mirin Style Seasoning: Lynas (backup, delivered), Tazaki (primary, delivered)
+  - Red Bean Curd: Lynas (backup, registered), Tazaki (primary, delivered)
+  - Rice Vinegar: Lynas (backup, delivered), Tazaki (primary, delivered)
+  - Shimaya Konbudashi: Lynas (backup, delivered), Tazaki (primary, delivered)
+  - Toban Djan Chilli Bean Sauce: Lynas (backup, delivered), Tazaki (primary, delivered)
 
 Supplier decided by the kitchen rather than found in the records (3)
 

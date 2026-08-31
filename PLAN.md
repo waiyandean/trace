@@ -723,17 +723,28 @@ with tests plus a supervised real submission before its line is ticked.
   maintained supplier list, and the 2,600-odd deliveries that prove a supplier
   has actually delivered an item. Where both apply the history wins.
 
-  **The premise that suppliers do not share ingredients does not hold, and the
-  schema reflects the records rather than the premise.** Seven ingredients
-  arrive from both Lynas and Tazaki — Japanese Soy Sauce, Mirin Style
-  Seasoning, Rice Vinegar, Shimaya Konbudashi and Toban Djan Chilli Bean Sauce
-  each with deliveries from both, plus Ground Bean Sauce and Red Bean Curd
-  where the maintained list says Lynas and only Tazaki has ever delivered. The
-  table is therefore many-to-many; a single supplier column could not hold
-  that without discarding one of the two on no evidence. **These seven need
-  Dean's confirmation**, because a wrong pairing hides an ingredient behind
-  the wrong supplier and leaves somebody at the door with a box they cannot
-  book in.
+  **Suppliers do share ingredients, and the schema reflects the records rather
+  than the premise.** Seven ingredients arrive from both Lynas and Tazaki —
+  Japanese Soy Sauce, Mirin Style Seasoning, Rice Vinegar, Shimaya Konbudashi
+  and Toban Djan Chilli Bean Sauce each with deliveries from both, plus Ground
+  Bean Sauce and Red Bean Curd where the maintained list says Lynas and only
+  Tazaki has ever delivered. The table is therefore many-to-many; a single
+  supplier column could not hold that without discarding one of the two on no
+  evidence.
+
+  **Resolved 2026-08-31 (Dean): all seven are primarily Tazaki, with Lynas as
+  an emergency backup when Tazaki cannot supply.** Both pairings are real, so
+  neither is dropped; migration 0004 adds `role` to distinguish them. Only a
+  person could draw that line — the delivery history cannot tell "bought here
+  every week" apart from "bought here twice in an emergency" — so it is
+  recorded in the overrides with its provenance rather than derived.
+
+  The picker uses it to be clean and complete at once. Under Tazaki the seven
+  are ordinary stock. Under Lynas they appear at the end under "Backup only —
+  normally Tazaki", set apart from the everyday grid but still one tap away,
+  because a Lynas delivery of them is a real thing that happens and hiding it
+  would strand somebody at the door. Lynas shows 26 everyday tiles and 7
+  backups; Tazaki shows 29.
 
   **The twelve ingredients with no supplier are now settled (Dean,
   2026-08-31).** Chicken Fillet comes from Lynas; Tahini and Dried Bird Eye

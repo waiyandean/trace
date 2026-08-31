@@ -74,11 +74,13 @@ delivery is on the device before the network is asked for anything.
 - **Only convertible units are offered.** The unit list per item comes from
   the conversions master, so the form cannot put a refusal in front of
   somebody holding a box.
-- **The picker is narrowed to the chosen supplier.** Sixty-odd tiles become
-  twenty-odd. An ingredient nobody has mapped to a supplier shows under every
+- **The picker is narrowed to the chosen supplier.** Fifty-five tiles become
+  twenty-six under Lynas. An ingredient the supplier only provides as an
+  emergency backup is still there, under its own heading at the end, rather
+  than mixed into the everyday grid or hidden: a backup delivery is a real
+  thing that happens. An ingredient nobody has mapped shows under every
   supplier rather than none, and a "Show everything" button is always there —
-  the mapping came from the kitchen's records and is not complete, so a filter
-  must never be the reason a delivery cannot be booked in.
+  a filter must never be the reason a delivery cannot be booked in.
 - **Ingredients are picked from a grid of photographs**, not a list to
   scroll. Staff recognise their stock by the picture faster than by the name,
   and the kitchen already has a photograph of every ingredient. Tiles are
@@ -180,12 +182,16 @@ Where the records cannot say, the kitchen's answer is taken from
 `scripts/catalog-overrides.json` — the same file the catalog importer reads —
 and recorded as `decided`, so a decision is never mistaken for evidence.
 
-The relationship is many-to-many. **The kitchen's records do not support the
-idea that suppliers never share an ingredient**: seven ingredients arrive from
-both Lynas and Tazaki, five of them proven by deliveries from each. Read
-`scripts/item-suppliers-report.txt`; it lists those seven and every workbook
-name that matches no catalog item. All 55 active ingredients now have a
-supplier. Nothing is matched approximately — the two
+The relationship is many-to-many, because seven ingredients genuinely arrive
+from both Lynas and Tazaki. They are not equal pairings: Tazaki is the normal
+source and Lynas is who the kitchen falls back to when Tazaki cannot supply,
+so those rows carry `role = 'backup'`. Only a person can draw that line — the
+history cannot tell "bought here every week" apart from "bought here twice in
+an emergency" — so it comes from the overrides file.
+
+Read `scripts/item-suppliers-report.txt`; it lists the shared seven with their
+roles, and every workbook name that matches no catalog item. All 55 active
+ingredients have a supplier. Nothing is matched approximately — the two
 spreadsheets spell several things differently, and a fuzzy match would put an
 ingredient behind the wrong supplier and hide it at the door.
 
