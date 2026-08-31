@@ -24,8 +24,16 @@ CREATE TABLE items (
   -- Two storage requirements, not one. Several ingredients sit on an ambient
   -- shelf unopened and must be refrigerated once opened, and it is the
   -- after-opening state the Date Opened label prints.
-  storage_unopened  TEXT NOT NULL CHECK (storage_unopened IN ('ambient', 'chill', 'freezer')),
-  storage_opened    TEXT NOT NULL CHECK (storage_opened   IN ('ambient', 'chill', 'freezer')),
+  --
+  -- Both are nullable, and null means "not yet determined" rather than "no
+  -- requirement". The catalog source records one storage area per ingredient
+  -- and none at all for finished products, so an import can honestly fill
+  -- neither for products nor the after-opening column for anything. Guessing
+  -- them is the error the Date Opened label exists to prevent: it is what puts
+  -- an opened jar back on a dry shelf. A form that needs a storage answer must
+  -- refuse to proceed on a null rather than assume one.
+  storage_unopened  TEXT CHECK (storage_unopened IN ('ambient', 'chill', 'freezer')),
+  storage_opened    TEXT CHECK (storage_opened   IN ('ambient', 'chill', 'freezer')),
 
   -- Whether this product's label carries the oval health mark. A compliance
   -- determination held per item, not inferred from the recipe: the broths

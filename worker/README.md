@@ -48,5 +48,24 @@ is imported from them (see `../PLAN.md`, "History").
 ## Catalog data
 
 The catalog is populated by import, not by hand and never by invention. The
-importer is not written yet: it is waiting on the source Dean nominates for
-the item, supplier and conversion lists.
+source is the `Weekly Stock Check Records` workbook the kitchen already
+maintains — its `Ingredients`, `FinishedProducts` and `map` tabs.
+
+    python3 scripts/import_catalog.py "~/Downloads/Weekly Stock Check Records.xlsx" \
+        --report scripts/catalog-import-report.txt
+    npx wrangler d1 execute trace --local --file scripts/catalog.sql
+
+The generated `scripts/catalog.sql` upserts on the workbook's own ids, so a
+re-import updates rows instead of duplicating them, and it never overwrites a
+column the workbook cannot answer with a null.
+
+Read `scripts/catalog-import-report.txt` after every import. It lists what the
+workbook could not answer — rows skipped for want of a base unit, conversions
+withheld because two columns of the workbook disagree, and the columns that
+are null because the source has no such field. Those are decisions for the
+kitchen, not for the importer, and nothing fills them in by guessing.
+
+Still empty, because this workbook does not carry them: `locations`,
+`suppliers`, `customers` and `staff`. The workbook names three storage areas
+(Dry Store, Fridge, Freezer) and two sites (Glasgow, Edinburgh), but not how
+the two combine, which is what a location row has to say.

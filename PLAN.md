@@ -497,11 +497,45 @@ with tests plus a supervised real submission before its line is ticked.
   not exist. Items carry both storage requirements, the seven-day shelf-life
   fallback, and the health-mark flag as decided above.
 
-  Two things remain before the line is ticked. The remote database does not
-  exist yet — `wrangler.toml` carries a placeholder `database_id` until
-  `wrangler d1 create trace` is run. And the catalog is empty: the importer is
-  waiting on the source for the item, supplier and conversion lists, since
-  nothing here may be invented to fill it.
+  **Catalog imported 2026-08-31** from the `Weekly Stock Check Records`
+  workbook the kitchen already maintains (`Ingredients`, `FinishedProducts`
+  and `map` tabs), by `worker/scripts/import_catalog.py`. 84 items — 57
+  ingredients and 27 products — and 88 conversions, loaded into the local
+  database and read back through the API. Items keep the workbook's own ids,
+  so a re-import updates rows rather than duplicating them.
+
+  The import is deliberately partial, and the gaps are the useful output. The
+  importer writes a report of everything the workbook cannot answer, and fills
+  none of it in:
+
+  - **Five ingredients skipped for want of a base unit** — Chicken Carcass,
+    Femur Bones, Hind Feet, Pork Fat and Rajah Whole Red Chillies. The
+    workbook tracks them by neither a loose unit nor a unit count, so there is
+    no evidence of whether they are kg, L or Units. Four of the five are broth
+    ingredients, so P3 needs them; each needs one word from the kitchen.
+  - **Nine conversions withheld because the workbook disagrees with itself** —
+    Curry Laksa Paste, Ground Bean Sauce, Mae Ploy Red Curry Paste, Peeled
+    Garlic, Red Bean Curd, Shimaya Konbudashi, Shio G, Shio Paitan and Toban
+    Djan Chilli Bean Sauce all have a Case Size reading `1 x …` against an
+    Items per Case of 6 to 48. One of the two is wrong and the workbook does
+    not say which, so neither was written.
+  - **After-opening storage is null on all 57 ingredients**, and both storage
+    columns are null on all 27 products, because the workbook has no such
+    field. This is the column the Date Opened label prints, so it cannot be
+    inferred from the unopened one — that inference is exactly the error the
+    label exists to prevent. The migration makes both columns nullable for
+    this reason, with null meaning "not yet determined".
+  - **The health mark flag is null on all 27 products.** It is a compliance
+    determination held per item, not something a stock sheet records.
+
+  `locations`, `suppliers`, `customers` and `staff` are still empty: this
+  workbook does not carry them. It names three storage areas (Dry Store,
+  Fridge, Freezer) and two sites (Glasgow, Edinburgh) but not how the two
+  combine, which is what a location row has to state.
+
+  One thing remains before the line is ticked: the remote database does not
+  exist yet. `wrangler.toml` carries a placeholder `database_id` until
+  `wrangler d1 create trace` is run.
 - **P1 — Receive.** Goods intake form opening lots and writing `RECEIVE`
   movements, offline queue and idempotency in place from the first form rather
   than retrofitted. Ends with a real delivery booked in.
