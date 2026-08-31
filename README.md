@@ -16,10 +16,11 @@ around it, rather than the other way round.
 
 ## Status
 
-P0 in progress (2026-08-31). Scope, stack, offline model and history
+P0 complete (2026-08-31). Scope, stack, offline model and history
 handling are decided (2026-08-27); schema and phases are drafted. The Worker,
-the D1 catalog schema and a read-only catalog API now exist in `worker/`,
-with the migration applied locally and its constraints verified. The catalog
+the D1 catalog schema and a read-only catalog API are deployed at
+`https://trace.waiyandean.workers.dev`, with no authentication yet. The
+catalog
 is imported from the kitchen's Weekly Stock Check Records workbook: 91 items,
 114 conversions, four Glasgow storage areas, two suppliers and ten staff, with
 the kitchen's answers to what the workbook cannot say recorded alongside it.

@@ -35,15 +35,22 @@ from the record.
     npm run dev               # wrangler dev, against the local D1
     npm test
 
-## Before the first deploy
+## Deployed
 
-`wrangler.toml` carries a placeholder `database_id`. Create the database and
-paste the id it prints in:
+    https://trace.waiyandean.workers.dev
 
-    npx wrangler d1 create trace
+Read-only and GET-only, and with **no authentication** — anyone with the URL
+can read the catalog. That is a deliberate, temporary state (PLAN.md open
+question 7), and it needs settling before P1 puts production records behind
+the same origin.
+
+To deploy:
+
     npm run migrate           # applies migrations to the remote database
+    npx wrangler d1 execute trace --remote --file scripts/catalog.sql
+    npm run deploy
 
-This is a new, deliberately empty database. The old `forms-traceability` D1
+The database is a new, deliberately empty one. The old `forms-traceability` D1
 and the Google Sheets before it are frozen as a read-only archive, and nothing
 is imported from them (see `../PLAN.md`, "History").
 
