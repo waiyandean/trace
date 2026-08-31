@@ -8,12 +8,22 @@ import { receive, deriveUseBy, payloadHash } from '../src/ledger/receive.js';
 // everything it writes lands in `written`.
 function intakeDb(overrides = {}) {
   const state = {
-    items: { 'item:carcass': { id: 'item:carcass', name: 'Chicken Carcass', base_unit: 'kg', shelf_life_days: 7, active: 1 } },
+    items: {
+      'item:carcass': {
+        id: 'item:carcass', name: 'Chicken Carcass', base_unit: 'kg',
+        shelf_life_days: 7, storage_unopened: 'freezer', active: 1,
+      },
+      'item:oil': {
+        id: 'item:oil', name: 'Rapeseed Oil', base_unit: 'L',
+        shelf_life_days: 7, storage_unopened: 'ambient', active: 1,
+      },
+    },
     locations: { 'loc:fridge': { id: 'loc:fridge', name: 'Walk In Fridge', active: 1 } },
     staff: { 'staff:nikin': { id: 'staff:nikin', name: 'Nikin', active: 1 } },
     devices: { 'dev:ipad': { id: 'dev:ipad', active: 1 } },
     suppliers: { 'sup:lynas': { id: 'sup:lynas', name: 'Lynas', active: 1 } },
     conversions: [{ id: 'c1', from_unit: 'case', to_unit: 'kg', factor: 8 }],
+    limits: [{ kind: 'chilled', celsius: 5 }, { kind: 'frozen', celsius: -18 }],
     events: {},
     lots: {},
     shortCodes: { K7M4QP: { code: 'K7M4QP', device_id: 'dev:ipad', lot_id: null } },
@@ -52,6 +62,7 @@ function intakeDb(overrides = {}) {
         },
         async all() {
           if (sql.includes('FROM unit_conversions')) return { results: state.conversions };
+          if (sql.includes('FROM temperature_limits')) return { results: state.limits };
           return { results: [] };
         },
         sql,
@@ -72,6 +83,16 @@ const delivery = (changes = {}) => ({
   occurred_at: '2026-08-31T09:14:00Z',
   supplier_id: 'sup:lynas',
   invoice: '009298395',
+  // Every delivery carries its checks. A frozen delivery needs the van's
+  // frozen reading and a probe per line, which is why they are in the fixture
+  // rather than bolted onto the one test that looks at them.
+  checks: {
+    vehicle_condition: 'good',
+    condition_ok: true,
+    labels_applied: true,
+    allergens_confirmed: true,
+    vehicle_frozen_c: -20,
+  },
   lines: [
     {
       lot_id: LOT,
@@ -81,7 +102,8 @@ const delivery = (changes = {}) => ({
       unit: 'case',
       location_id: 'loc:fridge',
       use_by: '2026-09-04',
-      batch_code: '2026-08-31',
+      batch_code: '310826',
+      product_temp_c: -19,
     },
   ],
   ...changes,
@@ -93,7 +115,7 @@ const sqlOf = (db, fragment) => db.written.filter((statement) => statement.sql.i
 // than as a list of positions that shift whenever a column is added.
 const LOT_BINDINGS = [
   'id', 'item_id', 'short_code', 'batch_code', 'supplier_id', 'supplier_lot',
-  'supplier_invoice', 'originated_at', 'use_by', 'use_by_source', 'event_id', 'note',
+  'supplier_invoice', 'originated_at', 'use_by', 'use_by_source', 'status', 'event_id', 'note',
 ];
 
 function lotFields(db, index = 0) {
@@ -264,4 +286,119 @@ test('the payload fingerprint ignores key order but not content', async () => {
   const c = await payloadHash({ a: 1, lines: [{ x: 2, y: 9 }], b: 2 });
   assert.equal(a, b);
   assert.notEqual(a, c);
+});
+
+// The checks are what make a booked-in delivery a compliance record rather
+// than just a traceability one, so their absence is a refusal.
+
+test('a delivery with no checks is refused', async () => {
+  const db = intakeDb();
+  const payload = delivery();
+  delete payload.checks;
+  await assert.rejects(() => receive(db, payload), /checks are required/);
+});
+
+test('an attestation cannot be left out', async () => {
+  const db = intakeDb();
+  const payload = delivery();
+  delete payload.checks.allergens_confirmed;
+  await assert.rejects(() => receive(db, payload), /allergens_confirmed must be true or false/);
+});
+
+test('the checks are written against the delivery', async () => {
+  const db = intakeDb();
+  await receive(db, delivery());
+  const checks = sqlOf(db, 'INSERT INTO delivery_checks');
+  assert.equal(checks.length, 1);
+  assert.deepEqual(checks[0].params.slice(1, 6), ['good', null, 1, 1, 1]);
+});
+
+test('a frozen line with no probe reading is refused', async () => {
+  const db = intakeDb();
+  const payload = delivery();
+  delete payload.lines[0].product_temp_c;
+  await assert.rejects(() => receive(db, payload), /needs a product temperature/);
+});
+
+test('an ambient line is not asked for a reading, and refuses one', async () => {
+  const db = intakeDb();
+  const payload = delivery();
+  payload.lines[0].item_id = 'item:oil';
+  delete payload.checks.vehicle_frozen_c;
+  delete payload.lines[0].product_temp_c;
+  payload.lines[0].unit = 'L';
+  await receive(db, payload);
+  assert.equal(sqlOf(db, 'INSERT INTO temperature_readings').length, 0);
+
+  const withReading = intakeDb();
+  const other = delivery();
+  other.lines[0].item_id = 'item:oil';
+  other.lines[0].unit = 'L';
+  delete other.checks.vehicle_frozen_c;
+  await assert.rejects(() => receive(withReading, other), /would mean nothing/);
+});
+
+test('the van reading is required when the load needs it, and refused when it does not', async () => {
+  const missing = intakeDb();
+  const payload = delivery();
+  delete payload.checks.vehicle_frozen_c;
+  await assert.rejects(() => receive(missing, payload), /vehicle_frozen_c is required/);
+
+  const spurious = intakeDb();
+  const ambient = delivery();
+  ambient.lines[0].item_id = 'item:oil';
+  ambient.lines[0].unit = 'L';
+  delete ambient.lines[0].product_temp_c;
+  await assert.rejects(() => receive(spurious, ambient), /contains no frozen stock/);
+});
+
+test('a reading within limit is kept as the evidence the check happened', async () => {
+  const db = intakeDb();
+  await receive(db, delivery());
+  const readings = sqlOf(db, 'INSERT INTO temperature_readings');
+  assert.equal(readings.length, 2, 'the van and the one line');
+  assert.deepEqual(readings.map((row) => row.params[6]), [1, 1], 'both within limit');
+  assert.equal(lotFields(db).status, 'open');
+});
+
+test('a warm probe holds the lot and opens a deviation', async () => {
+  const db = intakeDb();
+  const payload = delivery();
+  payload.lines[0].product_temp_c = -4;
+  await receive(db, payload);
+
+  assert.equal(lotFields(db).status, 'held');
+  const deviations = sqlOf(db, 'INSERT INTO temperature_deviations');
+  assert.equal(deviations.length, 1);
+  assert.equal(deviations[0].params[4], '2026-08-31T09:44:00.000Z', 'recheck due half an hour later');
+});
+
+test('a warm van holds every lot it applies to, however well each one probed', async () => {
+  // One good probe reading does not clear a load that travelled warm.
+  const db = intakeDb();
+  const payload = delivery();
+  payload.checks.vehicle_frozen_c = -9;
+  payload.lines.push({
+    ...payload.lines[0],
+    lot_id: '01J8XQZ5T7M4QPB9CDEFGHJKMQ',
+    short_code: 'K9NR2T',
+  });
+  db.state.shortCodes.K9NR2T = { code: 'K9NR2T', device_id: 'dev:ipad', lot_id: null };
+
+  await receive(db, payload);
+
+  assert.equal(lotFields(db, 0).status, 'held');
+  assert.equal(lotFields(db, 1).status, 'held');
+  assert.equal(sqlOf(db, 'INSERT INTO temperature_deviations').length, 2, 'one per lot');
+});
+
+test('lots are written before the readings that point at them', async () => {
+  // Foreign keys are checked as each statement runs, not at the end of the
+  // batch, so a reading written first would fail on a lot that does not exist.
+  const db = intakeDb();
+  await receive(db, delivery());
+  const order = db.written.map((statement) => statement.sql);
+  const lotAt = order.findIndex((sql) => sql.includes('INSERT INTO lots'));
+  const readingAt = order.findIndex((sql) => sql.includes('INSERT INTO temperature_readings'));
+  assert.ok(lotAt < readingAt, 'lots come first');
 });
