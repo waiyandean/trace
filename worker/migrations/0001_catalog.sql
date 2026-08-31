@@ -17,8 +17,9 @@ CREATE TABLE items (
 
   -- Fallback only. The use-by printed on the supplier's box always wins; this
   -- is what intake applies when a delivery arrives with no printed date
-  -- (PLAN.md open question 5). Seven days covers the catalog, so per-item
-  -- values are overrides rather than a figure that must be agreed up front.
+  -- (PLAN.md, open question "Shelf-life ownership"). Seven days covers the
+  -- catalog, so per-item values are overrides rather than a figure that must
+  -- be agreed up front.
   shelf_life_days   INTEGER NOT NULL DEFAULT 7 CHECK (shelf_life_days > 0),
 
   -- Two storage requirements, not one. Several ingredients sit on an ambient

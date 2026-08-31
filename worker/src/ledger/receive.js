@@ -29,7 +29,8 @@ import {
 // of the lot and a wrong answer at the one moment this system exists for.
 
 // The shelf-life fallback, applied only where the supplier printed no date
-// (PLAN.md open question 5). Whole days from the day the delivery arrived.
+// (PLAN.md, open question "Shelf-life ownership"). Whole days from the day
+// the delivery arrived.
 export function deriveUseBy(occurredAt, shelfLifeDays) {
   const arrived = new Date(occurredAt);
   const useBy = new Date(Date.UTC(arrived.getUTCFullYear(), arrived.getUTCMonth(), arrived.getUTCDate()));

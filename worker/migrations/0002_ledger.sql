@@ -116,8 +116,9 @@ CREATE TABLE lots (
 
   use_by         TEXT,
 
-  -- Which source the use-by came from (PLAN.md open question 5). Without it
-  -- neither question can be answered later: if a supplier's date proves
+  -- Which source the use-by came from (PLAN.md, open question "Shelf-life
+  -- ownership"). Without it neither question can be answered later: if a
+  -- supplier's date proves
   -- wrong, which lots relied on it; and if seven days proves too generous,
   -- which lots were dated by the rule rather than by evidence.
   use_by_source  TEXT CHECK (use_by_source IN ('supplier_printed', 'shelf_life_rule')),
@@ -208,7 +209,8 @@ BEGIN
   SELECT RAISE(ABORT, 'movements are append-only: write a compensating movement');
 END;
 
--- The short-code pool (PLAN.md open question 2, resolved 2026-08-28).
+-- The short-code pool (PLAN.md, open question "Lot identity and short
+-- codes", resolved 2026-08-28).
 --
 -- The server reserves codes to one device at a time, so two devices cannot
 -- mint the same code while both are offline. A code is bound to at most one

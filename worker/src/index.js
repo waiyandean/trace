@@ -31,7 +31,8 @@ import { move, waste, hold, releaseHold, openHolds } from './ledger/stock.js';
 // The old `forms` system stays authoritative until Dean cuts over, so nothing
 // here is yet the kitchen's record of anything.
 //
-// There is still no authentication (PLAN.md open question 7). With P1 this
+// There is still no authentication (PLAN.md, open question
+// "Authentication"). With P1 this
 // stops being a read-only exposure: anyone with the URL can write to the
 // ledger. That has to be settled before the kitchen is asked to rely on it.
 

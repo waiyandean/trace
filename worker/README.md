@@ -350,7 +350,8 @@ form has nothing to be.
 
     https://trace.waiyandean.workers.dev
 
-There is **no authentication** (PLAN.md open question 7). While P0 was
+There is **no authentication** (PLAN.md, open question "Authentication").
+While P0 was
 deployed that meant anyone with the URL could read the catalog. P1's endpoints
 write, so the same gap now means anyone with the URL could book a delivery
 that never happened. The P1 code is therefore not deployed: the live Worker is

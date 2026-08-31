@@ -1,6 +1,7 @@
 import { BadRequest } from '../http.js';
 
-// The short-code pool (PLAN.md open question 2, resolved 2026-08-28).
+// The short-code pool (PLAN.md, open question "Lot identity and short
+// codes", resolved 2026-08-28).
 //
 // A device at the goods-in door has to print a label before it can reach the
 // server, so it cannot ask whether a code is free. Instead the server hands

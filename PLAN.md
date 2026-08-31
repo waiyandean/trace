@@ -351,6 +351,24 @@ intake cannot print.
 Described by Dean, 2026-08-28. This is the current practice the rebuild has to
 replace, and it explains the gap better than the data analysis does.
 
+**The lifecycle stock actually has (Dean, 2026-08-31).** Two short paths, and
+almost nothing else:
+
+    ingredient   goods in ─→ batching
+                          └→ waste
+
+    product      batching ─→ storage ─→ dispatch
+                                     └→ waste
+
+An ingredient is received and then either goes into a batch or is thrown away.
+A batch produces a product, which is stored and then either sent to a customer
+or binned. Nothing routinely moves between areas in either path.
+
+That is worth stating because it bounds what the forms have to be good at. The
+two journeys above need to be quick and hard to get wrong; everything else —
+moving stock between areas, combining lots — is an exception that needs to be
+possible and does not need to be fast.
+
 **Stock is not routinely moved (Dean, 2026-08-31).** Frozen ingredients go
 from the freezer straight to batching, chilled from the fridge straight to
 batching, ambient from the dry store. A `MOVE` is the exception rather than a
@@ -626,7 +644,7 @@ with tests plus a supervised real submission before its line is ticked.
   Coconut Milk, Tahini and Chicken Feet but present in no delivery, and
   **Kite Packaging**, which supplies packaging only. Neither is imported;
   Kite becomes relevant only if packaging is brought into scope, which is
-  still open question 8.
+  still the open question "Packaging".
 
   **Staff settled 2026-08-31 (Dean)**, as ten people: Nikin, Nilesh, Surendra,
   Mateus, Paulo, Siku, Rogerio, Aaron, Dean and Gunjesh. The list was taken
@@ -636,7 +654,7 @@ with tests plus a supervised real submission before its line is ticked.
   Aarom; Dean and dean — and importing it would have put exactly the ambiguity
   this project exists to remove into the audit trail on day one. One canonical
   row per person is what an amendment trail needs to name. How a person proves
-  they are that row is still open question 7.
+  they are that row is still the open question "Authentication".
 
   `customers` remains empty; dispatch is P4 and nothing needs it yet.
 
@@ -645,7 +663,7 @@ with tests plus a supervised real submission before its line is ticked.
   conversions, four locations, two suppliers and ten staff, read back from the
   remote database to confirm. The Worker itself is not deployed
   yet, because a workers.dev deploy would put the catalog on a public URL with
-  no authentication, and authentication is still open question 7.
+  no authentication, and authentication is still the open question "Authentication".
 - **P1 — Receive.** Goods intake form opening lots and writing `RECEIVE`
   movements, offline queue and idempotency in place from the first form rather
   than retrofitted. Ends with a real delivery booked in.
@@ -676,7 +694,7 @@ with tests plus a supervised real submission before its line is ticked.
     reused key carrying different content is a 400 rather than a silent
     duplicate or a silent overwrite. A lot id that already exists is refused
     the same way and names the event that booked it.
-  - **The use-by records its own source**, as open question 5 requires. A date
+  - **The use-by records its own source**, as the open question "Shelf-life ownership" requires. A date
     supplied by the form is the supplier's printed date; its absence means the
     item's shelf life filled in, and the lot says which. The conversion from
     what staff keyed — "3 case" — to the base unit runs only over conversions
@@ -695,7 +713,7 @@ with tests plus a supervised real submission before its line is ticked.
 
   **Not deployed.** The live Worker is still the P0 read-only build. P1's
   endpoints write, so deploying them to a URL with no authentication would let
-  anyone book a delivery that never happened. That is open question 7, and it
+  anyone book a delivery that never happened. That is the open question "Authentication", and it
   now blocks the deployment rather than merely being untidy. The remote
   database has not been migrated either, so nothing about the live state has
   changed.
@@ -1018,12 +1036,22 @@ These need Dean's answer before the phase that depends on them.
    item-plus-location for loose or decanted stock, or apportioning an
    item-level variance across that item's open lots by a stated rule. This is
    an operational decision, not just a technical one.
-4. **The supervised exception workflow (blocks P3).** Lot selection is meant to
+4. **Opening a case, and what it does to the use-by (P3).** The lifecycle
+   above has an ingredient going from goods in into a batch, but a case is
+   often opened, part used, and the rest put back. The remainder is the same
+   lot in the same place, which the ledger handles — but the catalog already
+   carries a separate after-opening storage requirement per item, and the
+   current forms print a Date Opened label, so opening evidently changes
+   something. Whether it also shortens the use-by, and whether the system
+   should record the moment a case was opened, is not yet decided. Nothing is
+   invented in the meantime: a lot's use-by stays the one it was received
+   with.
+5. **The supervised exception workflow (blocks P3).** Lot selection is meant to
    be mandatory before a batch can complete. There will still be cases where
    the physical lot genuinely is not in the system. What that escape hatch
    looks like, and who is allowed to use it, determines whether staff comply
    with the rule or route around it.
-5. **Shelf-life ownership — resolved 2026-08-28 (Dean).** The use-by is read
+6. **Shelf-life ownership — resolved 2026-08-28 (Dean).** The use-by is read
    off the supplier's box wherever it is printed, and that always wins. Where
    there is none, which is mostly fresh produce, staff assign one week from
    delivery. So the shelf-life rule is a fallback rather than the primary
@@ -1039,13 +1067,13 @@ These need Dean's answer before the phase that depends on them.
    ingredient, which lots were dated by the rule rather than by evidence. It is
    one column, and it is the difference between a date and a date you can
    defend to an auditor.
-6. **Decant and merge discipline.** The system can model `COMBINE` honestly,
+7. **Decant and merge discipline.** The system can model `COMBINE` honestly,
    but how often staff combine lots determines how much trace precision is
    lost in practice. Worth observing before assuming it is rare.
-7. **Authentication.** The current forms use a staff picker with no real login.
+8. **Authentication.** The current forms use a staff picker with no real login.
    An audit trail naming who recorded and who approved an amendment is weaker
    if anyone can pick any name. Whether that changes, and to what, is open.
-8. **Packaging.** The old rebuild deliberately excluded packaging lines. Does
+9. **Packaging.** The old rebuild deliberately excluded packaging lines. Does
    packaging get lot-tracked here, or stay out of scope?
 
 ## References
