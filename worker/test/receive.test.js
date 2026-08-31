@@ -215,6 +215,37 @@ test('a delivery with no lines is not a delivery', async () => {
   await assert.rejects(() => receive(db, delivery({ lines: [] })), /non-empty array/);
 });
 
+test('the same ingredient twice with different use-by dates becomes two lots', async () => {
+  // The case that matters at the door: part of a delivery is dated further
+  // out than the rest. Each gets its own lot, its own code and its own
+  // use-by, so the earlier-expiring stock can be picked first later.
+  const db = intakeDb();
+  const payload = delivery();
+  payload.lines.push({
+    ...payload.lines[0],
+    lot_id: '01J8XQZ5T7M4QPB9CDEFGHJKMQ',
+    short_code: 'K9NR2T',
+    use_by: '2026-09-11',
+  });
+  db.state.shortCodes.K9NR2T = { code: 'K9NR2T', device_id: 'dev:ipad', lot_id: null };
+
+  await receive(db, payload);
+
+  const lots = sqlOf(db, 'INSERT INTO lots');
+  assert.equal(lots.length, 2);
+
+  const first = lotFields(db, 0);
+  const second = lotFields(db, 1);
+  assert.equal(first.item_id, second.item_id, 'the same ingredient');
+  assert.notEqual(first.id, second.id);
+  assert.notEqual(first.short_code, second.short_code);
+  assert.deepEqual([first.use_by, second.use_by], ['2026-09-04', '2026-09-11']);
+  assert.equal(first.batch_code, second.batch_code, 'one delivery, one batch number');
+
+  assert.equal(sqlOf(db, 'UPDATE short_codes').length, 2, 'both codes are bound');
+  assert.equal(sqlOf(db, 'INSERT INTO movements').length, 2);
+});
+
 test('two lines cannot claim the same code', async () => {
   const db = intakeDb();
   const payload = delivery();

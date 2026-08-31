@@ -267,6 +267,26 @@ export function batchCodeFor(date = new Date()) {
   return `${pad(date.getDate())}${pad(date.getMonth() + 1)}${pad(date.getFullYear() % 100)}`;
 }
 
+// Two lines of the same ingredient are how genuinely different stock is
+// recorded — most often part of a delivery dated further out than the rest.
+// Two lines of the same ingredient with the *same* use-by are almost always a
+// slip, and would leave two lots nothing can tell apart afterwards.
+//
+// It is a warning rather than a refusal. There are real reasons to want two:
+// a split across the fridge and the freezer, or two pallets someone wants
+// counted apart. Refusing would put the form in the way of a person who can
+// see the stock and knows what they are doing.
+export function duplicateLines(lines) {
+  const seen = new Map();
+  const duplicates = [];
+  for (const line of lines) {
+    const key = `${line.item_id}|${line.use_by || ''}|${line.location_id}`;
+    if (seen.has(key)) duplicates.push(line);
+    else seen.set(key, line);
+  }
+  return duplicates;
+}
+
 // One delivery, as the form holds it, turned into the submission the server
 // takes. Ids are minted here so that they exist before any network call.
 export function buildSubmission(draft, { now = new Date(), mintId = ulid } = {}) {

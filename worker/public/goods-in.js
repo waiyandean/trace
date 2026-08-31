@@ -1,7 +1,7 @@
 import {
   ulid, makeStore, makeQueue, makePool, makeCatalogCache,
   unitsFor, batchCodeFor, buildSubmission, syncQueue, POOL_TARGET,
-  groupByStorage, soleLocationFor, forSupplier, splitByRole, usualSupplierFor,
+  groupByStorage, soleLocationFor, forSupplier, splitByRole, usualSupplierFor, duplicateLines,
 } from './lib/offline.js';
 
 // The goods intake form. Everything it needs to accept a delivery is on the
@@ -280,6 +280,18 @@ function renderSubmitNote() {
   if (problems.length) {
     note.textContent = `Still needed: ${problems.join(', ')}.`;
     $('submit').disabled = true;
+    return;
+  }
+
+  // Said before booking rather than after, while it is still one tap to fix.
+  const duplicates = duplicateLines(state.lines);
+  if (duplicates.length) {
+    const names = [...new Set(duplicates.map((line) => itemById(line.item_id)?.name).filter(Boolean))];
+    note.textContent =
+      `${names.join(' and ')} appears twice with the same use-by and the same place. ` +
+      'Two lots nothing can tell apart. Combine them, or give one a different date — ' +
+      'unless you meant to count them apart, which is fine.';
+    $('submit').disabled = false;
     return;
   }
 

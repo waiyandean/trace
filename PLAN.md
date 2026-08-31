@@ -410,6 +410,16 @@ else follows from that.
 - Name, supplier and allergens are still filled in automatically, now from the
   catalog rather than from a saved label template — which also removes the
   wrong-roll error.
+- **A code identifies a delivery line, not a case.** Three cases of chicken
+  carcass off one pallet are one lot with one code, and still three labels —
+  they are the same stock, from the same delivery, with the same use-by, and
+  giving them three codes would invent a distinction that exists only because
+  we printed it. Where the difference is real the line is split: the same
+  ingredient added twice with different use-by dates, or going to different
+  areas, becomes two lots with two codes and one shared batch number
+  (confirmed with Dean, 2026-08-31). The form warns — but does not refuse —
+  when a line is duplicated with the same date and the same place, since that
+  produces two lots nothing can tell apart afterwards.
 - **The batch number stays exactly as it is**, printed on the label and stored
   on the lot. Nothing staff currently read disappears; it simply stops being
   the thing the system joins on. Its format is **ddmmyy** (Dean, 2026-08-31),

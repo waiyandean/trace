@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ulid, makeStore, makeQueue, makePool, unitsFor, batchCodeFor, buildSubmission, syncQueue,
-  groupByStorage, soleLocationFor, forSupplier, splitByRole, usualSupplierFor,
+  groupByStorage, soleLocationFor, forSupplier, splitByRole, usualSupplierFor, duplicateLines,
 } from '../public/lib/offline.js';
 
 // A localStorage stand-in, with a switch for the case that matters: storage
@@ -121,6 +121,15 @@ test('a code is spent the moment it is taken', () => {
   assert.equal(pool.remaining(), 1);
   assert.equal(pool.take(), 'BBBBBB');
   assert.equal(pool.take(), null, 'an empty pool is a normal outcome, not a throw');
+});
+
+test('every code taken is a different one', () => {
+  // Two lines of the same ingredient must never end up sharing a code: the
+  // whole point of the second line is that it is different stock.
+  const pool = makePool(storeOn(fakeStorage()));
+  pool.replace('dev:ipad', ['AAAAAA', 'BBBBBB', 'CCCCCC']);
+  const taken = [pool.take(), pool.take(), pool.take()];
+  assert.equal(new Set(taken).size, 3);
 });
 
 test('a code handed back goes to the end rather than straight out again', () => {
@@ -336,4 +345,29 @@ test('with no supplier chosen nothing is set apart', () => {
   const { everyday, backup } = splitByRole(SUPPLIER_ITEMS, MAPPING, null);
   assert.equal(everyday.length, 4);
   assert.deepEqual(backup, []);
+});
+
+// Two lines of one ingredient: the difference between deliberate and a slip.
+
+const line = (changes) => ({ item_id: 'i1', use_by: '2026-09-04', location_id: 'loc:fridge', ...changes });
+
+test('the same ingredient with different use-by dates is two real lots', () => {
+  assert.deepEqual(duplicateLines([line({}), line({ use_by: '2026-09-11' })]), []);
+});
+
+test('the same ingredient in two places is two real lots', () => {
+  assert.deepEqual(duplicateLines([line({}), line({ location_id: 'loc:freezer' })]), []);
+});
+
+test('the same ingredient, date and place twice is flagged', () => {
+  // Two lots nothing could tell apart afterwards.
+  assert.equal(duplicateLines([line({}), line({})]).length, 1);
+});
+
+test('different ingredients are never a duplicate', () => {
+  assert.deepEqual(duplicateLines([line({}), line({ item_id: 'i2' })]), []);
+});
+
+test('a line with no use-by does not collide with one that has a date', () => {
+  assert.deepEqual(duplicateLines([line({ use_by: null }), line({})]), []);
 });
