@@ -422,10 +422,13 @@ Indicative, not final. Names and columns will be settled in P0.
   item is kept unopened, and how it must be kept once opened. Several
   ingredients are ambient on the shelf but have to be refrigerated after
   opening, so the two genuinely differ, and the Date Opened label prints the
-  after-opening one. Products additionally carry a flag for whether their label
-  needs the oval health mark: the broths do, most sauces and oils do not, and
-  which is which is a compliance determination held per item rather than
-  inferred from the recipe. Getting that wrong puts an opened jar back on a dry
+  after-opening one. Items also carry a flag for whether their label needs the
+  oval health mark. **Corrected 2026-08-31 (Dean): the mark follows animal
+  origin, so it sits on the raw meat and bone ingredients — chicken carcass,
+  wings and feet, hind feet, femur bones, pork fat, chicken fillet and pork
+  belly — and not, as an earlier version of this plan said, on the broths as
+  finished products.** It is a compliance determination held per item and never
+  inferred from a recipe. Getting the storage tag wrong puts an opened jar back on a dry
   shelf, which is the error the label exists to prevent, so the label shows the
   post-opening state in its storage tag as well as spelling out the
   instruction. Ingredients and products share this table; that is what
@@ -499,34 +502,47 @@ with tests plus a supervised real submission before its line is ticked.
 
   **Catalog imported 2026-08-31** from the `Weekly Stock Check Records`
   workbook the kitchen already maintains (`Ingredients`, `FinishedProducts`
-  and `map` tabs), by `worker/scripts/import_catalog.py`. 84 items — 57
-  ingredients and 27 products — and 88 conversions, loaded into the local
+  and `map` tabs), by `worker/scripts/import_catalog.py`. 89 items — 62
+  ingredients and 27 products — and 112 conversions, loaded into the local
   database and read back through the API. Items keep the workbook's own ids,
   so a re-import updates rows rather than duplicating them.
 
-  The import is deliberately partial, and the gaps are the useful output. The
-  importer writes a report of everything the workbook cannot answer, and fills
-  none of it in:
+  Where the workbook cannot answer, the kitchen's answers are recorded in
+  `worker/scripts/catalog-overrides.json` with the date and the person who
+  gave them, and the importer applies them on top of the workbook. Nothing is
+  derived that the evidence does not support, and the importer's report lists
+  everything still open:
 
-  - **Five ingredients skipped for want of a base unit** — Chicken Carcass,
-    Femur Bones, Hind Feet, Pork Fat and Rajah Whole Red Chillies. The
-    workbook tracks them by neither a loose unit nor a unit count, so there is
-    no evidence of whether they are kg, L or Units. Four of the five are broth
-    ingredients, so P3 needs them; each needs one word from the kitchen.
-  - **Nine conversions withheld because the workbook disagrees with itself** —
-    Curry Laksa Paste, Ground Bean Sauce, Mae Ploy Red Curry Paste, Peeled
-    Garlic, Red Bean Curd, Shimaya Konbudashi, Shio G, Shio Paitan and Toban
-    Djan Chilli Bean Sauce all have a Case Size reading `1 x …` against an
-    Items per Case of 6 to 48. One of the two is wrong and the workbook does
-    not say which, so neither was written.
-  - **After-opening storage is null on all 57 ingredients**, and both storage
+  - **Five ingredients had no base unit in the workbook, and Dean supplied
+    them 2026-08-31**: Chicken Carcass (8 kg case), Femur Bones, Hind Feet and
+    Pork Fat (10 kg cases), all measured in kg, and Rajah Whole Red Chillies
+    as 5 × 200 g. The first four are bulk — a case is a weight with no
+    countable item in it — so they convert case to kg in a single hop rather
+    than through an item. All 62 ingredients now import.
+  - **The workbook's `1 x …` case sizes are a Kobas artefact, resolved
+    2026-08-31 (Dean).** Nine items had a Case Size reading `1 x <size>`
+    against an Items per Case of 6 to 48: Curry Laksa Paste, Ground Bean
+    Sauce, Mae Ploy Red Curry Paste, Peeled Garlic, Red Bean Curd, Shimaya
+    Konbudashi, Shio G, Shio Paitan and Toban Djan Chilli Bean Sauce. Kobas
+    was set up differently and that column was written for it. Items per Case
+    is the authority for the case count everywhere; the Case Size string is
+    read only for the item size after the `x`.
+  - **After-opening storage is null on all 62 ingredients**, and both storage
     columns are null on all 27 products, because the workbook has no such
     field. This is the column the Date Opened label prints, so it cannot be
     inferred from the unopened one — that inference is exactly the error the
     label exists to prevent. The migration makes both columns nullable for
     this reason, with null meaning "not yet determined".
-  - **The health mark flag is null on all 27 products.** It is a compliance
-    determination held per item, not something a stock sheet records.
+  - **The health mark is now set, and it corrected the plan.** Dean's list is
+    eight raw animal items, all of them ingredients and none of them products:
+    chicken carcass, wings and feet, hind feet, femur bones, pork fat, chicken
+    fillet and pork belly. The schema had a constraint restricting the flag to
+    products, taken from the wording in the schema sketch above; that
+    constraint was wrong and has been removed. Six of the eight are in the
+    catalog and are flagged. **Chicken Fillet and Pork Belly are not in the
+    workbook at all** — they need adding before P1 can book either of them in.
+    The flag stays null on the other 83 items, meaning not yet determined
+    rather than no mark.
 
   `locations`, `suppliers`, `customers` and `staff` are still empty: this
   workbook does not carry them. It names three storage areas (Dry Store,

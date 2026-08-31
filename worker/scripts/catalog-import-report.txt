@@ -1,24 +1,12 @@
-84 items (57 ingredients, 27 products), 88 conversions -> /Users/grid/Repos/trace/worker/scripts/catalog.sql
+overrides: catalog-overrides.json (Dean, 2026-08-31)
+89 items (62 ingredients, 27 products), 112 conversions -> /Users/grid/Repos/trace/worker/scripts/catalog.sql
 
-Skipped: no base unit can be read from the workbook (5)
-  - Chicken Carcass — neither a loose unit nor unit tracking; needs kg, L or Units
-  - Femur Bones — neither a loose unit nor unit tracking; needs kg, L or Units
-  - Hind Feet — neither a loose unit nor unit tracking; needs kg, L or Units
-  - Pork Fat — neither a loose unit nor unit tracking; needs kg, L or Units
-  - Rajah Whole Red Chillies — neither a loose unit nor unit tracking; needs kg, L or Units
+Override names an item that is not in the catalog (2)
+  - Chicken Fillet
+  - Pork Belly
 
-Case count conflicts between Case Size and Items per Case (9)
-  - Curry Laksa Paste — case size says 1, Items per Case says 6
-  - Ground Bean Sauce — case size says 1, Items per Case says 24
-  - Mae Ploy Red Curry Paste — case size says 1, Items per Case says 12
-  - Peeled Garlic — case size says 1, Items per Case says 10
-  - Red Bean Curd — case size says 1, Items per Case says 48
-  - Shimaya Konbudashi — case size says 1, Items per Case says 10
-  - Shio G — case size says 1, Items per Case says 10
-  - Shio Paitan — case size says 1, Items per Case says 10
-  - Toban Djan Chilli Bean Sauce — case size says 1, Items per Case says 12
-
-After-opening storage is not in the workbook, left null: 57 rows
+After-opening storage is not in the workbook, left null: 62 rows
+Health mark not yet determined, left null: 83 rows
 Products have no storage in the workbook, both columns left null: 27 rows
-Product health mark is a compliance call, left null: 27 rows
+Case count taken from Items per Case over the workbook's Kobas `1 x` form: 9 rows
 Products have no case size, so no conversion: 19 rows

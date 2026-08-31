@@ -59,11 +59,17 @@ The generated `scripts/catalog.sql` upserts on the workbook's own ids, so a
 re-import updates rows instead of duplicating them, and it never overwrites a
 column the workbook cannot answer with a null.
 
-Read `scripts/catalog-import-report.txt` after every import. It lists what the
-workbook could not answer — rows skipped for want of a base unit, conversions
-withheld because two columns of the workbook disagree, and the columns that
-are null because the source has no such field. Those are decisions for the
-kitchen, not for the importer, and nothing fills them in by guessing.
+Where the workbook cannot answer — base units for the bulk meat and bones,
+which items carry the oval health mark — the kitchen's answer is recorded in
+`scripts/catalog-overrides.json`, with the date and the person who gave it.
+The importer applies those on top of the workbook. Add to that file rather
+than editing the generated SQL, which is overwritten on every run.
+
+Read `scripts/catalog-import-report.txt` after every import. It lists what
+nothing has yet answered: rows skipped for want of a base unit, conversions
+not written, and the columns still null because neither the workbook nor the
+overrides say. Those are decisions for the kitchen, not for the importer, and
+nothing fills them in by guessing.
 
 Still empty, because this workbook does not carry them: `locations`,
 `suppliers`, `customers` and `staff`. The workbook names three storage areas

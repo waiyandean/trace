@@ -1,0 +1,76 @@
+{
+  "_comment": [
+    "Kitchen answers to questions the Weekly Stock Check workbook cannot answer.",
+    "Every entry is something a person decided, not something a script derived,",
+    "so each one records who said it and when. The importer applies these on top",
+    "of the workbook and reports any that no longer match a catalog row.",
+    "",
+    "base_unit      the unit the item is measured in, where the workbook tracks",
+    "               neither a loose unit nor a unit count.",
+    "case           how a supplier's case breaks down. Either per_case plus",
+    "               item_size and item_unit for a case of discrete things, or",
+    "               case_size and case_unit for bulk sold by weight with no",
+    "               countable item inside it.",
+    "needs_health_mark  whether the item's label carries the oval health mark.",
+    "               It follows animal origin, so it sits on the raw meat and",
+    "               bone ingredients rather than on the products made from",
+    "               them. Anything absent from this file stays null, meaning",
+    "               not yet determined rather than no mark."
+  ],
+  "recorded_by": "Dean",
+  "recorded_on": "2026-08-31",
+  "items": {
+    "Chicken Carcass": {
+      "base_unit": "kg",
+      "case": {
+        "case_size": 8,
+        "case_unit": "kg"
+      },
+      "needs_health_mark": true
+    },
+    "Femur Bones": {
+      "base_unit": "kg",
+      "case": {
+        "case_size": 10,
+        "case_unit": "kg"
+      },
+      "needs_health_mark": true
+    },
+    "Hind Feet": {
+      "base_unit": "kg",
+      "case": {
+        "case_size": 10,
+        "case_unit": "kg"
+      },
+      "needs_health_mark": true
+    },
+    "Pork Fat": {
+      "base_unit": "kg",
+      "case": {
+        "case_size": 10,
+        "case_unit": "kg"
+      },
+      "needs_health_mark": true
+    },
+    "Rajah Whole Red Chillies": {
+      "base_unit": "kg",
+      "case": {
+        "per_case": 5,
+        "item_size": 200,
+        "item_unit": "g"
+      }
+    },
+    "Chicken Wings": {
+      "needs_health_mark": true
+    },
+    "Chicken Feet": {
+      "needs_health_mark": true
+    },
+    "Chicken Fillet": {
+      "needs_health_mark": true
+    },
+    "Pork Belly": {
+      "needs_health_mark": true
+    }
+  }
+}

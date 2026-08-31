@@ -20,9 +20,10 @@ P0 in progress (2026-08-31). Scope, stack, offline model and history
 handling are decided (2026-08-27); schema and phases are drafted. The Worker,
 the D1 catalog schema and a read-only catalog API now exist in `worker/`,
 with the migration applied locally and its constraints verified. The catalog
-is imported from the kitchen's Weekly Stock Check Records workbook: 84 items
-and 88 conversions, with the gaps the workbook cannot answer left null and
-reported rather than guessed. Label artwork and ZPL live in `labels/` and print correctly
+is imported from the kitchen's Weekly Stock Check Records workbook: 89 items
+and 112 conversions, with the kitchen's answers to what the workbook cannot
+say recorded alongside it, and anything still undecided left null and reported
+rather than guessed. Label artwork and ZPL live in `labels/` and print correctly
 over USB; the network path to the printer is still open.
 
 **Read `PLAN.md` first** — it carries the model, the decisions and their

@@ -35,18 +35,20 @@ CREATE TABLE items (
   storage_unopened  TEXT CHECK (storage_unopened IN ('ambient', 'chill', 'freezer')),
   storage_opened    TEXT CHECK (storage_opened   IN ('ambient', 'chill', 'freezer')),
 
-  -- Whether this product's label carries the oval health mark. A compliance
-  -- determination held per item, not inferred from the recipe: the broths
-  -- need it, most sauces and oils do not. Null for anything that is not a
-  -- product, since the question does not apply.
+  -- Whether this item's label carries the oval health mark. A compliance
+  -- determination held per item and never inferred: it follows animal origin,
+  -- not what an item is made from or which recipe it ends up in. The raw meat
+  -- and bone ingredients carry it; most other things do not.
+  --
+  -- Null means "not yet determined", not "no mark". It is deliberately not
+  -- defaulted to 0, because a wrongly-absent mark and a considered absence
+  -- must be distinguishable when an auditor asks.
   needs_health_mark INTEGER CHECK (needs_health_mark IN (0, 1)),
 
   active            INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1)),
   note              TEXT,
   created_at        TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at        TEXT NOT NULL DEFAULT (datetime('now')),
-
-  CHECK (kind = 'product' OR needs_health_mark IS NULL)
+  updated_at        TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE UNIQUE INDEX items_name_unique ON items (name);

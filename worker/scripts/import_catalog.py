@@ -30,8 +30,19 @@ What is derived, and from what evidence:
     needs_health_mark never present. Always left null for products.
     conversions       case -> item from Items per Case, and item -> base unit
                       from the second number of Case Size, which is in the
-                      ingredient's loose unit. Written only where the two
-                      sources of the case count agree.
+                      ingredient's loose unit.
+
+Where the workbook cannot answer at all, `scripts/catalog-overrides.json`
+carries what the kitchen answered instead, with the date and the person who
+said it. Those are decisions, not derivations, which is why they live in a
+file somebody can read rather than in this script's logic.
+
+One workbook quirk is handled rather than reported. The Case Size column
+sometimes reads `1 x <item size>` against an Items per Case of 6 to 48: the
+`1 x` form was written for Kobas, which was set up differently, and it is the
+case count that is wrong there, not the item size. Items per Case is therefore
+the authority for how many items are in a case, and the Case Size string is
+read only for the item size that follows the `x`.
 
 Usage:
 
@@ -43,6 +54,7 @@ Then apply the SQL, local first:
 """
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -58,6 +70,20 @@ BASE_UNIT_FROM_LOOSE = {"g": "kg", "ml": "L"}
 PER_BASE_UNIT = 1000.0
 
 CASE_SIZE = re.compile(r"^\s*([\d.]+)\s*x\s*([\d.]+)\s*$")
+
+# Loose units, and how many of them make one base unit.
+BASE_PER_LOOSE = {"g": ("kg", 1000.0), "ml": ("L", 1000.0)}
+
+OVERRIDES_PATH = Path(__file__).parent / "catalog-overrides.json"
+
+
+def load_overrides(path):
+    """The kitchen's answers, keyed by item name. Missing file means none."""
+    if not path.exists():
+        return {}, None
+    data = json.loads(path.read_text())
+    provenance = f"{data.get('recorded_by', 'unknown')}, {data.get('recorded_on', 'undated')}"
+    return data.get("items", {}), provenance
 
 
 def sql_str(value):
@@ -99,9 +125,10 @@ class Report:
     eighty-odd rows would bury the rest of the report.
     """
 
-    def __init__(self):
+    def __init__(self, provenance="unrecorded"):
         self.sections = {}
         self.tallies = {}
+        self.provenance = provenance
 
     def add(self, section, line):
         self.sections.setdefault(section, []).append(line)
@@ -122,7 +149,7 @@ class Report:
         return "\n".join(parts) + "\n"
 
 
-def build_items(ingredients, products, report):
+def build_items(ingredients, products, overrides, report):
     """One items row per ingredient and per finished product."""
     items = {}
 
@@ -133,19 +160,22 @@ def build_items(ingredients, products, report):
             report.add("Rows skipped: no id or no name", f"Ingredients tab: {row!r}")
             continue
 
+        override = overrides.get(name, {})
         loose_unit = clean(row.get("LooseUnit"))
         tracks_units = bool(row.get("TrackUnits"))
-        if loose_unit in BASE_UNIT_FROM_LOOSE:
-            base_unit = BASE_UNIT_FROM_LOOSE[loose_unit]
+        if override.get("base_unit"):
+            base_unit = override["base_unit"]
+        elif loose_unit in BASE_PER_LOOSE:
+            base_unit = BASE_PER_LOOSE[loose_unit][0]
         elif tracks_units:
             base_unit = "Units"
         else:
             report.add(
-                "Skipped: no base unit can be read from the workbook",
-                f"{name} — neither a loose unit nor unit tracking; needs kg, L or Units",
+                "Skipped: no base unit, and no override says what it is",
+                f"{name} — needs kg, L or Units in catalog-overrides.json",
             )
             continue
-        if loose_unit and loose_unit not in BASE_UNIT_FROM_LOOSE:
+        if loose_unit and loose_unit not in BASE_PER_LOOSE and not override.get("base_unit"):
             report.add(
                 "Unrecognised loose unit, treated as unit-counted",
                 f"{name} — loose unit {loose_unit!r}",
@@ -165,9 +195,11 @@ def build_items(ingredients, products, report):
             "base_unit": base_unit,
             "storage_unopened": storage,
             "storage_opened": None,
-            "needs_health_mark": None,
+            "needs_health_mark": override.get("needs_health_mark"),
         }
         report.tally("After-opening storage is not in the workbook, left null")
+        if override.get("needs_health_mark") is None:
+            report.tally("Health mark not yet determined, left null")
 
     for row in products:
         name = clean(row.get("Name"))
@@ -186,26 +218,97 @@ def build_items(ingredients, products, report):
             "storage_opened": None,
             "needs_health_mark": None,
         }
+        override = overrides.get(name, {})
+        items[item_id]["needs_health_mark"] = override.get("needs_health_mark")
         report.tally("Products have no storage in the workbook, both columns left null")
-        report.tally("Product health mark is a compliance call, left null")
+        if override.get("needs_health_mark") is None:
+            report.tally("Health mark not yet determined, left null")
 
     return items
 
 
-def build_conversions(mapping, ingredients, items, report):
-    """Case -> item -> base unit, one row per hop, only where the sources agree."""
+def conversion_rows(item, per_case, item_size, item_unit, source):
+    """The two hops from a supplier's case down to the item's base unit.
+
+    Returns the rows plus a description of what stopped the second hop, or
+    None where nothing did.
+    """
+    rows = [(f"{item['id']}:case:item", item["id"], "case", "item", float(per_case),
+             f"{per_case:g} items per case, from {source}")]
+
+    base_unit = item["base_unit"]
+    if base_unit == "Units":
+        # One counted thing is one Unit. The item size is in grams or
+        # millilitres, which this item is not measured in.
+        rows.append((f"{item['id']}:item:Units", item["id"], "item", "Units", 1.0, None))
+        return rows, None
+
+    if item_size is None or item_unit not in BASE_PER_LOOSE:
+        return rows, "the item size carries no unit the workbook recognises"
+    unit_base, per_base = BASE_PER_LOOSE[item_unit]
+    if unit_base != base_unit:
+        return rows, f"item size is in {item_unit}, but the item is measured in {base_unit}"
+    rows.append((
+        f"{item['id']}:item:{base_unit}",
+        item["id"],
+        "item",
+        base_unit,
+        float(item_size) / per_base,
+        f"{item_size:g} {item_unit} per item, from {source}",
+    ))
+    return rows, None
+
+
+def build_conversions(mapping, ingredients, items, overrides, report):
+    """Case -> item -> base unit, one row per hop.
+
+    Items per Case is the authority for the case count; see the note at the top
+    of this file about the workbook's `1 x <size>` Kobas rows.
+    """
     by_name = {item["name"]: item for item in items.values()}
     loose_by_name = {clean(r.get("Name")): clean(r.get("LooseUnit")) for r in ingredients}
     conversions = []
+    covered = set()
+
+    # Overridden cases first: where the kitchen has stated the case, that is
+    # the answer, and the workbook is not consulted for it at all.
+    for name, override in overrides.items():
+        case = override.get("case")
+        item = by_name.get(name)
+        if not case:
+            continue
+        if item is None:
+            report.add("Override names an item that is not in the catalog", name)
+            continue
+        covered.add(name)
+        source = f"catalog-overrides.json ({report.provenance})"
+
+        if "case_size" in case:
+            # Bulk: a case is a weight, with no countable item inside it.
+            unit = case["case_unit"]
+            if unit != item["base_unit"]:
+                report.add("Override case unit is not the item's base unit", f"{name} — {unit}")
+                continue
+            conversions.append((
+                f"{item['id']}:case:{unit}", item["id"], "case", unit,
+                float(case["case_size"]), f"{case['case_size']:g} {unit} per case, from {source}",
+            ))
+            continue
+
+        rows, problem = conversion_rows(
+            item, case["per_case"], case.get("item_size"), case.get("item_unit"), source
+        )
+        if problem:
+            report.add("Override case could not be converted to the base unit", f"{name} — {problem}")
+        conversions.extend(rows)
 
     for row in mapping:
         name = clean(row.get("Sheets Name"))
-        if not name:
+        if not name or name in covered:
             continue
         item = by_name.get(name)
         if item is None:
-            # The map tab also lists finished products under their own names
-            # and a few ingredients that are no longer in the catalog.
+            # The map tab also lists a few ingredients no longer in the catalog.
             continue
 
         case_size = clean(row.get("Case Size"))
@@ -222,41 +325,21 @@ def build_conversions(mapping, ingredients, items, report):
         if not match:
             report.add("Case size not understood, no conversion written", f"{name} — {case_size!r}")
             continue
-
-        stated_per_case, item_size = float(match.group(1)), float(match.group(2))
         if per_case is None:
             report.add("No Items per Case, no conversion written", name)
             continue
+
+        stated_per_case, item_size = float(match.group(1)), float(match.group(2))
         if float(per_case) != stated_per_case:
-            # Two sources for the same number that do not agree. Recording
-            # either one would be a guess dressed as a conversion.
-            report.add(
-                "Case count conflicts between Case Size and Items per Case",
-                f"{name} — case size says {stated_per_case:g}, Items per Case says {float(per_case):g}",
-            )
-            continue
+            report.tally("Case count taken from Items per Case over the workbook's Kobas `1 x` form")
 
-        conversions.append((f"{item['id']}:case:item", item["id"], "case", "item", stated_per_case, None))
-
-        base_unit = item["base_unit"]
-        if base_unit == "Units":
-            # One counted thing is one Unit. The item size in the case string
-            # is in grams or millilitres, which this item is not measured in.
-            conversions.append((f"{item['id']}:item:Units", item["id"], "item", "Units", 1.0, None))
-            continue
-
-        loose_unit = loose_by_name.get(name)
-        if loose_unit not in BASE_UNIT_FROM_LOOSE:
-            report.add("Item size has no unit, no item-to-base conversion", name)
-            continue
-        conversions.append((
-            f"{item['id']}:item:{base_unit}",
-            item["id"],
-            "item",
-            base_unit,
-            item_size / PER_BASE_UNIT,
-            f"{item_size:g} {loose_unit} per item, from the workbook's case size {case_size!r}",
-        ))
+        rows, problem = conversion_rows(
+            item, float(per_case), item_size, loose_by_name.get(name),
+            f"the workbook's Items per Case and case size {case_size!r}",
+        )
+        if problem:
+            report.add("No item-to-base conversion written", f"{name} — {problem}")
+        conversions.extend(rows)
 
     return conversions
 
@@ -278,12 +361,13 @@ def render_sql(items, conversions, source):
             "INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened, needs_health_mark)\n"
             f"VALUES ({sql_str(item['id'])}, {sql_str(item['name'])}, {sql_str(item['kind'])}, "
             f"{sql_str(item['base_unit'])}, {sql_str(item['storage_unopened'])}, "
-            f"{sql_str(item['storage_opened'])}, {'NULL' if item['needs_health_mark'] is None else item['needs_health_mark']})\n"
+            f"{sql_str(item['storage_opened'])}, {'NULL' if item['needs_health_mark'] is None else int(bool(item['needs_health_mark']))})\n"
             "ON CONFLICT (id) DO UPDATE SET\n"
             "  name = excluded.name,\n"
             "  kind = excluded.kind,\n"
             "  base_unit = excluded.base_unit,\n"
             "  storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),\n"
+            "  needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),\n"
             "  updated_at = datetime('now');"
         )
 
@@ -309,6 +393,8 @@ def main():
     parser.add_argument("workbook", type=Path)
     parser.add_argument("-o", "--out", type=Path, default=Path(__file__).parent / "catalog.sql")
     parser.add_argument("--report", type=Path, help="write the report here as well as to stdout")
+    parser.add_argument("--overrides", type=Path, default=OVERRIDES_PATH,
+                        help="the kitchen's answers to what the workbook cannot say")
     args = parser.parse_args()
 
     book = openpyxl.load_workbook(args.workbook, read_only=True, data_only=True)
@@ -316,13 +402,20 @@ def main():
     products = read_tab(book, "FinishedProducts")
     mapping = read_tab(book, "map")
 
-    report = Report()
-    items = build_items(ingredients, products, report)
-    conversions = build_conversions(mapping, ingredients, items, report)
+    overrides, provenance = load_overrides(args.overrides)
+    report = Report(provenance or "unrecorded")
+    items = build_items(ingredients, products, overrides, report)
+    conversions = build_conversions(mapping, ingredients, items, overrides, report)
+
+    for name in overrides:
+        if name not in {item["name"] for item in items.values()}:
+            report.add("Override names an item that is not in the catalog", name)
 
     args.out.write_text(render_sql(items, conversions, args.workbook.name))
 
     summary = (
+        f"overrides: {args.overrides.name} ({provenance})\n" if provenance else ""
+    ) + (
         f"{len(items)} items "
         f"({sum(1 for i in items.values() if i['kind'] == 'ingredient')} ingredients, "
         f"{sum(1 for i in items.values() if i['kind'] == 'product')} products), "
