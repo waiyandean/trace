@@ -57,6 +57,14 @@ export function getStaff(db, { includeInactive = false } = {}) {
   return selectAll(db, `SELECT * FROM staff${activeClause(includeInactive)} ORDER BY name`);
 }
 
+// The registered devices. Reference data like the rest of this file: rows are
+// created by hand in the database, never by a form, so that a typo in a
+// device name cannot quietly mint a second short-code pool. The intake form
+// reads this to ask which of them it is running on.
+export function getDevices(db, { includeInactive = false } = {}) {
+  return selectAll(db, `SELECT * FROM devices${activeClause(includeInactive)} ORDER BY name`);
+}
+
 // Conversions are returned with the item's name attached, because every
 // caller that reads a conversion is showing it against an item.
 export function getConversions(db, { itemId = null } = {}) {
@@ -77,6 +85,7 @@ const ACTIONS = {
   suppliers: (db, params) => getSuppliers(db, params),
   customers: (db, params) => getCustomers(db, params),
   staff: (db, params) => getStaff(db, params),
+  devices: (db, params) => getDevices(db, params),
   conversions: (db, params) => getConversions(db, params),
 };
 

@@ -656,9 +656,35 @@ with tests plus a supervised real submission before its line is ticked.
   database has not been migrated either, so nothing about the live state has
   changed.
 
-  Still to do before P1 can be called finished: authentication, the offline
-  queue on the device side, the form itself, registering the real devices, and
-  the supervised real delivery that ends the phase.
+  **The form, 2026-08-31.** `worker/public/` holds the goods intake form,
+  served as static assets from the same origin as the API. It is offline-first
+  in the literal sense rather than the aspirational one: the catalog is cached
+  on the device, the short codes are already held, and the submission is
+  written to a local queue before anything is sent. Losing the kitchen wifi
+  mid-delivery slows the labels down; it cannot lose the delivery.
+
+  Four behaviours in it are the offline design rather than polish. The unit
+  list per item comes from the conversions master, so the form cannot offer a
+  unit the server will refuse while somebody is stood holding a box. A code is
+  taken from the pool at the moment the line is added, because that is when
+  the label is written, and handed back if the line is removed. An empty pool
+  books the lot anyway and says it has no code. A submission the server
+  refuses is parked in the queue with the reason showing, never dropped —
+  a delivery that vanished silently is the failure this project exists to
+  remove.
+
+  Driven end to end against a local database: a Lynas delivery keyed through
+  the form reached the ledger as a lot with its short code bound and 24 kg in
+  the walk-in fridge. 74 tests pass, including the queue, the pool, id minting
+  and the submission shape.
+
+  Labels are still not printed from the form. That is the separate workstream
+  in `labels/`, and until it lands the form shows each line's short code to be
+  written on the case by hand — which is no worse than today, where the code
+  is a date.
+
+  Still to do before P1 can be called finished: authentication, registering
+  the real devices, and the supervised real delivery that ends the phase.
 - **P2 — Store, move, waste.** Location tracking, `MOVE` between areas, and the
   waste/hold log that the old project never started. Waste is early here, not
   late, because without it stock can only ever go missing rather than be

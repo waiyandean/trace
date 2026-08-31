@@ -3,10 +3,10 @@
 The Cloudflare Worker and D1 database behind trace.
 
 P0 built the catalog and a read-only API over it. P1 adds the ledger — events,
-lots, movements and the short-code pool — and the goods intake endpoint that
-writes to them. Recording a delivery and printing its labels are now one act
-rather than two disconnected ones, which is the structural change the whole
-rebuild rests on.
+lots, movements and the short-code pool — the goods intake endpoint that
+writes to them, and the form staff actually use. Recording a delivery and
+printing its labels are now one act rather than two disconnected ones, which
+is the structural change the whole rebuild rests on.
 
 ## Layout
 
@@ -18,6 +18,10 @@ rebuild rests on.
 - `src/ledger/units.js` — converting what was keyed into the item's base unit.
 - `src/ledger/codes.js` — the short-code pool issued per device.
 - `src/ledger/reads.js` — lots, stock on hand, and code lookup.
+- `public/index.html` — the goods intake form, served from the same origin.
+- `public/goods-in.js` — the form's wiring to the DOM.
+- `public/lib/offline.js` — id minting, the queue, the pool. No DOM, so it is
+  unit tested.
 - `test/` — `node --test`, run against a fake D1 binding.
 
 ## Endpoints
@@ -41,6 +45,40 @@ Every catalog action takes `&active=all` to include retired rows; the default
 is active rows only. Items out of scope at Glasgow are held as inactive rows
 rather than removed, so they stay out of every picker without disappearing
 from the record.
+
+## The form
+
+    /            the goods intake form
+
+Served as static assets from the same origin as the API, so there is no CORS
+and no second thing to keep deployed in step. `run_worker_first` in
+`wrangler.toml` keeps `/api/*` with the Worker.
+
+It is offline-first in the literal sense: everything needed to accept a
+delivery is on the device before the network is asked for anything.
+
+- **The catalog is cached** in `localStorage` and refreshed whenever there is
+  a connection. With no connection the cache is used and its age is shown,
+  because a week-old catalog is workable but might be missing a new
+  ingredient, and the person keying the delivery is entitled to know that.
+- **Short codes are already held.** The device keeps a pool of 200 and tops it
+  up below 40, so a line gets its printed code with no round trip. An empty
+  pool does not stop intake: the line is booked without a code and relabelled
+  later.
+- **The submission is written to the queue before it is sent.** A dead battery
+  or a closed lid costs nothing already keyed. Retries carry the same
+  idempotency key, so they are safe; a submission the server refuses is parked
+  in the queue with the reason where a person will see it, rather than being
+  dropped.
+- **Only convertible units are offered.** The unit list per item comes from
+  the conversions master, so the form cannot put a refusal in front of
+  somebody holding a box.
+- **Ids are minted on the device** as ULIDs, so a lot exists the moment the
+  person says it does.
+
+Labels are not printed from here yet — that is the separate workstream in
+`../labels/`. The form shows each line's short code so it can be written on
+the case in the meantime.
 
 ## Booking a delivery
 
@@ -99,6 +137,8 @@ that a typo in a device name cannot quietly mint a second pool:
       "INSERT INTO devices (id, name) VALUES ('trace:goods-in-ipad', 'Goods In iPad')"
 
 There is no admin endpoint for this yet; it is a deliberate, occasional act.
+`GET /api/catalog?action=devices` lists them, which is how the form knows what
+to offer.
 
 ## Working on it
 
@@ -106,6 +146,10 @@ There is no admin endpoint for this yet; it is a deliberate, occasional act.
     npm run migrate:local     # apply migrations to the local D1
     npm run dev               # wrangler dev, against the local D1
     npm test
+
+`npm run dev` serves the form at `http://localhost:8799/` and the API beneath
+it, both against the local database. Register a device first (below) or the
+form has nothing to be.
 
 ## Deployed
 

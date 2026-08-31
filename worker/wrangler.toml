@@ -1,9 +1,21 @@
 # The `trace` Worker — ingredient traceability and kitchen production records.
-# P0 scope: catalog tables only, read-only API. Capture forms arrive in P1.
+# P1 scope: the catalog, the ledger, and the goods intake form over both.
 name = "trace"
 main = "src/index.js"
 compatibility_date = "2026-08-31"
 workers_dev = true
+
+# The forms themselves, served as static assets from the same origin as the
+# API. Same origin matters: the iPad is on kitchen wifi with no certificate of
+# its own, and a cross-origin form would need CORS and a second thing to keep
+# deployed in step.
+#
+# `run_worker_first` keeps /api/* with the Worker. Without it a request that
+# happened to match a file name would be served as an asset, and an endpoint
+# would silently stop existing.
+[assets]
+directory = "public"
+run_worker_first = ["/api/*"]
 
 # The traceability database. This is a NEW database, deliberately empty: the
 # old `forms-traceability` D1 and the Sheets before it are frozen as a

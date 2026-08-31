@@ -28,10 +28,11 @@ alongside it. Every item carries both storage requirements; what is still
 undecided is left null and reported rather than guessed.
 
 P1 adds the ledger — events, lots, append-only movements and the per-device
-short-code pool — and a goods intake endpoint that opens lots, converts what
-staff keyed into the item's base unit, and binds the printed short code in the
-same transaction. It runs against a local database and is not deployed: the
-endpoints write, and the live URL still has no authentication.
+short-code pool — a goods intake endpoint that opens lots, converts what staff
+keyed into the item's base unit and binds the printed short code in the same
+transaction, and the offline-first form staff use to do it. It runs against a
+local database and is not deployed: the endpoints write, and the live URL
+still has no authentication.
 
 Label artwork and ZPL live in `labels/` and print correctly over USB; the
 network path to the printer is still open.
