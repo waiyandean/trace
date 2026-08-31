@@ -88,6 +88,15 @@ ON CONFLICT (id) DO UPDATE SET
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened, needs_health_mark)
+VALUES ('trace:chicken-fillet', 'Chicken Fillet', 'ingredient', 'kg', NULL, NULL, 1)
+ON CONFLICT (id) DO UPDATE SET
+  name = excluded.name,
+  kind = excluded.kind,
+  base_unit = excluded.base_unit,
+  storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
+  needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
+  updated_at = datetime('now');
+INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened, needs_health_mark)
 VALUES ('mpv4ep7cxb5t', 'Chicken Powder', 'ingredient', 'Units', 'ambient', NULL, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
@@ -359,6 +368,15 @@ ON CONFLICT (id) DO UPDATE SET
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened, needs_health_mark)
 VALUES ('mpv40knt0qpi', 'Peeled Potatoes', 'ingredient', 'kg', 'chill', NULL, NULL)
+ON CONFLICT (id) DO UPDATE SET
+  name = excluded.name,
+  kind = excluded.kind,
+  base_unit = excluded.base_unit,
+  storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
+  needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
+  updated_at = datetime('now');
+INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened, needs_health_mark)
+VALUES ('trace:pork-belly', 'Pork Belly', 'ingredient', 'kg', NULL, NULL, 1)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -841,6 +859,18 @@ ON CONFLICT (id) DO UPDATE SET
   updated_at = datetime('now');
 INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
 VALUES ('mpv2hhfz4f61:item:kg', 'mpv2hhfz4f61', 'item', 'kg', 0.2, '200 g per item, from catalog-overrides.json (Dean, 2026-08-31)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('trace:chicken-fillet:case:item', 'trace:chicken-fillet', 'case', 'item', 2.0, '2 items per case, from catalog-overrides.json (Dean, 2026-08-31)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('trace:chicken-fillet:item:kg', 'trace:chicken-fillet', 'item', 'kg', 2.5, '2500 g per item, from catalog-overrides.json (Dean, 2026-08-31)')
 ON CONFLICT (id) DO UPDATE SET
   factor = excluded.factor,
   note = excluded.note,
@@ -1480,4 +1510,42 @@ VALUES ('mpv081l4itu1:item:Units', 'mpv081l4itu1', 'item', 'Units', 1.0, NULL)
 ON CONFLICT (id) DO UPDATE SET
   factor = excluded.factor,
   note = excluded.note,
+  updated_at = datetime('now');
+
+-- Locations
+INSERT INTO locations (id, name, kind)
+VALUES ('trace:dry-store', 'Dry Store', 'ambient')
+ON CONFLICT (id) DO UPDATE SET
+  name = excluded.name,
+  kind = excluded.kind,
+  updated_at = datetime('now');
+INSERT INTO locations (id, name, kind)
+VALUES ('trace:dry-store-allergen-free', 'Dry Store Allergen Free Shelf', 'ambient')
+ON CONFLICT (id) DO UPDATE SET
+  name = excluded.name,
+  kind = excluded.kind,
+  updated_at = datetime('now');
+INSERT INTO locations (id, name, kind)
+VALUES ('trace:walk-in-fridge', 'Walk In Fridge', 'chill')
+ON CONFLICT (id) DO UPDATE SET
+  name = excluded.name,
+  kind = excluded.kind,
+  updated_at = datetime('now');
+INSERT INTO locations (id, name, kind)
+VALUES ('trace:walk-in-freezer', 'Walk In Freezer', 'freezer')
+ON CONFLICT (id) DO UPDATE SET
+  name = excluded.name,
+  kind = excluded.kind,
+  updated_at = datetime('now');
+
+-- Suppliers
+INSERT INTO suppliers (id, name)
+VALUES ('trace:lynas', 'Lynas')
+ON CONFLICT (id) DO UPDATE SET
+  name = excluded.name,
+  updated_at = datetime('now');
+INSERT INTO suppliers (id, name)
+VALUES ('trace:tazaki', 'Tazaki')
+ON CONFLICT (id) DO UPDATE SET
+  name = excluded.name,
   updated_at = datetime('now');

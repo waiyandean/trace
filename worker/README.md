@@ -71,7 +71,10 @@ not written, and the columns still null because neither the workbook nor the
 overrides say. Those are decisions for the kitchen, not for the importer, and
 nothing fills them in by guessing.
 
-Still empty, because this workbook does not carry them: `locations`,
-`suppliers`, `customers` and `staff`. The workbook names three storage areas
-(Dry Store, Fridge, Freezer) and two sites (Glasgow, Edinburgh), but not how
-the two combine, which is what a location row has to say.
+`locations` and `suppliers` are listed in the overrides in full rather than
+derived from the workbook: four Glasgow storage areas, and Lynas and Tazaki.
+Only Glasgow is in scope.
+
+Still empty: `customers` and `staff`. Staff names exist in the old Goods In
+Records sheet, but as free text with one person spelled several ways, so that
+list has to come from the kitchen rather than from the records.

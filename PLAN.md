@@ -502,9 +502,10 @@ with tests plus a supervised real submission before its line is ticked.
 
   **Catalog imported 2026-08-31** from the `Weekly Stock Check Records`
   workbook the kitchen already maintains (`Ingredients`, `FinishedProducts`
-  and `map` tabs), by `worker/scripts/import_catalog.py`. 89 items — 62
-  ingredients and 27 products — and 112 conversions, loaded into the local
-  database and read back through the API. Items keep the workbook's own ids,
+  and `map` tabs), by `worker/scripts/import_catalog.py`. 91 items — 64
+  ingredients and 27 products — plus two ingredients the workbook does not
+  carry, and 114 conversions, four locations and two suppliers, loaded into
+  the local database and read back through the API. Items keep the workbook's own ids,
   so a re-import updates rows rather than duplicating them.
 
   Where the workbook cannot answer, the kitchen's answers are recorded in
@@ -539,19 +540,39 @@ with tests plus a supervised real submission before its line is ticked.
     fillet and pork belly. The schema had a constraint restricting the flag to
     products, taken from the wording in the schema sketch above; that
     constraint was wrong and has been removed. Six of the eight are in the
-    catalog and are flagged. **Chicken Fillet and Pork Belly are not in the
-    workbook at all** — they need adding before P1 can book either of them in.
-    The flag stays null on the other 83 items, meaning not yet determined
-    rather than no mark.
+    catalog and are flagged. Chicken Fillet and Pork Belly were absent from
+    the workbook and were added from the overrides on Dean's figures: chicken
+    fillet as 2 × 2.5 kg per case, pork belly sold per kg with no fixed case,
+    so it carries no case conversion at all — recorded as a decision rather
+    than left looking like an omission. The flag stays null on the other 83
+    items, meaning not yet determined rather than no mark.
 
-  `locations`, `suppliers`, `customers` and `staff` are still empty: this
-  workbook does not carry them. It names three storage areas (Dry Store,
-  Fridge, Freezer) and two sites (Glasgow, Edinburgh) but not how the two
-  combine, which is what a location row has to state.
+  **Locations and suppliers settled 2026-08-31 (Dean).** Only Glasgow is in
+  scope, with four storage areas: Dry Store and the Dry Store Allergen Free
+  Shelf (both ambient), the Walk In Fridge (chill) and the Walk In Freezer
+  (freezer). Edinburgh is out of scope, so the workbook's two sites do not
+  become locations. Suppliers are Lynas and Tazaki.
+
+  That supplier list was checked against the `Goods In Records` sheet Dean
+  supplied, and the history agrees with it: all 2,675 delivery rows are from
+  those two. Its Suppliers tab also lists **Alfa Wholesale**, named against
+  Coconut Milk, Tahini and Chicken Feet but present in no delivery, and
+  **Kite Packaging**, which supplies packaging only. Neither is imported;
+  Kite becomes relevant only if packaging is brought into scope, which is
+  still open question 8.
+
+  `customers` and `staff` remain empty. The Goods In Records sheet does carry
+  staff names, but as free text with the same person spelled several ways —
+  Nikin, Nikin Shrestha and Nikn; Nilesh and Nilesh Shrestha; Aaron and Aarom;
+  Dean and dean. Importing that would put exactly the ambiguity this project
+  exists to remove into the audit trail on day one, so the staff list needs to
+  come from Dean rather than from the records. It is bound up with open
+  question 7 either way.
 
   **The remote database exists as of 2026-08-31** (`trace`, WEUR), with the
-  migration applied and the catalog loaded: 89 items and 112 conversions, read
-  back from the remote database to confirm. The Worker itself is not deployed
+  migration applied and the catalog loaded: 91 items, 114
+  conversions, four locations and two suppliers, read back from the remote
+  database to confirm. The Worker itself is not deployed
   yet, because a workers.dev deploy would put the catalog on a public URL with
   no authentication, and authentication is still open question 7.
 - **P1 — Receive.** Goods intake form opening lots and writing `RECEIVE`

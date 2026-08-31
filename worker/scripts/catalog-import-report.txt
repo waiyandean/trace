@@ -1,9 +1,16 @@
 overrides: catalog-overrides.json (Dean, 2026-08-31)
-89 items (62 ingredients, 27 products), 112 conversions -> /Users/grid/Repos/trace/worker/scripts/catalog.sql
+91 items (64 ingredients, 27 products), 114 conversions, 4 locations, 2 suppliers -> /Users/grid/Repos/trace/worker/scripts/catalog.sql
 
-Override names an item that is not in the catalog (2)
+Added from the overrides, not in the workbook (2)
   - Chicken Fillet
   - Pork Belly
+
+Added item has no storage, left null (2)
+  - Chicken Fillet
+  - Pork Belly
+
+No case conversion, by decision (1)
+  - Pork Belly — sold per kg, so there is no fixed case size to convert from
 
 After-opening storage is not in the workbook, left null: 62 rows
 Health mark not yet determined, left null: 83 rows
