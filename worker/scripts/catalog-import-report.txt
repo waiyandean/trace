@@ -21,6 +21,10 @@ Product kept in freezer storage, named by the kitchen (6)
   - Frozen Ramen : Laksa Ramen
   - Tonkotsu Broth
 
+Excluded from the catalog, imported inactive (2)
+  - Green Oil — not made or held at Glasgow
+  - Ikigai Chicken Broth — not made or held at Glasgow
+
 Added from the overrides, not in the workbook (2)
   - Chicken Fillet
   - Pork Belly

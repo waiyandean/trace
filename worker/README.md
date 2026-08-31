@@ -24,7 +24,9 @@ queue and idempotency keys.
     GET /api/catalog?action=conversions &item=<item id>
 
 Every catalog action takes `&active=all` to include retired rows; the default
-is active rows only.
+is active rows only. Items out of scope at Glasgow are held as inactive rows
+rather than removed, so they stay out of every picker without disappearing
+from the record.
 
 ## Working on it
 

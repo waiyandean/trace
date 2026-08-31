@@ -173,6 +173,15 @@ def after_opening(name, storage_unopened, rule, report):
     return storage_unopened
 
 
+def exclusion(name, excluded, report):
+    """The active flag and the note that says why, for one item."""
+    reason = (excluded or {}).get(name)
+    if not reason:
+        return {"active": 1, "note": None}
+    report.add("Excluded from the catalog, imported inactive", f"{name} — {reason}")
+    return {"active": 0, "note": f"Excluded: {reason}"}
+
+
 def product_storage(name, policy, report):
     """Where a finished product is kept.
 
@@ -192,8 +201,14 @@ def product_storage(name, policy, report):
     return default
 
 
-def build_items(ingredients, products, overrides, rule, policy, report):
-    """One items row per ingredient and per finished product."""
+def build_items(ingredients, products, overrides, rule, policy, excluded, report):
+    """One items row per ingredient and per finished product.
+
+    Rows the kitchen has excluded are still imported, but inactive. Skipping
+    them would let the next import add them back without anyone noticing, and
+    the catalog reads return active rows only, so an inactive row is already
+    invisible to a picker.
+    """
     items = {}
 
     for row in ingredients:
@@ -239,6 +254,7 @@ def build_items(ingredients, products, overrides, rule, policy, report):
             "storage_unopened": storage,
             "storage_opened": after_opening(name, storage, rule, report),
             "needs_health_mark": override.get("needs_health_mark"),
+            **exclusion(name, excluded, report),
         }
         if override.get("needs_health_mark") is None:
             report.tally("Health mark not yet determined, left null")
@@ -261,6 +277,7 @@ def build_items(ingredients, products, overrides, rule, policy, report):
             "storage_unopened": storage,
             "storage_opened": after_opening(name, storage, rule, report),
             "needs_health_mark": override.get("needs_health_mark"),
+            **exclusion(name, excluded, report),
         }
         if storage is None:
             report.add("Product has no storage, left null", name)
@@ -293,6 +310,7 @@ def build_items(ingredients, products, overrides, rule, policy, report):
             "storage_opened": override.get("storage_opened")
             or after_opening(name, override.get("storage_unopened"), rule, report),
             "needs_health_mark": override.get("needs_health_mark"),
+            **exclusion(name, excluded, report),
         }
         report.add("Added from the overrides, not in the workbook", name)
         if not override.get("storage_unopened"):
@@ -451,10 +469,13 @@ def render_sql(items, conversions, locations, suppliers, staff, source):
     lines.append("-- Items")
     for item in sorted(items.values(), key=lambda i: (i["kind"], i["name"])):
         lines.append(
-            "INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened, needs_health_mark)\n"
+            "INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,\n"
+            "                   needs_health_mark, active, note)\n"
             f"VALUES ({sql_str(item['id'])}, {sql_str(item['name'])}, {sql_str(item['kind'])}, "
             f"{sql_str(item['base_unit'])}, {sql_str(item['storage_unopened'])}, "
-            f"{sql_str(item['storage_opened'])}, {'NULL' if item['needs_health_mark'] is None else int(bool(item['needs_health_mark']))})\n"
+            f"{sql_str(item['storage_opened'])}, "
+            f"{'NULL' if item['needs_health_mark'] is None else int(bool(item['needs_health_mark']))}, "
+            f"{item['active']}, {sql_str(item['note'])})\n"
             "ON CONFLICT (id) DO UPDATE SET\n"
             "  name = excluded.name,\n"
             "  kind = excluded.kind,\n"
@@ -462,6 +483,8 @@ def render_sql(items, conversions, locations, suppliers, staff, source):
             "  storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),\n"
             "  storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),\n"
             "  needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),\n"
+            "  active = excluded.active,\n"
+            "  note = excluded.note,\n"
             "  updated_at = datetime('now');"
         )
 
@@ -534,8 +557,12 @@ def main():
     overrides = decisions.get("items", {})
     report = Report(provenance or "unrecorded")
     items = build_items(ingredients, products, overrides, decisions.get("after_opening"),
-                        decisions.get("product_storage"), report)
+                        decisions.get("product_storage"), decisions.get("excluded"), report)
     conversions = build_conversions(mapping, ingredients, items, overrides, report)
+    for name in decisions.get("excluded", {}):
+        if name not in {item["name"] for item in items.values()}:
+            report.add("Excluded name matches no catalog item", name)
+
     locations = build_reference_rows(decisions, "locations", ("id", "name", "kind"), report)
     suppliers = build_reference_rows(decisions, "suppliers", ("id", "name"), report)
     staff = build_reference_rows(decisions, "staff", ("id", "name"), report)

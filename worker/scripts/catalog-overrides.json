@@ -34,7 +34,12 @@
     "",
     "product_storage covers the finished products, which the workbook records",
     "no storage for at all. The frozen lines and the shelf-stable oils and",
-    "sauces are named; everything else goes to the walk-in fridge."
+    "sauces are named; everything else goes to the walk-in fridge.",
+    "",
+    "excluded lists rows that are in the workbook but out of scope at Glasgow.",
+    "They are imported as inactive rather than skipped: skipping them would",
+    "let the next import quietly add them back, and the catalog reads return",
+    "active rows only, so an inactive row is already invisible to a picker."
   ],
   "recorded_by": "Dean",
   "recorded_on": "2026-08-31",
@@ -206,5 +211,9 @@
       "Spicy Teriyaki": "ambient",
       "Soba Sauce": "ambient"
     }
+  },
+  "excluded": {
+    "Ikigai Chicken Broth": "not made or held at Glasgow",
+    "Green Oil": "not made or held at Glasgow"
   }
 }

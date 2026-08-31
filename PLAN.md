@@ -546,6 +546,13 @@ with tests plus a supervised real submission before its line is ticked.
     fridge, recorded as a default rather than named one by one. Every item in
     the catalog now carries both storage requirements.
 
+    Two products are **out of scope at Glasgow** and were excluded on the same
+    day: Ikigai Chicken Broth and Green Oil. They are imported as inactive
+    rather than skipped. Skipping would let a later import add them back
+    without anyone noticing, and the catalog reads return active rows only, so
+    an inactive row is already invisible to a picker while the reason stays on
+    the record. 89 of the 91 items are active.
+
     The columns stay nullable all the same. Null means "not yet determined",
     and a new item added before anyone has decided where it lives must be
     distinguishable from one deliberately left with no requirement.
