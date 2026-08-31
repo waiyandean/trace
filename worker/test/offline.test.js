@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ulid, makeStore, makeQueue, makePool, unitsFor, defaultBatchCode, buildSubmission, syncQueue,
-  groupByStorage, soleLocationFor,
+  groupByStorage, soleLocationFor, forSupplier,
 } from '../public/lib/offline.js';
 
 // A localStorage stand-in, with a switch for the case that matters: storage
@@ -258,4 +258,50 @@ test('nothing is chosen where the dry store and the allergen shelf both fit', ()
 
 test('an item with no storage decided gets no location chosen either', () => {
   assert.equal(soleLocationFor(PICKER_ITEMS[3], AREAS), '');
+});
+
+// Narrowing the picker to one supplier. The mapping is many-to-many and
+// incomplete, and both of those matter at the door.
+
+const SUPPLIER_ITEMS = [
+  { id: 'i1', name: 'Chicken Carcass' },
+  { id: 'i2', name: 'Aji-no Moto MSG' },
+  { id: 'i3', name: 'Rice Vinegar' },
+  { id: 'i4', name: 'Carrots' },
+];
+
+const MAPPING = [
+  { item_id: 'i1', supplier_id: 'sup:lynas' },
+  { item_id: 'i2', supplier_id: 'sup:tazaki' },
+  { item_id: 'i3', supplier_id: 'sup:lynas' },
+  { item_id: 'i3', supplier_id: 'sup:tazaki' },
+];
+
+test('a supplier shows their own ingredients', () => {
+  const shown = forSupplier(SUPPLIER_ITEMS, MAPPING, 'sup:tazaki').map((item) => item.name);
+  assert.deepEqual(shown.sort(), ['Aji-no Moto MSG', 'Carrots', 'Rice Vinegar']);
+});
+
+test('an ingredient both suppliers deliver shows under both', () => {
+  for (const supplier of ['sup:lynas', 'sup:tazaki']) {
+    const shown = forSupplier(SUPPLIER_ITEMS, MAPPING, supplier).map((item) => item.id);
+    assert.ok(shown.includes('i3'), `${supplier} should show Rice Vinegar`);
+  }
+});
+
+test('an ingredient with no supplier recorded shows under every supplier, not none', () => {
+  // Twelve ingredients have no supplier anywhere in the kitchen's records.
+  // Hiding stock that has genuinely turned up leaves somebody at the door
+  // with a box they cannot book in, which is worse than one tile too many.
+  const shown = forSupplier(SUPPLIER_ITEMS, MAPPING, 'sup:lynas').map((item) => item.id);
+  assert.ok(shown.includes('i4'));
+});
+
+test("another supplier's ingredient is hidden", () => {
+  const shown = forSupplier(SUPPLIER_ITEMS, MAPPING, 'sup:lynas').map((item) => item.id);
+  assert.equal(shown.includes('i2'), false);
+});
+
+test('with no supplier chosen nothing is narrowed', () => {
+  assert.equal(forSupplier(SUPPLIER_ITEMS, MAPPING, null).length, 4);
 });

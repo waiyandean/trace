@@ -65,6 +65,22 @@ export function getDevices(db, { includeInactive = false } = {}) {
   return selectAll(db, `SELECT * FROM devices${activeClause(includeInactive)} ORDER BY name`);
 }
 
+// Which supplier each ingredient comes from. Many-to-many, because the
+// kitchen's own records show several items arriving from both Lynas and
+// Tazaki; an item with no row here has no supplier recorded, which the intake
+// form treats as "show it under every supplier" rather than "under none".
+export function getItemSuppliers(db, { supplierId = null } = {}) {
+  const where = supplierId ? ' WHERE s.supplier_id = ?' : '';
+  return selectAll(
+    db,
+    `SELECT s.*, i.name AS item_name
+       FROM item_suppliers s
+       JOIN items i ON i.id = s.item_id${where}
+      ORDER BY i.name`,
+    supplierId ? [supplierId] : [],
+  );
+}
+
 // Conversions are returned with the item's name attached, because every
 // caller that reads a conversion is showing it against an item.
 export function getConversions(db, { itemId = null } = {}) {
@@ -87,6 +103,7 @@ const ACTIONS = {
   staff: (db, params) => getStaff(db, params),
   devices: (db, params) => getDevices(db, params),
   conversions: (db, params) => getConversions(db, params),
+  item_suppliers: (db, params) => getItemSuppliers(db, params),
 };
 
 export const CATALOG_ACTIONS = Object.keys(ACTIONS);
@@ -100,6 +117,7 @@ export async function handleCatalog(db, url) {
   const rows = await handler(db, {
     kind: url.searchParams.get('kind'),
     itemId: url.searchParams.get('item'),
+    supplierId: url.searchParams.get('supplier'),
     includeInactive: url.searchParams.get('active') === 'all',
   });
   return { action, count: rows.length, rows };

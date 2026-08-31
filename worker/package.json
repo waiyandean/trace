@@ -11,6 +11,8 @@
     "test": "node --test",
     "migrate:local": "wrangler d1 migrations apply trace --local",
     "migrate": "wrangler d1 migrations apply trace --remote",
-    "catalog:import": "python3 scripts/import_catalog.py"
+    "catalog:import": "python3 scripts/import_catalog.py",
+    "suppliers:import": "python3 scripts/import_item_suppliers.py",
+    "photos:import": "python3 scripts/import_photos.py"
   }
 }

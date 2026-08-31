@@ -193,6 +193,23 @@ export const STORAGE_GROUPS = [
   { key: null, label: 'Storage not yet decided' },
 ];
 
+// Narrowing the picker to one supplier's ingredients. Sixty-odd tiles become
+// twenty-odd, which is the difference between scanning a grid and hunting
+// through one.
+//
+// An item nobody has mapped to any supplier is shown under every supplier,
+// not under none. The mapping is incomplete — twelve ingredients have no
+// supplier recorded anywhere in the kitchen's records — and hiding stock that
+// has genuinely turned up is a worse failure than showing one tile too many:
+// it leaves somebody at the door with a box they cannot book in.
+export function forSupplier(items, mapping, supplierId) {
+  if (!supplierId) return items;
+
+  const mapped = new Set(mapping.map((row) => row.item_id));
+  const theirs = new Set(mapping.filter((row) => row.supplier_id === supplierId).map((row) => row.item_id));
+  return items.filter((item) => theirs.has(item.id) || !mapped.has(item.id));
+}
+
 export function groupByStorage(items, filter = '') {
   const wanted = filter.trim().toLowerCase();
   const matching = items.filter((item) => item.name.toLowerCase().includes(wanted));

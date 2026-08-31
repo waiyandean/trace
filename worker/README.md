@@ -33,6 +33,7 @@ is the structural change the whole rebuild rests on.
     GET /api/catalog?action=customers
     GET /api/catalog?action=staff
     GET /api/catalog?action=conversions &item=<item id>
+    GET /api/catalog?action=item_suppliers &supplier=<supplier id>
 
     GET  /api/ledger?action=lots       &item=<item id> &status=open|all|held|…
     GET  /api/ledger?action=stock      &item=<item id> &location=<location id>
@@ -73,6 +74,11 @@ delivery is on the device before the network is asked for anything.
 - **Only convertible units are offered.** The unit list per item comes from
   the conversions master, so the form cannot put a refusal in front of
   somebody holding a box.
+- **The picker is narrowed to the chosen supplier.** Sixty-odd tiles become
+  twenty-odd. An ingredient nobody has mapped to a supplier shows under every
+  supplier rather than none, and a "Show everything" button is always there —
+  the mapping came from the kitchen's records and is not complete, so a filter
+  must never be the reason a delivery cannot be booked in.
 - **Ingredients are picked from a grid of photographs**, not a list to
   scroll. Staff recognise their stock by the picture faster than by the name,
   and the kitchen already has a photograph of every ingredient. Tiles are
@@ -157,6 +163,27 @@ three more are Google Drive links from before the kitchen moved its images to
 R2 which Drive will not serve to anyone not signed in. Those five show their
 name on a plain tile. A stand-in picture of a different ingredient would be
 worse than none.
+
+## Which supplier sells what
+
+    npm run dev                      # in another terminal
+    python3 scripts/import_item_suppliers.py "~/Downloads/Goods In Records.xlsx"
+    npx wrangler d1 execute trace --local --file scripts/item-suppliers.sql
+
+Built from two sources in the kitchen's own Goods In Records, kept apart and
+labelled on each row: `registered` is its maintained supplier list, and
+`delivered` is the fact that the supplier has actually delivered that item —
+2,600-odd real deliveries. Where both apply, `delivered` wins, because a
+pairing the history proves is stronger than one only written down.
+
+The relationship is many-to-many. **The kitchen's records do not support the
+idea that suppliers never share an ingredient**: seven ingredients arrive from
+both Lynas and Tazaki, five of them proven by deliveries from each. Read
+`scripts/item-suppliers-report.txt`; it lists those seven, the twelve
+ingredients with no supplier recorded anywhere, and every workbook name that
+matches no catalog item. Nothing is matched approximately — the two
+spreadsheets spell several things differently, and a fuzzy match would put an
+ingredient behind the wrong supplier and hide it at the door.
 
 ## Devices
 

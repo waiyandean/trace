@@ -1,7 +1,7 @@
 import {
   ulid, makeStore, makeQueue, makePool, makeCatalogCache,
   unitsFor, defaultBatchCode, buildSubmission, syncQueue, POOL_TARGET,
-  groupByStorage, soleLocationFor,
+  groupByStorage, soleLocationFor, forSupplier,
 } from './lib/offline.js';
 
 // The goods intake form. Everything it needs to accept a delivery is on the
@@ -54,12 +54,13 @@ async function loadCatalog() {
   if (!online()) return;
 
   try {
-    const parts = ['items', 'locations', 'suppliers', 'staff', 'devices', 'conversions'];
+    const parts = ['items', 'locations', 'suppliers', 'staff', 'devices', 'conversions', 'item_suppliers'];
     const responses = await Promise.all(parts.map((action) => api(`/api/catalog?action=${action}`)));
     if (responses.some((response) => !response.ok)) return;
 
-    const [items, locations, suppliers, staff, devices, conversions] = responses.map((response) => response.body.rows);
-    state.catalog = { items, locations, suppliers, staff, devices, conversions };
+    const [items, locations, suppliers, staff, devices, conversions, itemSuppliers] =
+      responses.map((response) => response.body.rows);
+    state.catalog = { items, locations, suppliers, staff, devices, conversions, itemSuppliers };
     catalogCache.write(state.catalog);
   } catch {
     // Offline in all but name. The cache stands.
@@ -296,9 +297,16 @@ function render() {
 // so this is a grid of pictures rather than a list to scroll. The grouping
 // and the location default are in lib/offline.js, where they are tested.
 function ingredients() {
-  return (state.catalog?.items || [])
+  const all = (state.catalog?.items || [])
     .filter((item) => item.kind === 'ingredient')
     .sort((a, b) => a.name.localeCompare(b.name));
+
+  // Narrowed to the chosen supplier unless the person has asked to see
+  // everything. The escape hatch matters: the mapping came from the kitchen's
+  // records and is not complete, so a filter must never be the reason a
+  // delivery cannot be booked in.
+  if (state.showEveryIngredient) return all;
+  return forSupplier(all, state.catalog?.itemSuppliers || [], $('supplier').value || null);
 }
 
 // A photograph is served from this origin, so it works offline once cached.
@@ -322,6 +330,8 @@ function thumbnail(item, className = '') {
 function renderPicker(filter = '') {
   const groups = $('picker-groups');
   groups.replaceChildren();
+
+  renderPickerScope();
 
   for (const group of groupByStorage(ingredients(), filter)) {
     const inGroup = group.items;
@@ -353,9 +363,43 @@ function renderPicker(filter = '') {
   if (!groups.children.length) {
     const empty = document.createElement('p');
     empty.className = 'empty';
-    empty.textContent = `Nothing matches “${filter}”.`;
+    empty.textContent = filter
+      ? `Nothing matches “${filter}”.`
+      : 'No ingredients to show. Try showing everything.';
     groups.append(empty);
   }
+}
+
+// Says what the grid is showing and offers the way out of it, because a
+// filter the person cannot see is a filter they cannot work around.
+function renderPickerScope() {
+  const scope = $('picker-scope');
+  const supplier = (state.catalog?.suppliers || []).find((row) => row.id === $('supplier').value);
+  scope.replaceChildren();
+
+  if (!supplier) {
+    scope.textContent = 'Every ingredient. Choose a supplier on the form to narrow this.';
+    return;
+  }
+
+  const label = document.createElement('span');
+  label.textContent = state.showEveryIngredient
+    ? 'Showing every ingredient. '
+    : `${supplier.name}’s ingredients, plus any with no supplier recorded. `;
+  scope.append(label);
+
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'secondary';
+  toggle.style.minHeight = '32px';
+  toggle.style.padding = '4px 10px';
+  toggle.style.fontSize = '14px';
+  toggle.textContent = state.showEveryIngredient ? `Just ${supplier.name}` : 'Show everything';
+  toggle.addEventListener('click', () => {
+    state.showEveryIngredient = !state.showEveryIngredient;
+    renderPicker($('picker-search').value);
+  });
+  scope.append(toggle);
 }
 
 async function openPicker() {
@@ -380,6 +424,7 @@ async function openPicker() {
   // of the morning gets one.
   await refillPool();
   $('picker-search').value = '';
+  state.showEveryIngredient = false;
   renderPicker();
   $('picker-dialog').showModal();
 }

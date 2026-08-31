@@ -127,6 +127,9 @@ dialog header { border-radius: 16px 16px 0 0; }
    picture of every ingredient, so the picker is a grid of pictures grouped by
    where the stock lives — the same order somebody walks the kitchen in. */
 .picker-search { padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.picker-search .note {
+  padding: 8px 0 0; margin: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
 .picker-groups { flex: 1; overflow-y: auto; padding-bottom: 8px; overscroll-behavior: contain; }
 
 /* Sticky to the top of the scrolling list, which is this element's own
@@ -281,6 +284,7 @@ dialog header { border-radius: 16px 16px 0 0; }
   <header><h1>Tap an ingredient</h1></header>
   <div class="picker-search">
     <input id="picker-search" type="search" placeholder="Search by name" autocomplete="off" />
+    <p class="note" id="picker-scope"></p>
   </div>
   <div class="picker-groups" id="picker-groups"></div>
   <div class="actions">

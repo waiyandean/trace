@@ -716,6 +716,33 @@ with tests plus a supervised real submission before its line is ticked.
   longer registered is dropped rather than carried on with, since it would
   fail at the first submission anyway.
 
+  **The picker narrows to the chosen supplier (Dean, 2026-08-31)**, which
+  turns sixty-odd tiles into twenty-odd. `item_suppliers` (migration 0003)
+  holds the mapping, built by `worker/scripts/import_item_suppliers.py` from
+  two sources in the kitchen's own Goods In Records, labelled per row: its
+  maintained supplier list, and the 2,600-odd deliveries that prove a supplier
+  has actually delivered an item. Where both apply the history wins.
+
+  **The premise that suppliers do not share ingredients does not hold, and the
+  schema reflects the records rather than the premise.** Seven ingredients
+  arrive from both Lynas and Tazaki — Japanese Soy Sauce, Mirin Style
+  Seasoning, Rice Vinegar, Shimaya Konbudashi and Toban Djan Chilli Bean Sauce
+  each with deliveries from both, plus Ground Bean Sauce and Red Bean Curd
+  where the maintained list says Lynas and only Tazaki has ever delivered. The
+  table is therefore many-to-many; a single supplier column could not hold
+  that without discarding one of the two on no evidence. **These seven need
+  Dean's confirmation**, because a wrong pairing hides an ingredient behind
+  the wrong supplier and leaves somebody at the door with a box they cannot
+  book in.
+
+  Two further gaps are recorded rather than filled. Twelve ingredients have no
+  supplier anywhere in the records; they show under every supplier rather than
+  none, since hiding stock that has genuinely turned up is the worse failure.
+  Twenty-eight names in the workbook match no catalog ingredient — mostly
+  packaging, or the same thing spelled differently — and are left out rather
+  than matched approximately. The picker also always offers "Show everything",
+  so a filter can never be the reason a delivery cannot be booked in.
+
   Still to do before P1 can be called finished: authentication, registering
   the real iPad, and the supervised real delivery that ends the phase.
 - **P2 — Store, move, waste.** Location tracking, `MOVE` between areas, and the
