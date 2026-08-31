@@ -273,6 +273,10 @@ function renderStatus() {
   const pending = queue.pending().length;
   const rejected = queue.rejected().length;
   $('queue-count').textContent = rejected ? `${pending} · ${rejected}!` : String(pending);
+
+  const holds = state.holds?.length ?? 0;
+  $('holds-count').textContent = String(holds);
+  $('open-holds').className = holds ? 'danger' : 'secondary';
 }
 
 // The van's compartments are asked about only where the delivery carries
@@ -757,6 +761,128 @@ async function drainQueue() {
   render();
 }
 
+// ------------------------------------------------------------ held stock
+
+// Clearing a hold. Needs a second reading, an outcome and a name — a lot
+// cannot quietly return to usable stock, and it cannot sit held forever
+// either, which is what happened to the kitchen's one existing deviation:
+// recheck due at 14:02, taken seven days later.
+//
+// This is the one screen that requires a connection. Held stock is in the
+// walk-in, not at the door, and the person clearing it is stood inside.
+
+async function loadHolds() {
+  const body = $('holds-body');
+  if (!online()) {
+    const p = document.createElement('p');
+    p.className = 'empty';
+    p.textContent = 'Offline. Held stock is read from the server, and this screen needs a connection.';
+    body.replaceChildren(p);
+    return;
+  }
+
+  const response = await api('/api/deviations');
+  if (!response.ok) {
+    notify(`Could not read held stock: ${response.body.error || response.status}`, 'bad');
+    return;
+  }
+  state.holds = response.body.rows;
+  renderHolds();
+  renderStatus();
+}
+
+function renderHolds() {
+  const body = $('holds-body');
+  body.replaceChildren();
+
+  if (!state.holds?.length) {
+    const p = document.createElement('p');
+    p.className = 'empty';
+    p.textContent = 'Nothing is held. Every temperature taken was within limit, or every hold has been closed.';
+    body.append(p);
+    return;
+  }
+
+  for (const hold of state.holds) {
+    const card = document.createElement('div');
+    card.className = 'hold';
+
+    const what = document.createElement('div');
+    what.className = 'what';
+    what.textContent = `${hold.item_name || 'a lot'}${hold.short_code ? ` · ${hold.short_code}` : ''}`;
+    card.append(what);
+
+    const why = document.createElement('div');
+    why.className = 'why';
+    const source = hold.kind === 'product' ? 'probed at' : `the van's ${hold.kind.replace('vehicle_', '')} compartment read`;
+    why.textContent = `${source} ${hold.celsius}°C, against a ${hold.limit_celsius}°C limit`;
+    card.append(why);
+
+    const due = document.createElement('div');
+    const overdue = new Date(hold.recheck_due_at) < new Date();
+    due.className = overdue ? 'due late' : 'due';
+    due.textContent = overdue
+      ? `Recheck was due ${new Date(hold.recheck_due_at).toLocaleString()} — overdue`
+      : `Recheck due ${new Date(hold.recheck_due_at).toLocaleString()}`;
+    card.append(due);
+
+    const row = document.createElement('div');
+    row.className = 'row';
+    const label = document.createElement('label');
+    label.textContent = 'Second reading °C';
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.step = '0.1';
+    input.inputMode = 'decimal';
+    row.append(label, input);
+    card.append(row);
+
+    const outcomes = document.createElement('div');
+    outcomes.className = 'outcomes';
+    for (const [outcome, text] of [
+      ['resolved', 'Back within limit'],
+      ['rejected', 'Sent back'],
+      ['disposed', 'Thrown away'],
+    ]) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      if (outcome !== 'resolved') button.className = 'secondary';
+      button.textContent = text;
+      button.addEventListener('click', () => closeHold(hold, outcome, input.value));
+      outcomes.append(button);
+    }
+    card.append(outcomes);
+    body.append(card);
+  }
+}
+
+async function closeHold(hold, outcome, reading) {
+  const response = await api('/api/deviations', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      deviation_id: hold.id,
+      outcome,
+      recheck_celsius: reading === '' ? null : Number(reading),
+      staff_id: $('staff').value || null,
+    }),
+  });
+
+  if (!response.ok) {
+    notify(response.body.error || `Could not close it: ${response.status}`, 'bad');
+    return;
+  }
+
+  const status = response.body.lot?.status;
+  notify(
+    status === 'held'
+      ? 'Closed, but the lot is still held by another reading.'
+      : `Closed. The lot is now ${status}.`,
+    status === 'open' ? 'ok' : 'warn',
+  );
+  await loadHolds();
+}
+
 // ------------------------------------------------------------ queue dialog
 
 function renderQueue() {
@@ -834,9 +960,18 @@ async function boot() {
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
   $('occurred').value = now.toISOString().slice(0, 16);
 
+  // Set rather than left to the browser's "first option wins". This is a
+  // compliance field, and reordering the options one day should not quietly
+  // change what a delivery attests to.
+  $('vehicle-condition').value = 'good';
+
   render();
   await refillPool();
   await drainQueue();
+  // Held stock is loaded on opening so the badge is honest from the start:
+  // somebody arriving at the door should see that yesterday's hold is still
+  // sitting there.
+  if (online()) await loadHolds();
 }
 
 $('staff').addEventListener('change', (event) => {
@@ -876,6 +1011,13 @@ $('discard').addEventListener('click', () => {
   state.lines = [];
   render();
 });
+
+$('open-holds').addEventListener('click', async () => {
+  $('holds-dialog').showModal();
+  await loadHolds();
+});
+$('holds-refresh').addEventListener('click', loadHolds);
+$('holds-close').addEventListener('click', () => $('holds-dialog').close());
 
 $('open-queue').addEventListener('click', () => {
   renderQueue();

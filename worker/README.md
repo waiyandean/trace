@@ -36,6 +36,7 @@ is the structural change the whole rebuild rests on.
     GET /api/catalog?action=staff
     GET /api/catalog?action=conversions &item=<item id>
     GET /api/catalog?action=item_suppliers &supplier=<supplier id>
+    GET /api/catalog?action=temperature_limits
 
     GET  /api/ledger?action=lots       &item=<item id> &status=open|all|held|…
     GET  /api/ledger?action=stock      &item=<item id> &location=<location id>
@@ -43,6 +44,8 @@ is the structural change the whole rebuild rests on.
     GET  /api/codes?device=<device id> the codes that device still holds
     POST /api/codes                    {device_id, want} — top that pool up
     POST /api/receive                  book a delivery
+    GET  /api/deviations               temperature holds nobody has closed
+    POST /api/deviations               close one: a reading, an outcome, a name
 
 Every catalog action takes `&active=all` to include retired rows; the default
 is active rows only. Items out of scope at Glasgow are held as inactive rows
@@ -149,6 +152,38 @@ of it:
         }
       ]
     }
+
+Every delivery carries `checks`, and they are not optional. Without them a
+booked-in delivery is traceable but not compliant, which is what the live
+`forms` goods-in records and this one did not:
+
+    "checks": {
+      "vehicle_condition": "good",
+      "condition_ok": true,
+      "labels_applied": true,
+      "allergens_confirmed": true,
+      "vehicle_frozen_c": -20
+    }
+
+A van reading is required exactly when the delivery carries stock it is about,
+and refused when it does not. A line for chilled or frozen stock carries
+`product_temp_c`; a line for ambient stock must not, because a reading there
+would mean nothing. Which is which comes from the item's `storage_unopened`,
+so the form never has to ask and a line that should carry a reading cannot
+quietly arrive without one.
+
+Limits are `temperature_limits` in the database, not constants: chilled at 5
+(the kitchen's own line, tighter than the legal 8) and frozen at −18. Each
+reading stores the limit it was judged against, so tightening a limit later
+does not rewrite last year's records.
+
+A reading outside its limit holds the stock. The lot is written as `held`
+rather than updated to it afterwards, so it is never briefly usable; a warm
+van holds every lot of that class in the load, since one good probe reading
+does not clear a load that travelled warm; and a lot held by two readings
+stays held until both are closed. Clearing a hold needs a second reading, an
+outcome and a name, and "resolved" is refused unless the second reading is
+actually within limit.
 
 It answers `201` for a submission that wrote something and `200` with
 `"duplicate": true` for the replay of one already accepted, so a device

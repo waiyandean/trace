@@ -200,6 +200,17 @@ dialog header { border-radius: 16px 16px 0 0; }
 .queue-entry { border-top: 1px solid var(--line); padding: 12px 16px; font-size: 15px; }
 .queue-entry .why { color: var(--bad); font-size: 14px; margin-top: 4px; }
 .queue-entry .when { color: var(--muted); font-size: 13px; }
+
+/* One held lot: what was read, when the recheck was due, and the three things
+   that can have happened to it. */
+.hold { border-top: 1px solid var(--line); padding: 14px 16px; }
+.hold .what { font-weight: 600; }
+.hold .why { color: var(--bad); font-size: 14px; margin: 4px 0 2px; }
+.hold .due { color: var(--muted); font-size: 13px; }
+.hold .due.late { color: var(--bad); font-weight: 600; }
+.hold .row { padding: 10px 0 0; }
+.hold .outcomes { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 10px; }
+.hold .outcomes button { flex: 1 1 120px; min-height: 40px; font-size: 15px; }
 </style>
 </head>
 <body>
@@ -208,6 +219,7 @@ dialog header { border-radius: 16px 16px 0 0; }
   <h1>Goods In</h1>
   <span class="pill" id="net">checking</span>
   <span class="pill" id="pool">codes —</span>
+  <button class="secondary" id="open-holds" style="min-height:36px;padding:6px 12px;font-size:14px">Held <span id="holds-count">0</span></button>
   <button class="secondary" id="open-queue" style="min-height:36px;padding:6px 12px;font-size:14px">Queue <span id="queue-count">0</span></button>
 </header>
 
@@ -358,6 +370,15 @@ dialog header { border-radius: 16px 16px 0 0; }
   <div class="picker-groups" id="picker-groups"></div>
   <div class="actions">
     <button class="secondary" id="picker-cancel">Cancel</button>
+  </div>
+</dialog>
+
+<dialog id="holds-dialog">
+  <header><h1>Stock held on temperature</h1></header>
+  <div id="holds-body"></div>
+  <div class="actions">
+    <button class="secondary" id="holds-refresh">Refresh</button>
+    <button class="secondary" id="holds-close">Close</button>
   </div>
 </dialog>
 

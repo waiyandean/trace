@@ -824,8 +824,46 @@ with tests plus a supervised real submission before its line is ticked.
   also be added to the home screen — iOS clears site data after seven unused
   days, installed web apps are exempt, and the queue lives in that storage.
 
+  **The food-safety checks, 2026-08-31.** The ledger recorded a delivery's
+  traceability and none of its compliance, which would have made trace a
+  downgrade on the form it replaces. All 411 of the kitchen's goods intake
+  records carry a vehicle condition and three attestations, 235 a chilled van
+  reading, 168 a frozen one and 201 a product probe. Migration 0005 adds the
+  limits as data, the per-delivery checks, every reading taken, and the
+  deviations a breach opens; the form asks for them and a screen closes them.
+
+  Nothing about it was invented. Chilled at 5 rather than the legal 8 is
+  Dean's line, and every historical reading is 4 or 5, so 5 catches drift
+  while it is still drift. Frozen at -18 and the half-hour recheck window come
+  off the kitchen's own deviation record. Which lines are probed is read from
+  the history rather than ruled on: it probes chicken feet and femur bones and
+  never oil or noodles, so chilled and frozen stock is probed and ambient is
+  not — decided from the catalog, so the form never asks and a line that
+  should carry a reading cannot arrive without one.
+
+  **A breach holds the stock rather than noting it.** That is the one place
+  this departs from current practice, and deliberately: the kitchen's existing
+  deviation had a recheck due at 14:02 and taken seven days later. Nothing was
+  wrong with the decision — the stock came back at -19 — but nothing chased it
+  either. A held lot now cannot be used until somebody records a second
+  reading, an outcome and their name; resolving is refused unless that reading
+  is actually within limit; a warm van holds every lot of its class in the
+  load, because one good probe does not clear a load that travelled warm; and
+  a lot held by two readings stays held until both are closed.
+
+  Three faults were found by exercising it rather than reading it. The item
+  lookup did not select `storage_unopened`, so every item looked ambient and
+  every temperature check was silently skipped — the worst kind, since it
+  passed. Readings were written before the lots they point at, which SQLite
+  rejects because foreign keys are checked per statement. And the vehicle
+  condition relied on a browser's "first option wins" default for a compliance
+  field, which is now set explicitly.
+
   Still to do before P1 can be called finished: authentication, registering
   the real iPad, and the supervised real delivery that ends the phase.
+  Authentication is deferred until the whole system is built (Dean,
+  2026-08-31), so P1 cannot formally close until then — everything is proven
+  locally in the meantime.
 - **P2 — Store, move, waste.** Location tracking, `MOVE` between areas, and the
   waste/hold log that the old project never started. Waste is early here, not
   late, because without it stock can only ever go missing rather than be
