@@ -549,9 +549,11 @@ with tests plus a supervised real submission before its line is ticked.
   Fridge, Freezer) and two sites (Glasgow, Edinburgh) but not how the two
   combine, which is what a location row has to state.
 
-  One thing remains before the line is ticked: the remote database does not
-  exist yet. `wrangler.toml` carries a placeholder `database_id` until
-  `wrangler d1 create trace` is run.
+  **The remote database exists as of 2026-08-31** (`trace`, WEUR), with the
+  migration applied and the catalog loaded: 89 items and 112 conversions, read
+  back from the remote database to confirm. The Worker itself is not deployed
+  yet, because a workers.dev deploy would put the catalog on a public URL with
+  no authentication, and authentication is still open question 7.
 - **P1 — Receive.** Goods intake form opening lots and writing `RECEIVE`
   movements, offline queue and idempotency in place from the first form rather
   than retrofitted. Ends with a real delivery booked in.

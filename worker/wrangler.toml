@@ -8,9 +8,9 @@ workers_dev = true
 # The traceability database. This is a NEW database, deliberately empty: the
 # old `forms-traceability` D1 and the Sheets before it are frozen as a
 # read-only archive (PLAN.md, "History: clean start, legacy read-only").
-# database_id is filled in by `wrangler d1 create trace`.
+# Created 2026-08-31 in WEUR.
 [[d1_databases]]
 binding = "DB"
 database_name = "trace"
-database_id = "PLACEHOLDER_RUN_WRANGLER_D1_CREATE"
+database_id = "3902b45f-e493-49cb-bf10-8eaf7a19bb31"
 migrations_dir = "migrations"
