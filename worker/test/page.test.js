@@ -86,3 +86,27 @@ test('the page registers the service worker and shows its version', () => {
   assert.match(script, /navigator\.serviceWorker\.register\('\/sw\.js'\)/);
   assert.match(script, /App version/);
 });
+
+test('a checkbox keeps the tick the browser draws for it', () => {
+  // `appearance: none` on a bare `input` selector strips a checkbox's tick
+  // entirely: it goes on toggling while showing nothing, which reads as a
+  // broken control. The generic field styling must exclude checkboxes.
+  const styles = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
+  const offenders = styles
+    .split('}')
+    .filter((rule) => /appearance\s*:\s*none/.test(rule))
+    .map((rule) => (rule.split('{')[0] || '').trim())
+    .filter((selector) => /(^|[\s,])input\b/.test(selector))
+    .filter((selector) => !/not\(\[type="checkbox"\]\)/.test(selector));
+
+  assert.deepEqual(offenders, []);
+});
+
+test('the attestations start unticked in the markup', () => {
+  // A box that starts ticked records that the form was submitted, not that
+  // anybody checked.
+  for (const id of ['condition-ok', 'labels-applied', 'allergens-confirmed']) {
+    const tag = html.match(new RegExp(`<input[^>]*id="${id}"[^>]*>`))[0];
+    assert.doesNotMatch(tag, /checked/, `${id} must not be pre-ticked`);
+  }
+});

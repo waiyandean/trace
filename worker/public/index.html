@@ -68,7 +68,10 @@ section > h2 {
 .field { flex: 1 1 200px; min-width: 0; }
 label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
 input, select, button, textarea { font: inherit; }
-input, select {
+/* Text and picker fields. Checkboxes are excluded deliberately: `appearance:
+   none` strips a checkbox's tick entirely, so it goes on toggling while
+   showing nothing, and `width: 100%` stretches it across the row. */
+input:not([type="checkbox"]), select {
   width: 100%; min-height: 44px; padding: 10px 12px; color: var(--text);
   background: var(--sunk); border: 1px solid var(--line);
   border-radius: 10px; appearance: none;
@@ -115,7 +118,13 @@ button:disabled { opacity: 0.45; }
   display: flex; align-items: center; gap: 12px; min-height: 44px;
   font-size: 16px; color: var(--text); margin: 0;
 }
-.attest input { width: 26px; height: 26px; min-height: 0; flex: none; accent-color: var(--tint); }
+.attest input[type="checkbox"] {
+  width: 26px; height: 26px; min-height: 0; flex: none;
+  /* Stated rather than inherited, so a future rule on `input` cannot quietly
+     take the tick away again. accent-color only applies to a checkbox the
+     browser is still drawing itself. */
+  appearance: auto; -webkit-appearance: checkbox; accent-color: var(--tint);
+}
 
 /* A reading outside its limit, said plainly at the moment it is keyed. */
 .breach { color: var(--bad); font-weight: 600; }
