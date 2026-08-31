@@ -110,3 +110,22 @@ test('the attestations start unticked in the markup', () => {
     assert.doesNotMatch(tag, /checked/, `${id} must not be pre-ticked`);
   }
 });
+
+test('the hidden attribute beats the classes that set display', () => {
+  // `hidden` is only a `display: none` in the browser's own stylesheet, so a
+  // class like `.row { display: flex }` overrides it. Two controls the form
+  // hides — the device picker and the product temperature box — carry such a
+  // class, and both were on screen because of it. The override is what makes
+  // `el.hidden = true` mean anything here.
+  const styles = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
+  assert.match(styles, /\[hidden\]\s*\{[^}]*display:\s*none\s*!important/);
+});
+
+test('everything the page hides is hidden by that attribute, not by a class', () => {
+  // If a control were hidden some other way the rule above would not protect
+  // it, so the two must stay in step.
+  const hiddenInMarkup = [...html.matchAll(/id="([^"]+)"[^>]*\shidden/g)].map((m) => m[1]);
+  const hiddenInScript = [...script.matchAll(/\$\('([^']+)'\)\.hidden\s*=/g)].map((m) => m[1]);
+  const unmanaged = hiddenInMarkup.filter((id) => !hiddenInScript.includes(id));
+  assert.deepEqual(unmanaged, [], 'these start hidden and nothing ever shows them');
+});
