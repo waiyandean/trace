@@ -1,0 +1,225 @@
+/* The form is used one-handed on a wet iPad at the goods-in door, so
+   everything here is sized for a thumb rather than a cursor: 44px minimum
+   targets, 17px text, and no hover-only affordances. */
+:root {
+  --bg: #f2f2f7;
+  --surface: #ffffff;
+  --sunk: #efeff4;
+  --line: #d8d8de;
+  --text: #1c1c1e;
+  --muted: #6c6c70;
+  --tint: #0a6b3d;
+  --tint-soft: #e6f2ea;
+  --bad: #b3261e;
+  --bad-soft: #fdeceb;
+  --warn: #8a5a00;
+  --warn-soft: #fff5e0;
+  --radius: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000; --surface: #1c1c1e; --sunk: #2c2c2e; --line: #3a3a3c;
+    --text: #f2f2f7; --muted: #98989f; --tint: #34c77b; --tint-soft: #10301f;
+    --bad: #ff6961; --bad-soft: #3a1614; --warn: #ffd60a; --warn-soft: #3a3000;
+  }
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+/* The `hidden` attribute is only a `display: none` in the browser's own
+   stylesheet, so any class that sets `display` beats it. `.row` sets
+   `display: flex`, which left the device picker on screen looking like a
+   field to fill in, and left the product temperature box on ambient lines
+   where a reading means nothing and the server refuses it. Anything the page
+   hides in JavaScript must stay hidden. */
+[hidden] { display: none !important; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 17px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  padding: 0 0 env(safe-area-inset-bottom);
+}
+header {
+  position: sticky; top: 0; z-index: 20; background: var(--surface);
+  border-bottom: 1px solid var(--line); padding: 10px 16px calc(10px);
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+header h1 { font-size: 20px; margin: 0; flex: 1; letter-spacing: -0.2px; }
+.pill {
+  font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px;
+  background: var(--sunk); color: var(--muted); white-space: nowrap;
+}
+.pill.ok { background: var(--tint-soft); color: var(--tint); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+main { padding: 16px; max-width: 760px; margin: 0 auto; }
+section {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); margin-bottom: 16px; overflow: hidden;
+}
+section > h2 {
+  font-size: 13px; text-transform: uppercase; letter-spacing: 0.6px;
+  color: var(--muted); margin: 0; padding: 12px 16px 6px;
+}
+.row { display: flex; gap: 12px; padding: 8px 16px 14px; flex-wrap: wrap; }
+.field { flex: 1 1 200px; min-width: 0; }
+label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+input, select, button, textarea { font: inherit; }
+/* Text and picker fields. Checkboxes are excluded deliberately: `appearance:
+   none` strips a checkbox's tick entirely, so it goes on toggling while
+   showing nothing, and `width: 100%` stretches it across the row. */
+input:not([type="checkbox"]), select {
+  width: 100%; min-height: 44px; padding: 10px 12px; color: var(--text);
+  background: var(--sunk); border: 1px solid var(--line);
+  border-radius: 10px; appearance: none;
+}
+input:focus, select:focus { outline: 2px solid var(--tint); outline-offset: -1px; }
+/* Shown, not asked for. The batch number is the delivery's date and is the
+   same on every case, so it is one less thing to key in and one less thing to
+   mistype. */
+.derived {
+  display: block; min-height: 44px; padding: 10px 12px;
+  border: 1px dashed var(--line); border-radius: 10px; color: var(--muted);
+  font: 600 17px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+button {
+  min-height: 44px; padding: 11px 18px; border-radius: 10px; border: 1px solid transparent;
+  background: var(--tint); color: #fff; font-weight: 600; cursor: pointer;
+}
+button.secondary { background: var(--sunk); color: var(--text); border-color: var(--line); }
+button.danger { background: transparent; color: var(--bad); border-color: var(--bad); }
+button:disabled { opacity: 0.45; }
+.actions { display: flex; gap: 10px; padding: 0 16px 16px; flex-wrap: wrap; }
+.actions button { flex: 1 1 160px; }
+
+.lines { list-style: none; margin: 0; padding: 0; }
+.lines li { border-top: 1px solid var(--line); padding: 12px 16px; display: flex; gap: 12px; align-items: flex-start; }
+.lines .grow { flex: 1; min-width: 0; }
+.lines .name { font-weight: 600; }
+.lines .detail { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.code {
+  font: 600 20px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 2px; background: var(--tint-soft); color: var(--tint);
+  padding: 8px 10px; border-radius: 8px; white-space: nowrap;
+}
+.code.none { background: var(--warn-soft); color: var(--warn); font-size: 13px; letter-spacing: 0; }
+.empty { padding: 16px; color: var(--muted); }
+
+.note { padding: 0 16px 14px; font-size: 14px; color: var(--muted); }
+
+/* Diagnostics, not a step. Nothing in here is an instruction — the device
+   identifies itself — so it sits at the foot of the page and stays out of the
+   way until somebody is asking why the iPad is behaving oddly. */
+.footnote { background: none; border: none; }
+.footnote > h2 { padding-left: 0; }
+.footnote .note { padding-left: 0; }
+.footnote .row { padding-left: 0; padding-right: 0; }
+
+/* The attestations. Big targets, and unticked by default: a box that starts
+   ticked records that the form was submitted, not that anybody checked. */
+.attest { list-style: none; margin: 0; padding: 4px 16px 12px; }
+.attest li + li { margin-top: 4px; }
+.attest label {
+  display: flex; align-items: center; gap: 12px; min-height: 44px;
+  font-size: 16px; color: var(--text); margin: 0;
+}
+.attest input[type="checkbox"] {
+  width: 26px; height: 26px; min-height: 0; flex: none;
+  /* Stated rather than inherited, so a future rule on `input` cannot quietly
+     take the tick away again. accent-color only applies to a checkbox the
+     browser is still drawing itself. */
+  appearance: auto; -webkit-appearance: checkbox; accent-color: var(--tint);
+}
+
+/* A reading outside its limit, said plainly at the moment it is keyed. */
+.breach { color: var(--bad); font-weight: 600; }
+.banner { padding: 12px 16px; font-size: 15px; }
+.banner.bad { background: var(--bad-soft); color: var(--bad); }
+.banner.warn { background: var(--warn-soft); color: var(--warn); }
+.banner.ok { background: var(--tint-soft); color: var(--tint); }
+
+dialog {
+  border: none; border-radius: 16px 16px 0 0; padding: 0; width: 100%; max-width: 620px;
+  margin: auto auto 0; background: var(--surface); color: var(--text);
+  max-height: 92vh;
+}
+/* The picker is the one sheet that is always full height: it is a list to
+   scan, and a short sheet that grows and shrinks with the search results
+   moves the tiles under the thumb between taps.
+   
+   `[open]` is load-bearing, not decoration. A closed <dialog> is hidden by
+   the browser's own `display: none`, so setting `display` on the bare
+   selector overrides that and leaves the sheet sitting in the page flow,
+   permanently open, below the rest of the form. */
+#picker-dialog[open] {
+  height: 92vh; display: flex; flex-direction: column;
+}
+#picker-dialog > header,
+#picker-dialog > .picker-search,
+#picker-dialog > .actions { flex: none; position: static; }
+#picker-dialog > .actions { border-top: 1px solid var(--line); padding-top: 12px; }
+dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
+dialog header { border-radius: 16px 16px 0 0; }
+/* The ingredient picker. Staff recognise their stock by the photograph far
+   faster than by reading a name off a list, and the kitchen already has a
+   picture of every ingredient, so the picker is a grid of pictures grouped by
+   where the stock lives — the same order somebody walks the kitchen in. */
+.picker-search { padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.picker-search .note {
+  padding: 8px 0 0; margin: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.picker-groups { flex: 1; overflow-y: auto; padding-bottom: 8px; overscroll-behavior: contain; }
+
+/* Sticky to the top of the scrolling list, which is this element's own
+   container — `top` here is measured against that, not against the page. It
+   also needs an opaque background and to sit above the tiles, or the row
+   scrolling underneath shows through it. */
+.group-head {
+  position: sticky; top: 0; z-index: 2;
+  font-size: 13px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
+  color: var(--tint); background: var(--surface);
+  padding: 14px 16px 8px; margin-bottom: 2px;
+  box-shadow: 0 1px 0 var(--line);
+}
+/* The backup group is real stock and must stay tappable, so it is set apart
+   rather than played down: muted heading, and tiles on the sunk background so
+   the eye passes over them on the way to the everyday grid above. */
+.group-head.backup { color: var(--muted); }
+.tiles.backup .tile { background: var(--sunk); }
+
+.tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 0 16px; }
+@media (max-width: 520px) { .tiles { grid-template-columns: 1fr; } }
+.tile {
+  display: flex; align-items: center; gap: 12px; text-align: left;
+  background: var(--surface); color: var(--text); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 10px; min-height: 64px; font-weight: 500;
+}
+.tile:active { background: var(--tint-soft); border-color: var(--tint); }
+.tile img, .tile .noimg {
+  width: 48px; height: 48px; border-radius: 10px; object-fit: cover;
+  background: var(--sunk); flex: none;
+}
+.tile .noimg {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--muted); text-align: center; line-height: 1.1; padding: 2px;
+}
+.tile span { min-width: 0; overflow-wrap: anywhere; }
+.chosen { display: flex; align-items: center; gap: 12px; padding: 12px 16px 4px; }
+.chosen img, .chosen .noimg {
+  width: 56px; height: 56px; border-radius: 10px; object-fit: cover; background: var(--sunk); flex: none;
+}
+.chosen .noimg { display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--muted); }
+.chosen b { font-size: 19px; }
+
+.queue-entry { border-top: 1px solid var(--line); padding: 12px 16px; font-size: 15px; }
+.queue-entry .why { color: var(--bad); font-size: 14px; margin-top: 4px; }
+.queue-entry .when { color: var(--muted); font-size: 13px; }
+
+/* One held lot: what was read, when the recheck was due, and the three things
+   that can have happened to it. */
+.hold { border-top: 1px solid var(--line); padding: 14px 16px; }
+.hold .what { font-weight: 600; }
+.hold .why { color: var(--bad); font-size: 14px; margin: 4px 0 2px; }
+.hold .due { color: var(--muted); font-size: 13px; }
+.hold .due.late { color: var(--bad); font-weight: 600; }
+.hold .row { padding: 10px 0 0; }
+.hold .outcomes { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 10px; }
+.hold .outcomes button { flex: 1 1 120px; min-height: 40px; font-size: 15px; }

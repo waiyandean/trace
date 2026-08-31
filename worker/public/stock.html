@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Stock — trace</title>
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Stock" />
+<meta name="theme-color" content="#f2f2f7" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="stylesheet" href="/app.css" />
+<style>
+/* Stock is read live from the server. Unlike goods-in it is used inside, on
+   wifi, next to the racking (PLAN.md, "Where the iPad actually is"), so there
+   is no offline queue here and no pretending there is one. */
+.lot { border-top: 1px solid var(--line); padding: 12px 16px; display: flex; gap: 12px; align-items: center; }
+.lot .grow { flex: 1; min-width: 0; }
+.lot .name { font-weight: 600; }
+.lot .detail { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.lot .qty { font: 600 18px/1 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; }
+.lot.is-held { background: var(--warn-soft); }
+.lot .flag { font-size: 12px; font-weight: 700; color: var(--warn); text-transform: uppercase; letter-spacing: 0.5px; }
+.lot .soon { color: var(--bad); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Stock</h1>
+  <span class="pill" id="net">checking</span>
+  <a href="/" class="pill" style="text-decoration:none">Goods In →</a>
+</header>
+
+<main>
+  <div id="alerts"></div>
+
+  <section>
+    <h2>Who is doing this</h2>
+    <div class="row">
+      <div class="field">
+        <label for="staff">Your name</label>
+        <select id="staff"></select>
+      </div>
+      <div class="field">
+        <label for="where">Storage area</label>
+        <select id="where"></select>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What is there</h2>
+    <div class="row">
+      <div class="field">
+        <label for="search">Search by ingredient or code</label>
+        <input id="search" type="search" autocomplete="off" placeholder="chicken, 0CFMG7…" />
+      </div>
+    </div>
+    <ul class="lines" id="lots"></ul>
+    <p class="empty" id="lots-empty">Loading…</p>
+  </section>
+</main>
+
+<dialog id="action-dialog">
+  <header><h1 id="action-title">Stock</h1></header>
+  <div class="chosen" id="action-chosen"></div>
+  <p class="note" id="action-where"></p>
+
+  <div class="actions" id="action-pick">
+    <button id="do-move">Move it</button>
+    <button class="secondary" id="do-waste">Throw it away</button>
+    <button class="secondary" id="do-hold">Hold it</button>
+    <button class="secondary" id="do-release">Release the hold</button>
+  </div>
+
+  <div id="action-form" hidden>
+    <div class="row" id="quantity-row">
+      <div class="field">
+        <label for="quantity" id="quantity-label">How much</label>
+        <input id="quantity" type="number" step="any" min="0" inputmode="decimal" />
+      </div>
+      <div class="field" id="to-field">
+        <label for="to-location">Where it is going</label>
+        <select id="to-location"></select>
+      </div>
+    </div>
+    <div class="row" id="reason-row">
+      <div class="field">
+        <label for="reason">Why</label>
+        <select id="reason"></select>
+      </div>
+    </div>
+    <div class="row" id="note-row">
+      <div class="field">
+        <label for="note" id="note-label">Note</label>
+        <input id="note" autocomplete="off" />
+      </div>
+    </div>
+    <div id="action-error"></div>
+    <div class="actions">
+      <button id="action-save">Save</button>
+      <button class="secondary" id="action-back">Back</button>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="secondary" id="action-close">Close</button>
+  </div>
+</dialog>
+
+<script type="module" src="/stock.js"></script>
+</body>
+</html>
