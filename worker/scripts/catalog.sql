@@ -7,1184 +7,1457 @@
 
 -- Items
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuc771xt0jo', '100% Rapeseed Oil', 'ingredient', 'L', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpuc771xt0jo', '100% Rapeseed Oil', 'ingredient', 'L', 'ambient', 'ambient', 'shortens', 42.0, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuhgjfoxsvf', 'Aji-no Moto MSG', 'ingredient', 'kg', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpuhgjfoxsvf', 'Aji-no Moto MSG', 'ingredient', 'kg', 'ambient', 'ambient', 'shortens', 42.0, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpucf3ruuoa9', 'Apple Juice', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpucf3ruuoa9', 'Apple Juice', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv2moh60h4k', 'Ariake Tonkotsu Paste', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpv2moh60h4k', 'Ariake Tonkotsu Paste', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpucqr4q51x5', 'Balsamic Vinegar', 'ingredient', 'kg', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpucqr4q51x5', 'Balsamic Vinegar', 'ingredient', 'kg', 'ambient', 'ambient', 'shortens', 90.0, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuzg1idxdpk', 'Blended Sesame Oil', 'ingredient', 'L', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpuzg1idxdpk', 'Blended Sesame Oil', 'ingredient', 'L', 'ambient', 'ambient', 'shortens', 42.0, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv49dty4hdf', 'Carrots', 'ingredient', 'kg', 'chill', 'chill', NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
+VALUES ('mpv49dty4hdf', 'Carrots', 'ingredient', 'kg', 'chill', 'chill', 'whole_pack', NULL, NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv4uvjvdk38', 'Chicken Carcass', 'ingredient', 'kg', 'freezer', 'freezer', 1, 1, NULL)
+VALUES ('mpv4uvjvdk38', 'Chicken Carcass', 'ingredient', 'kg', 'freezer', 'freezer', 'whole_pack', NULL, 1, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv4x5mait4u', 'Chicken Feet', 'ingredient', 'Units', 'freezer', 'freezer', 1, 1, NULL)
+VALUES ('mpv4x5mait4u', 'Chicken Feet', 'ingredient', 'Units', 'freezer', 'freezer', 'whole_pack', NULL, 1, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('trace:chicken-fillet', 'Chicken Fillet', 'ingredient', 'kg', 'chill', 'chill', 1, 1, NULL)
+VALUES ('trace:chicken-fillet', 'Chicken Fillet', 'ingredient', 'kg', 'chill', 'chill', 'whole_pack', NULL, 1, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv4ep7cxb5t', 'Chicken Powder', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
+VALUES ('mpv4ep7cxb5t', 'Chicken Powder', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv4w2k806ce', 'Chicken Wings', 'ingredient', 'Units', 'freezer', 'freezer', 1, 1, NULL)
+VALUES ('mpv4w2k806ce', 'Chicken Wings', 'ingredient', 'Units', 'freezer', 'freezer', 'whole_pack', NULL, 1, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv46rcpaytv', 'Chinese Leaves', 'ingredient', 'Units', 'chill', 'chill', NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
+VALUES ('mpv46rcpaytv', 'Chinese Leaves', 'ingredient', 'Units', 'chill', 'chill', 'whole_pack', NULL, NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpucrpe8rlh5', 'Cider Vinegar', 'ingredient', 'L', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpucrpe8rlh5', 'Cider Vinegar', 'ingredient', 'L', 'ambient', 'ambient', 'shortens', 42.0, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpucspup5soi', 'Cracked Black Pepper', 'ingredient', 'kg', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpucspup5soi', 'Cracked Black Pepper', 'ingredient', 'kg', 'ambient', 'ambient', 'shortens', 42.0, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpxzs2w0ltja', 'Curry Laksa Paste', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpxzs2w0ltja', 'Curry Laksa Paste', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuzhbhus7w8', 'Dark Soy Sauce', 'ingredient', 'L', 'ambient', 'ambient', NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
+VALUES ('mpuzhbhus7w8', 'Dark Soy Sauce', 'ingredient', 'L', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv3vzatkfqx', 'Diced Onions', 'ingredient', 'kg', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('mpv3vzatkfqx', 'Diced Onions', 'ingredient', 'kg', 'chill', 'chill', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv2kmqueish', 'Dried Bird Eye Chillies', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpv2kmqueish', 'Dried Bird Eye Chillies', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv4ya5ookoo', 'Femur Bones', 'ingredient', 'kg', 'freezer', 'freezer', 1, 1, NULL)
+VALUES ('mpv4ya5ookoo', 'Femur Bones', 'ingredient', 'kg', 'freezer', 'freezer', 'whole_pack', NULL, 1, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuct8qvh4np', 'Fine Salt', 'ingredient', 'kg', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpuct8qvh4np', 'Fine Salt', 'ingredient', 'kg', 'ambient', 'ambient', 'shortens', 42.0, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv41h7l50xw', 'Ginger Root', 'ingredient', 'kg', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('mpv41h7l50xw', 'Ginger Root', 'ingredient', 'kg', 'chill', 'chill', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpucubc5jfmh', 'Granulated Sugar', 'ingredient', 'kg', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpucubc5jfmh', 'Granulated Sugar', 'ingredient', 'kg', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuzmv42k3qt', 'Ground Bean Sauce', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpuzmv42k3qt', 'Ground Bean Sauce', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpucv3qqzv8r', 'Ground White Pepper', 'ingredient', 'kg', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpucv3qqzv8r', 'Ground White Pepper', 'ingredient', 'kg', 'ambient', 'ambient', 'shortens', 42.0, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuzklcwj9wl', 'Haepyo Gochujang', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpuzklcwj9wl', 'Haepyo Gochujang', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv4zal7ks2g', 'Hind Feet', 'ingredient', 'kg', 'freezer', 'freezer', 1, 1, NULL)
+VALUES ('mpv4zal7ks2g', 'Hind Feet', 'ingredient', 'kg', 'freezer', 'freezer', 'whole_pack', NULL, 1, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuzoq8ebfnm', 'Hoi Sin Sauce 20kg', 'ingredient', 'kg', 'ambient', 'chill', NULL, 1, NULL)
+VALUES ('mpuzoq8ebfnm', 'Hoi Sin Sauce 20kg', 'ingredient', 'kg', 'ambient', 'chill', 'shortens', 42.0, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuzrf5htyrc', 'Hoi Sin Sauce Cans', 'ingredient', 'Units', 'ambient', 'chill', NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
+VALUES ('mpuzrf5htyrc', 'Hoi Sin Sauce Cans', 'ingredient', 'Units', 'ambient', 'chill', 'whole_pack', NULL, NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv2v85ihjwb', 'JA Yuzu Seasoning', 'ingredient', 'kg', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpv2v85ihjwb', 'JA Yuzu Seasoning', 'ingredient', 'kg', 'ambient', 'ambient', 'shortens', 42.0, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpudo60gpapk', 'Japanese Soy Sauce', 'ingredient', 'L', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpudo60gpapk', 'Japanese Soy Sauce', 'ingredient', 'L', 'ambient', 'ambient', 'shortens', 56.0, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv2xn3jyhta', 'Korean Hot Pepper Powder', 'ingredient', 'kg', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpv2xn3jyhta', 'Korean Hot Pepper Powder', 'ingredient', 'kg', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuzxj9jnk33', 'Mae Ploy Green Curry Paste', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpuzxj9jnk33', 'Mae Ploy Green Curry Paste', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuztdxmggmq', 'Mae Ploy Red Curry Paste', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpuztdxmggmq', 'Mae Ploy Red Curry Paste', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuzytgt4umm', 'Mae Ploy Tom Yum Paste', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpuzytgt4umm', 'Mae Ploy Tom Yum Paste', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv34d94nwrv', 'Maggi Seasoning', 'ingredient', 'kg', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpv34d94nwrv', 'Maggi Seasoning', 'ingredient', 'kg', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv4dmq37alr', 'Medium Eggs', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
+VALUES ('mpv4dmq37alr', 'Medium Eggs', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuh5g71a757', 'Mirin Style Seasoning', 'ingredient', 'L', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpuh5g71a757', 'Mirin Style Seasoning', 'ingredient', 'L', 'ambient', 'ambient', 'shortens', 42.0, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpudkxf1b97v', 'Paprika Sweet', 'ingredient', 'kg', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpudkxf1b97v', 'Paprika Sweet', 'ingredient', 'kg', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv3t4jmh10w', 'Peeled Garlic', 'ingredient', 'kg', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('mpv3t4jmh10w', 'Peeled Garlic', 'ingredient', 'kg', 'chill', 'chill', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv40knt0qpi', 'Peeled Potatoes', 'ingredient', 'kg', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('mpv40knt0qpi', 'Peeled Potatoes', 'ingredient', 'kg', 'chill', 'chill', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('trace:pork-belly', 'Pork Belly', 'ingredient', 'kg', 'chill', 'chill', 1, 1, NULL)
+VALUES ('trace:pork-belly', 'Pork Belly', 'ingredient', 'kg', 'chill', 'chill', 'whole_pack', NULL, 1, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv5107jwcxi', 'Pork Fat', 'ingredient', 'kg', 'freezer', 'freezer', 1, 1, NULL)
+VALUES ('mpv5107jwcxi', 'Pork Fat', 'ingredient', 'kg', 'freezer', 'freezer', 'whole_pack', NULL, 1, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv2hhfz4f61', 'Rajah Whole Red Chillies', 'ingredient', 'kg', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpv2hhfz4f61', 'Rajah Whole Red Chillies', 'ingredient', 'kg', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv2lln2mcfh', 'Red Bean Curd', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpv2lln2mcfh', 'Red Bean Curd', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv42tb8kk7i', 'Red Chillies', 'ingredient', 'kg', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('mpv42tb8kk7i', 'Red Chillies', 'ingredient', 'kg', 'chill', 'chill', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuh883tfymc', 'Rice Vinegar', 'ingredient', 'L', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpuh883tfymc', 'Rice Vinegar', 'ingredient', 'L', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuhckliqwi7', 'Shimaya Konbudashi', 'ingredient', 'kg', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpuhckliqwi7', 'Shimaya Konbudashi', 'ingredient', 'kg', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv2qb0p8fnl', 'Shio G', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpv2qb0p8fnl', 'Shio G', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv2thqzwsy1', 'Shio Paitan', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpv2thqzwsy1', 'Shio Paitan', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv081l4itu1', 'Sichuan Toban Chilli Sauce', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpv081l4itu1', 'Sichuan Toban Chilli Sauce', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv2zxrmbswt', 'Spicy Bean Sauce (Mapo)', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpv2zxrmbswt', 'Spicy Bean Sauce (Mapo)', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv43vqscfkx', 'Spinach', 'ingredient', 'Units', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('mpv43vqscfkx', 'Spinach', 'ingredient', 'Units', 'chill', 'chill', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv452gsu2ll', 'Spring Onion', 'ingredient', 'Units', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('mpv452gsu2ll', 'Spring Onion', 'ingredient', 'Units', 'chill', 'chill', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv4frxnle13', 'Sriracha Chilli Sauce', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
+VALUES ('mpv4frxnle13', 'Sriracha Chilli Sauce', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpudm0lkbvi8', 'Syrup', 'ingredient', 'kg', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpudm0lkbvi8', 'Syrup', 'ingredient', 'kg', 'ambient', 'ambient', 'shortens', 42.0, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv3bqob8hyp', 'Tahini', 'ingredient', 'kg', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpv3bqob8hyp', 'Tahini', 'ingredient', 'kg', 'ambient', 'ambient', 'shortens', 42.0, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv0637u6fag', 'Toban Djan Chilli Bean Sauce', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpv0637u6fag', 'Toban Djan Chilli Bean Sauce', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv4gpc6mcvn', 'Tomato Ketchup', 'ingredient', 'kg', 'ambient', 'ambient', NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
+VALUES ('mpv4gpc6mcvn', 'Tomato Ketchup', 'ingredient', 'kg', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv4j0ic2j14', 'Tomato Puree Paste', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
+VALUES ('mpv4j0ic2j14', 'Tomato Puree Paste', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 0, 'Excluded: used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)')
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuhe0qrp0fd', 'White Miso', 'ingredient', 'kg', 'ambient', 'chill', NULL, 1, NULL)
+VALUES ('mpuhe0qrp0fd', 'White Miso', 'ingredient', 'kg', 'ambient', 'chill', 'shortens', 42.0, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('ms4h8bkmsw2l', 'White Truffle Oil', 'ingredient', 'kg', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('ms4h8bkmsw2l', 'White Truffle Oil', 'ingredient', 'kg', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuhhy0yrbs7', 'Yakisoba Sauce', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpuhhy0yrbs7', 'Yakisoba Sauce', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuzjice0yy4', 'Yutaka Gochujang', 'ingredient', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpuzjice0yy4', 'Yutaka Gochujang', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwqnttivfp9', 'BBQ Seasoning', 'product', 'Units', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('mpwqnttivfp9', 'BBQ Seasoning', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwp0iaq5eol', 'Beef Tataki', 'product', 'Units', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('mpwp0iaq5eol', 'Beef Tataki', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('msx19517161apq', 'Black Garlic Tonkotsu (Soup)', 'product', 'Units', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('msx19517161apq', 'Black Garlic Tonkotsu (Soup)', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwqoafdxpka', 'Chicken Broth', 'product', 'Units', 'freezer', 'freezer', NULL, 1, NULL)
+VALUES ('mpwqoafdxpka', 'Chicken Broth', 'product', 'Units', 'freezer', 'freezer', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwokfhqje42', 'Chicken Paste', 'product', 'Units', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('mpwokfhqje42', 'Chicken Paste', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('msx197b0svuci1', 'Chicken Ramen (Soup)', 'product', 'Units', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('msx197b0svuci1', 'Chicken Ramen (Soup)', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwqcudx7vkq', 'Chilli Oil', 'product', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpwqcudx7vkq', 'Chilli Oil', 'product', 'Units', 'ambient', 'ambient', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpylom0aijw5', 'Frozen Ramen : Black Garlic', 'product', 'Units', 'freezer', 'freezer', NULL, 1, NULL)
+VALUES ('mpylom0aijw5', 'Frozen Ramen : Black Garlic', 'product', 'Units', 'freezer', 'freezer', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpylq1xtnwoq', 'Frozen Ramen : Chicken Tori Paitan', 'product', 'Units', 'freezer', 'freezer', NULL, 1, NULL)
+VALUES ('mpylq1xtnwoq', 'Frozen Ramen : Chicken Tori Paitan', 'product', 'Units', 'freezer', 'freezer', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpylp7salypk', 'Frozen Ramen : Hell Ramen', 'product', 'Units', 'freezer', 'freezer', NULL, 1, NULL)
+VALUES ('mpylp7salypk', 'Frozen Ramen : Hell Ramen', 'product', 'Units', 'freezer', 'freezer', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpylqnqkh9k0', 'Frozen Ramen : Laksa Ramen', 'product', 'Units', 'freezer', 'freezer', NULL, 1, NULL)
+VALUES ('mpylqnqkh9k0', 'Frozen Ramen : Laksa Ramen', 'product', 'Units', 'freezer', 'freezer', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwqjdw1mzjc', 'Garlic Oil', 'product', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpwqjdw1mzjc', 'Garlic Oil', 'product', 'Units', 'ambient', 'ambient', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwqlw405avb', 'Green Curry Sauce', 'product', 'Units', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('mpwqlw405avb', 'Green Curry Sauce', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwqnkqbuyiw', 'Green Oil', 'product', 'Units', 'chill', 'chill', NULL, 0, 'Excluded: not made or held at Glasgow')
+VALUES ('mpwqnkqbuyiw', 'Green Oil', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 0, 'Excluded: not made or held at Glasgow')
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('msx196i5t9lvzj', 'Hell Ramen (Soup)', 'product', 'Units', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('msx196i5t9lvzj', 'Hell Ramen (Soup)', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwoga5uqxpp', 'Hell Sauce', 'product', 'Units', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('mpwoga5uqxpp', 'Hell Sauce', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpybhcrx14qt', 'Ikigai Chicken Broth', 'product', 'Units', 'chill', 'chill', NULL, 0, 'Excluded: not made or held at Glasgow')
+VALUES ('mpybhcrx14qt', 'Ikigai Chicken Broth', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 0, 'Excluded: not made or held at Glasgow')
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwo883223am', 'Kimchi Sauce', 'product', 'Units', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('mpwo883223am', 'Kimchi Sauce', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwp47uz9ugz', 'Laksa Paste', 'product', 'Units', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('mpwp47uz9ugz', 'Laksa Paste', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('msx197xjx312in', 'Laksa Ramen (Soup)', 'product', 'Units', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('msx197xjx312in', 'Laksa Ramen (Soup)', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwqa03mcg0g', 'Soba Sauce', 'product', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpwqa03mcg0g', 'Soba Sauce', 'product', 'Units', 'ambient', 'ambient', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpvbwhnirxon', 'Spicy Miso', 'product', 'Units', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('mpvbwhnirxon', 'Spicy Miso', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwqh1089j2e', 'Spicy Teriyaki', 'product', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpwqh1089j2e', 'Spicy Teriyaki', 'product', 'Units', 'ambient', 'ambient', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwp3fcg6zvj', 'Tantan Sauce', 'product', 'Units', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('mpwp3fcg6zvj', 'Tantan Sauce', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwq61oizabz', 'Teriyaki Sauce', 'product', 'Units', 'ambient', 'ambient', NULL, 1, NULL)
+VALUES ('mpwq61oizabz', 'Teriyaki Sauce', 'product', 'Units', 'ambient', 'ambient', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwqlj8blcjs', 'Tom Yum Tare', 'product', 'Units', 'chill', 'chill', NULL, 1, NULL)
+VALUES ('mpwqlj8blcjs', 'Tom Yum Tare', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
+                   opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwqpwl8j1px', 'Tonkotsu Broth', 'product', 'Units', 'freezer', 'freezer', NULL, 1, NULL)
+VALUES ('mpwqpwl8j1px', 'Tonkotsu Broth', 'product', 'Units', 'freezer', 'freezer', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
   base_unit = excluded.base_unit,
   storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),
   storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),
+  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),
+  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),
   needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),
   active = excluded.active,
   note = excluded.note,

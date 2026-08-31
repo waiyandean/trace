@@ -393,6 +393,12 @@ not written, and the columns still null because neither the workbook nor the
 overrides say. Those are decisions for the kitchen, not for the importer, and
 nothing fills them in by guessing.
 
+`opening` in the overrides says what opening a pack does to it: fifteen named
+ingredients get a Date Opened label and everything else is used whole. Two
+periods come from the supplier's own specification and thirteen from the
+kitchen's six-week rule, and the file keeps them apart so a supplier's figure
+is never mistaken for a house rule.
+
 `locations`, `suppliers` and `staff` are listed in the overrides in full
 rather than derived from the workbook: four Glasgow storage areas, Lynas and
 Tazaki, and ten people. Only Glasgow is in scope.

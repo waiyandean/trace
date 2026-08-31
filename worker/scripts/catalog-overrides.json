@@ -241,5 +241,28 @@
       "Shimaya Konbudashi": "Lynas",
       "Toban Djan Chilli Bean Sauce": "Lynas"
     }
+  },
+  "opening": {
+    "_comment": "What opening a pack does to it. Fifteen ingredients get a Date Opened label; every other ingredient is used whole and is marked whole_pack by the importer. Where the supplier's specification states a period it is used; where it does not, the kitchen's own six-week rule applies, which is tighter than the packs require and is the kitchen's decision rather than the supplier's (Dean, 2026-08-31).",
+    "house_rule_days": 42,
+    "from_supplier_spec": {
+      "Balsamic Vinegar": 90,
+      "Japanese Soy Sauce": 56
+    },
+    "house_rule": [
+      "Cracked Black Pepper",
+      "Cider Vinegar",
+      "Hoi Sin Sauce 20kg",
+      "Mirin Style Seasoning",
+      "White Miso",
+      "Aji-no Moto MSG",
+      "100% Rapeseed Oil",
+      "Fine Salt",
+      "Blended Sesame Oil",
+      "Syrup",
+      "Tahini",
+      "Ground White Pepper",
+      "JA Yuzu Seasoning"
+    ]
   }
 }

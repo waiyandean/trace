@@ -1036,16 +1036,43 @@ These need Dean's answer before the phase that depends on them.
    item-plus-location for loose or decanted stock, or apportioning an
    item-level variance across that item's open lots by a stated rule. This is
    an operational decision, not just a technical one.
-4. **Opening a case, and what it does to the use-by (P3).** The lifecycle
-   above has an ingredient going from goods in into a batch, but a case is
-   often opened, part used, and the rest put back. The remainder is the same
-   lot in the same place, which the ledger handles — but the catalog already
-   carries a separate after-opening storage requirement per item, and the
-   current forms print a Date Opened label, so opening evidently changes
-   something. Whether it also shortens the use-by, and whether the system
-   should record the moment a case was opened, is not yet decided. Nothing is
-   invented in the meantime: a lot's use-by stays the one it was received
-   with.
+4. **Opening a pack — resolved 2026-08-31 (Dean).** Three things happen in
+   this kitchen and the catalog could not tell them apart, so `items` now
+   carries `opening_rule` and `days_after_opening`:
+
+   - **`shortens`** — the pack states a period, so an opened pack's use-by is
+     the earlier of its own date and that many days from opening.
+   - **`no_change`** — opening changes how it is stored but not how long it
+     lasts.
+   - **`whole_pack`** — the pack is never partly used, so no Date Opened
+     label is printed at all.
+
+   **Fifteen ingredients get a Date Opened label** and every other ingredient
+   is used whole: balsamic vinegar, cracked black pepper, cider vinegar, hoi
+   sin sauce, japanese soy sauce, mirin, white miso, MSG, rapeseed oil, fine
+   salt, sesame oil, syrup, tahini, ground white pepper and yuzu seasoning.
+   All fifty-five active ingredients are now decided, none left undetermined.
+
+   Two of the periods come from the supplier's own specification, found in
+   the `forms` repo's ingredient spec documents rather than asked for:
+   balsamic vinegar at three months, japanese soy sauce at eight weeks. The
+   other thirteen say only "keep refrigerated once opened" with no period, so
+   **the kitchen's own six-week rule applies** — tighter than the packs
+   require, and recorded as the kitchen's decision rather than the supplier's
+   so the two are never confused. Each row in the overrides says which of the
+   two it came from.
+
+   Three spec statements were deliberately not taken at face value. Granulated
+   sugar's "use within 6 months" is about lumping rather than safety and is
+   not a use-by. White miso's "use as soon as possible" and yakisoba sauce's
+   "consume immediate" state urgency with no number, and a date cannot be
+   derived from urgency.
+
+   What remains is the event: recording that a pack was opened, and applying
+   the rule to that lot's use-by. That belongs with P3, where the opened pack
+   is what a batch is drawn from. Products are left undetermined — the fifteen
+   are all ingredients, and whether an opened tub of chilli oil behaves the
+   same way has not been asked.
 5. **The supervised exception workflow (blocks P3).** Lot selection is meant to
    be mandatory before a batch can complete. There will still be cases where
    the physical lot genuinely is not in the system. What that escape hatch

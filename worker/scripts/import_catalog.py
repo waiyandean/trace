@@ -27,6 +27,9 @@ What is derived, and from what evidence:
     storage_unopened  Dry Store -> ambient, Fridge -> chill, Freezer ->
                       freezer. Not present for products, so left null.
     storage_opened    never present. Always left null.
+    opening           never present. Comes from the overrides: fifteen named
+                      ingredients get a Date Opened label, and every other
+                      ingredient is marked whole_pack.
     needs_health_mark never present. Always left null for products.
     conversions       case -> item from Items per Case, and item -> base unit
                       from the second number of Case Size, which is in the
@@ -201,7 +204,36 @@ def product_storage(name, policy, report):
     return default
 
 
-def build_items(ingredients, products, overrides, rule, policy, excluded, report):
+def opening_for(name, opening, report):
+    """What opening this pack does to it.
+
+    Three states, and the difference between them matters: a period shortens
+    the use-by, a storage change does not, and an ingredient used whole never
+    gets opened at all. An item nobody has named is whole_pack — which is a
+    decision rather than a default, since Dean confirmed the list of fifteen
+    is complete.
+    """
+    if not opening:
+        return None, None
+
+    from_spec = {k: v for k, v in (opening.get("from_supplier_spec") or {}).items()
+                 if not k.startswith("_")}
+    house = opening.get("house_rule") or []
+    house_days = opening.get("house_rule_days")
+
+    if name in from_spec:
+        report.add("Opened pack shortens the use-by, per the supplier's specification",
+                   f"{name} — {from_spec[name]} days")
+        return "shortens", from_spec[name]
+    if name in house:
+        report.tally(f"Opened pack shortens the use-by by the kitchen's {house_days}-day rule")
+        return "shortens", house_days
+
+    report.tally("Used whole, so no Date Opened label")
+    return "whole_pack", None
+
+
+def build_items(ingredients, products, overrides, rule, policy, excluded, opening, report):
     """One items row per ingredient and per finished product.
 
     Rows the kitchen has excluded are still imported, but inactive. Skipping
@@ -246,6 +278,8 @@ def build_items(ingredients, products, overrides, rule, policy, excluded, report
         if not storage:
             report.add("No unopened storage, left null", name)
 
+        opening_rule, days_after_opening = opening_for(name, opening, report)
+
         items[item_id] = {
             "id": item_id,
             "name": name,
@@ -253,6 +287,8 @@ def build_items(ingredients, products, overrides, rule, policy, excluded, report
             "base_unit": base_unit,
             "storage_unopened": storage,
             "storage_opened": after_opening(name, storage, rule, report),
+            "opening_rule": opening_rule,
+            "days_after_opening": days_after_opening,
             "needs_health_mark": override.get("needs_health_mark"),
             **exclusion(name, excluded, report),
         }
@@ -276,6 +312,11 @@ def build_items(ingredients, products, overrides, rule, policy, excluded, report
             "base_unit": "Units",
             "storage_unopened": storage,
             "storage_opened": after_opening(name, storage, rule, report),
+            # Left undetermined for products. The fifteen Dean named are all
+            # ingredients, and whether an opened tub of chilli oil behaves the
+            # same way has not been asked.
+            "opening_rule": None,
+            "days_after_opening": None,
             "needs_health_mark": override.get("needs_health_mark"),
             **exclusion(name, excluded, report),
         }
@@ -307,6 +348,13 @@ def build_items(ingredients, products, overrides, rule, policy, excluded, report
             "kind": override["kind"],
             "base_unit": override["base_unit"],
             "storage_unopened": override.get("storage_unopened"),
+            # Items added from the overrides go through the same rule as the
+            # workbook's. Chicken fillet and pork belly are not on the list of
+            # fifteen, so they come out whole_pack — which is right, and would
+            # have been left undetermined if this path were special-cased.
+            **dict(zip(("opening_rule", "days_after_opening"),
+                       opening_for(name, opening, report)
+                       if override["kind"] == "ingredient" else (None, None))),
             "storage_opened": override.get("storage_opened")
             or after_opening(name, override.get("storage_unopened"), rule, report),
             "needs_health_mark": override.get("needs_health_mark"),
@@ -470,10 +518,13 @@ def render_sql(items, conversions, locations, suppliers, staff, source):
     for item in sorted(items.values(), key=lambda i: (i["kind"], i["name"])):
         lines.append(
             "INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,\n"
+            "                   opening_rule, days_after_opening,\n"
             "                   needs_health_mark, active, note)\n"
             f"VALUES ({sql_str(item['id'])}, {sql_str(item['name'])}, {sql_str(item['kind'])}, "
             f"{sql_str(item['base_unit'])}, {sql_str(item['storage_unopened'])}, "
             f"{sql_str(item['storage_opened'])}, "
+            f"{sql_str(item['opening_rule'])}, "
+            f"{sql_num(item['days_after_opening'])}, "
             f"{'NULL' if item['needs_health_mark'] is None else int(bool(item['needs_health_mark']))}, "
             f"{item['active']}, {sql_str(item['note'])})\n"
             "ON CONFLICT (id) DO UPDATE SET\n"
@@ -482,6 +533,8 @@ def render_sql(items, conversions, locations, suppliers, staff, source):
             "  base_unit = excluded.base_unit,\n"
             "  storage_unopened = COALESCE(excluded.storage_unopened, items.storage_unopened),\n"
             "  storage_opened = COALESCE(excluded.storage_opened, items.storage_opened),\n"
+            "  opening_rule = COALESCE(excluded.opening_rule, items.opening_rule),\n"
+            "  days_after_opening = COALESCE(excluded.days_after_opening, items.days_after_opening),\n"
             "  needs_health_mark = COALESCE(excluded.needs_health_mark, items.needs_health_mark),\n"
             "  active = excluded.active,\n"
             "  note = excluded.note,\n"
@@ -557,7 +610,8 @@ def main():
     overrides = decisions.get("items", {})
     report = Report(provenance or "unrecorded")
     items = build_items(ingredients, products, overrides, decisions.get("after_opening"),
-                        decisions.get("product_storage"), decisions.get("excluded"), report)
+                        decisions.get("product_storage"), decisions.get("excluded"),
+                        decisions.get("opening"), report)
     conversions = build_conversions(mapping, ingredients, items, overrides, report)
     for name in decisions.get("excluded", {}):
         if name not in {item["name"] for item in items.values()}:
