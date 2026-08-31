@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  ulid, makeStore, makeQueue, makePool, unitsFor, defaultBatchCode, buildSubmission, syncQueue,
+  ulid, makeStore, makeQueue, makePool, unitsFor, batchCodeFor, buildSubmission, syncQueue,
   groupByStorage, soleLocationFor, forSupplier, splitByRole, usualSupplierFor,
 } from '../public/lib/offline.js';
 
@@ -161,8 +161,13 @@ test('an item with no conversions can still be keyed in its base unit', () => {
 });
 
 test('the batch code is the date as ddmmyy, the way the kitchen writes it', () => {
-  assert.equal(defaultBatchCode(new Date(2026, 7, 31, 14)), '310826');
-  assert.equal(defaultBatchCode(new Date(2027, 0, 5, 9)), '050127', 'single digits are padded');
+  assert.equal(batchCodeFor(new Date(2026, 7, 31, 14)), '310826');
+  assert.equal(batchCodeFor(new Date(2027, 0, 5, 9)), '050127', 'single digits are padded');
+});
+
+test('the batch code follows the arrival date, not the day it was keyed', () => {
+  // A delivery booked in the next morning still carries the date it arrived.
+  assert.equal(batchCodeFor(new Date(2026, 7, 30, 16)), '300826');
 });
 
 test('a draft becomes the submission the server takes', () => {

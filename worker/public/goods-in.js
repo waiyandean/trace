@@ -1,6 +1,6 @@
 import {
   ulid, makeStore, makeQueue, makePool, makeCatalogCache,
-  unitsFor, defaultBatchCode, buildSubmission, syncQueue, POOL_TARGET,
+  unitsFor, batchCodeFor, buildSubmission, syncQueue, POOL_TARGET,
   groupByStorage, soleLocationFor, forSupplier, splitByRole, usualSupplierFor,
 } from './lib/offline.js';
 
@@ -154,6 +154,13 @@ function fillSelect(select, rows, { value = 'id', label = 'name', placeholder = 
   }
 }
 
+// The batch code every case in this delivery carries. One value for the whole
+// delivery, taken from when it arrived.
+function batchCode() {
+  const arrived = $('occurred').value ? new Date($('occurred').value) : new Date();
+  return batchCodeFor(Number.isNaN(arrived.getTime()) ? new Date() : arrived);
+}
+
 function itemById(id) {
   return (state.catalog?.items || []).find((item) => item.id === id) || null;
 }
@@ -195,7 +202,9 @@ function renderLines() {
     const useBy = line.use_by
       ? `use by ${line.use_by} (from the box)`
       : `use by not printed — ${item ? item.shelf_life_days : 7} days will be applied`;
-    detail.textContent = `${line.quantity} ${line.unit} → ${location ? location.name : line.location_id} · ${useBy}`;
+    detail.textContent =
+      `${line.quantity} ${line.unit} → ${location ? location.name : line.location_id} · ` +
+      `batch ${batchCode()} · ${useBy}`;
     grow.append(detail);
 
     li.append(grow);
@@ -485,7 +494,7 @@ function openLineDialog(item) {
   });
   $('line-quantity').value = '';
   $('line-use-by').value = '';
-  $('line-batch').value = defaultBatchCode();
+  $('line-batch').textContent = batchCode();
   $('line-error').replaceChildren();
   fillUnits(item);
   $('line-dialog').showModal();
@@ -538,7 +547,6 @@ async function saveLine() {
     unit,
     location_id: locationId,
     use_by: $('line-use-by').value || null,
-    batch_code: $('line-batch').value || null,
   });
 
   $('line-dialog').close();
@@ -555,7 +563,7 @@ async function submitDelivery() {
     supplier_id: $('supplier').value,
     invoice: $('invoice').value.trim(),
     occurred_at: $('occurred').value ? new Date($('occurred').value) : new Date(),
-    lines: state.lines,
+    lines: state.lines.map((line) => ({ ...line, batch_code: batchCode() })),
   };
 
   const submission = buildSubmission(draft);
@@ -681,6 +689,8 @@ $('staff').addEventListener('change', (event) => {
   renderSubmitNote();
 });
 $('supplier').addEventListener('change', renderSubmitNote);
+// The batch code is the arrival date, so changing one changes the other.
+$('occurred').addEventListener('change', render);
 $('device').addEventListener('change', (event) => {
   state.deviceId = event.target.value || null;
   store.write(DEVICE_KEY, state.deviceId);

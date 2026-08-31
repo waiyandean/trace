@@ -71,6 +71,14 @@ input, select {
   border-radius: 10px; appearance: none;
 }
 input:focus, select:focus { outline: 2px solid var(--tint); outline-offset: -1px; }
+/* Shown, not asked for. The batch number is the delivery's date and is the
+   same on every case, so it is one less thing to key in and one less thing to
+   mistype. */
+.derived {
+  display: block; min-height: 44px; padding: 10px 12px;
+  border: 1px dashed var(--line); border-radius: 10px; color: var(--muted);
+  font: 600 17px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
 button {
   min-height: 44px; padding: 11px 18px; border-radius: 10px; border: 1px solid transparent;
   background: var(--tint); color: #fff; font-weight: 600; cursor: pointer;
@@ -273,8 +281,8 @@ dialog header { border-radius: 16px 16px 0 0; }
       <input id="line-use-by" type="date" />
     </div>
     <div class="field">
-      <label for="line-batch">Batch number on the label</label>
-      <input id="line-batch" autocomplete="off" inputmode="numeric" placeholder="ddmmyy" />
+      <label>Batch number on the label</label>
+      <output class="derived" id="line-batch"></output>
     </div>
   </div>
   <p class="note" id="line-use-by-note"></p>
