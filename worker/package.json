@@ -1,0 +1,16 @@
+{
+  "name": "trace-worker",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "wrangler": "^4"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node --test",
+    "migrate:local": "wrangler d1 migrations apply trace --local",
+    "migrate": "wrangler d1 migrations apply trace --remote",
+    "catalog:import": "node scripts/importCatalog.mjs"
+  }
+}
