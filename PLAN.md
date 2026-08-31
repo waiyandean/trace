@@ -403,9 +403,12 @@ else follows from that.
 - **The batch number stays exactly as it is**, printed on the label and stored
   on the lot. Nothing staff currently read disappears; it simply stops being
   the thing the system joins on. Its format is **ddmmyy** (Dean, 2026-08-31),
-  so today's is `310826`. The form fills that in as a default rather than
-  enforcing it, because staff sometimes copy the supplier's own batch number
-  instead and refusing that would lose the better identifier of the two.
+  so a delivery on 31 August 2026 carries `310826`, whatever the supplier's
+  own batch number happens to be — that is a different fact, and it belongs in
+  the lot's `supplier_lot` rather than on our label. The form derives it from
+  the delivery's arrival date rather than offering a field, so it cannot be
+  mistyped, and a delivery keyed the next morning still carries the date it
+  actually arrived.
 - The label count stays one per case, as now.
 
 At batching, reading the batch number becomes scanning the label, with the

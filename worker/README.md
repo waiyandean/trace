@@ -136,6 +136,10 @@ Three things about that shape are decisions rather than convenience:
 - **`short_code` is optional.** It comes from the pool the device already
   holds and has already printed. If the pool ran dry offline, the lot is still
   booked and simply has no printed code yet — a relabel, not lost data.
+- **`batch_code` is derived, not keyed.** It is the delivery's date as
+  ddmmyy, the same on every case, so the form shows it rather than asking for
+  it. The supplier's own batch number is a different fact and belongs in
+  `supplier_lot`.
 - **`use_by` is optional, and its absence means something.** A date supplied
   is the supplier's printed date and is recorded as theirs. No date means the
   item's shelf life fills in, recorded as `shelf_life_rule`, so it is always
