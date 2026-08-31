@@ -24,7 +24,13 @@
     "",
     "locations and suppliers are listed here in full rather than derived: the",
     "workbook records a storage word per ingredient and two sites, but never",
-    "which physical areas exist. Only Glasgow is in scope."
+    "which physical areas exist. Only Glasgow is in scope.",
+    "",
+    "after_opening states how an item must be kept once opened. Dean's rule is",
+    "that it matches the unopened requirement everywhere except the items",
+    "listed as exceptions, which move to the fridge. The rule is applied only",
+    "where the unopened requirement is known, so products, which have none,",
+    "stay null on both."
   ],
   "recorded_by": "Dean",
   "recorded_on": "2026-08-31",
@@ -84,7 +90,8 @@
         "item_size": 2500,
         "item_unit": "g"
       },
-      "needs_health_mark": true
+      "needs_health_mark": true,
+      "storage_unopened": "chill"
     },
     "Pork Belly": {
       "id": "trace:pork-belly",
@@ -94,7 +101,8 @@
         "none": true,
         "reason": "sold per kg, so there is no fixed case size to convert from"
       },
-      "needs_health_mark": true
+      "needs_health_mark": true,
+      "storage_unopened": "chill"
     }
   },
   "locations": [
@@ -127,6 +135,56 @@
     {
       "id": "trace:tazaki",
       "name": "Tazaki"
+    }
+  ],
+  "after_opening": {
+    "rule": "same as unopened",
+    "exceptions": {
+      "Hoi Sin Sauce 20kg": "chill",
+      "Hoi Sin Sauce Cans": "chill",
+      "White Miso": "chill"
+    }
+  },
+  "staff": [
+    {
+      "id": "trace:nikin",
+      "name": "Nikin"
+    },
+    {
+      "id": "trace:nilesh",
+      "name": "Nilesh"
+    },
+    {
+      "id": "trace:surendra",
+      "name": "Surendra"
+    },
+    {
+      "id": "trace:mateus",
+      "name": "Mateus"
+    },
+    {
+      "id": "trace:paulo",
+      "name": "Paulo"
+    },
+    {
+      "id": "trace:siku",
+      "name": "Siku"
+    },
+    {
+      "id": "trace:rogerio",
+      "name": "Rogerio"
+    },
+    {
+      "id": "trace:aaron",
+      "name": "Aaron"
+    },
+    {
+      "id": "trace:dean",
+      "name": "Dean"
+    },
+    {
+      "id": "trace:gunjesh",
+      "name": "Gunjesh"
     }
   ]
 }
