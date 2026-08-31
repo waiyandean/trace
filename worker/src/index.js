@@ -3,6 +3,7 @@ import { handleCatalog, CATALOG_ACTIONS } from './catalog/handlers.js';
 import { handleLedger, LEDGER_ACTIONS, lookupCode } from './ledger/reads.js';
 import { issueCodes, poolFor } from './ledger/codes.js';
 import { receive } from './ledger/receive.js';
+import { openDeviations, closeDeviation } from './ledger/deviations.js';
 
 // The `trace` Worker.
 //
@@ -18,7 +19,9 @@ import { receive } from './ledger/receive.js';
 //   GET  /api/lookup?code=…       resolve a scanned or typed code to its lots
 //   GET  /api/codes?device=…      the short codes a device still holds unbound
 //   POST /api/codes               {device_id, want} — top that pool up
+//   GET  /api/deviations          temperature holds nobody has closed yet
 //   POST /api/receive             book a delivery: opens lots, writes RECEIVE
+//   POST /api/deviations          close one: a second reading, an outcome, a name
 //
 // The old `forms` system stays authoritative until Dean cuts over, so nothing
 // here is yet the kitchen's record of anything.
@@ -44,6 +47,7 @@ const ROUTES = {
   '/api/lookup': ['GET'],
   '/api/codes': ['GET', 'POST'],
   '/api/receive': ['POST'],
+  '/api/deviations': ['GET', 'POST'],
 };
 
 async function readBody(request) {
@@ -63,6 +67,10 @@ async function route(request, env, url) {
     if (url.pathname === '/api/ledger') return json(await handleLedger(db, url));
     if (url.pathname === '/api/lookup') return json(await lookupCode(db, url.searchParams.get('code')));
     if (url.pathname === '/api/codes') return json(await poolFor(db, url.searchParams.get('device')));
+    if (url.pathname === '/api/deviations') {
+      const rows = await openDeviations(db);
+      return json({ count: rows.length, rows });
+    }
     return null;
   }
 
@@ -70,6 +78,9 @@ async function route(request, env, url) {
     if (url.pathname === '/api/codes') {
       const body = await readBody(request);
       return json(await issueCodes(db, body.device_id, body.want));
+    }
+    if (url.pathname === '/api/deviations') {
+      return json(await closeDeviation(db, await readBody(request)));
     }
     if (url.pathname === '/api/receive') {
       const result = await receive(db, await readBody(request));

@@ -1,6 +1,7 @@
 import { BadRequest } from '../http.js';
 import { toBaseUnit } from './units.js';
 import { isCode } from './codes.js';
+import { loadLimits, probeKindFor, withinLimit, requireReading, recheckDueAt } from './temperature.js';
 
 // Goods intake. One submission books one delivery: it opens a lot per
 // delivery line and writes the RECEIVE movement that puts that lot's quantity
@@ -11,6 +12,13 @@ import { isCode } from './codes.js';
 // the short code arrives in the request: the device has already popped it
 // from its pool and printed it, and this endpoint binds it to the lot the
 // same submission creates. Nothing is joined by inference afterwards.
+//
+// A delivery also carries the checks that make it compliant rather than
+// merely traceable — the vehicle's condition and temperatures, a probe
+// reading per chilled or frozen line, and the attestations staff already make
+// on paper. A reading outside its limit holds the lot it belongs to and opens
+// a deviation, so the hold is something the system enforces rather than
+// something a person is trusted to remember.
 //
 // Everything here refuses rather than assumes. An unknown item, a unit with
 // no recorded conversion, a storage area that does not exist — each is a 400
@@ -104,7 +112,7 @@ export async function eventResult(db, eventId) {
 // Validates one delivery line against the catalog and works out everything
 // the ledger needs. Reads only; the writing happens once every line has come
 // through this, so a submission is accepted whole or not at all.
-async function prepareLine(db, line, index, envelope) {
+async function prepareLine(db, line, index, envelope, limits) {
   const where = `lines[${index}]`;
   const lotId = requireUlid(line.lot_id, `${where}.lot_id`);
 
@@ -121,7 +129,14 @@ async function prepareLine(db, line, index, envelope) {
     );
   }
 
-  const item = await lookup(db, 'SELECT id, name, base_unit, shelf_life_days, active FROM items WHERE id = ?', line.item_id);
+  // storage_unopened is what decides whether this line needs a probe reading,
+  // so it has to come back with the row. Selecting only what was needed before
+  // made every item look ambient and silently skipped every temperature check.
+  const item = await lookup(
+    db,
+    'SELECT id, name, base_unit, shelf_life_days, storage_unopened, active FROM items WHERE id = ?',
+    line.item_id,
+  );
   if (!item) throw new BadRequest(`${where}: unknown item ${JSON.stringify(line.item_id)}`);
   if (item.active !== 1) throw new BadRequest(`${where}: ${item.name} is not an active item`);
 
@@ -170,10 +185,38 @@ async function prepareLine(db, line, index, envelope) {
     shortCode = held.code;
   }
 
+  // Chilled and frozen stock is probed; ambient stock is not. The catalog
+  // already knows which an item is, so the form never has to ask and a line
+  // that should carry a reading cannot quietly arrive without one.
+  const probeKind = probeKindFor(item);
+  let reading = null;
+  if (probeKind) {
+    if (line.product_temp_c === undefined || line.product_temp_c === null) {
+      throw new BadRequest(
+        `${where}: ${item.name} is kept in the ${probeKind === 'frozen' ? 'freezer' : 'fridge'}, ` +
+          'so it needs a product temperature',
+      );
+    }
+    const celsius = requireReading(line.product_temp_c, `${where}.product_temp_c`);
+    const limitCelsius = limits[probeKind];
+    reading = {
+      id: `${lotId}-PRODUCT`,
+      kind: 'product',
+      celsius,
+      limitCelsius,
+      withinLimit: withinLimit(celsius, limitCelsius),
+    };
+  } else if (line.product_temp_c !== undefined && line.product_temp_c !== null) {
+    throw new BadRequest(
+      `${where}: ${item.name} is kept at ambient temperature, so a product reading would mean nothing`,
+    );
+  }
+
   return {
     lotId,
     item,
     shortCode,
+    reading,
     batchCode: line.batch_code ?? null,
     supplierLot: line.supplier_lot ?? null,
     useBy,
@@ -213,6 +256,19 @@ async function validateEnvelope(db, payload) {
     throw new BadRequest('lines must be a non-empty array: a delivery with no lines is not a delivery');
   }
 
+  const checks = payload.checks;
+  if (!checks || typeof checks !== 'object') {
+    throw new BadRequest('checks are required: a delivery booked in without them is not a compliance record');
+  }
+  if (!['good', 'poor'].includes(checks.vehicle_condition)) {
+    throw new BadRequest('checks.vehicle_condition must be good or poor');
+  }
+  for (const field of ['condition_ok', 'labels_applied', 'allergens_confirmed']) {
+    if (typeof checks[field] !== 'boolean') {
+      throw new BadRequest(`checks.${field} must be true or false — it is an attestation, not an optional tick`);
+    }
+  }
+
   return {
     event_id: eventId,
     idempotency_key: payload.idempotency_key,
@@ -221,6 +277,16 @@ async function validateEnvelope(db, payload) {
     device_id: device.id,
     supplier_id: supplier.id,
     invoice: payload.invoice ?? null,
+    checks: {
+      vehicle_condition: payload.checks.vehicle_condition,
+      vehicle_note: payload.checks.vehicle_note ?? null,
+      condition_ok: payload.checks.condition_ok ? 1 : 0,
+      labels_applied: payload.checks.labels_applied ? 1 : 0,
+      allergens_confirmed: payload.checks.allergens_confirmed ? 1 : 0,
+      note: payload.checks.note ?? null,
+      vehicle_chilled_c: payload.checks.vehicle_chilled_c,
+      vehicle_frozen_c: payload.checks.vehicle_frozen_c,
+    },
   };
 }
 
@@ -246,9 +312,40 @@ export async function receive(db, payload) {
     return { duplicate: true, ...(await eventResult(db, existing.id)) };
   }
 
+  const limits = await loadLimits(db);
+
   const lines = [];
   for (const [index, line] of payload.lines.entries()) {
-    lines.push(await prepareLine(db, line, index, envelope));
+    lines.push(await prepareLine(db, line, index, envelope, limits));
+  }
+
+  // The van's temperatures are asked for only where the delivery contains
+  // stock they are about. A frozen reading on an all-ambient delivery is a
+  // number with nothing to say, and its absence on a frozen delivery is a
+  // missing check rather than a blank field.
+  const vehicleReadings = [];
+  for (const [kind, field, needed] of [
+    ['chilled', 'vehicle_chilled_c', lines.some((line) => probeKindFor(line.item) === 'chilled')],
+    ['frozen', 'vehicle_frozen_c', lines.some((line) => probeKindFor(line.item) === 'frozen')],
+  ]) {
+    const value = envelope.checks[field];
+    const given = value !== undefined && value !== null;
+    if (needed && !given) {
+      throw new BadRequest(`checks.${field} is required: this delivery contains ${kind} stock`);
+    }
+    if (!needed && given) {
+      throw new BadRequest(`checks.${field} was given but this delivery contains no ${kind} stock`);
+    }
+    if (!given) continue;
+
+    const celsius = requireReading(value, `checks.${field}`);
+    vehicleReadings.push({
+      id: `${envelope.event_id}-VEHICLE-${kind.toUpperCase()}`,
+      kind: `vehicle_${kind}`,
+      celsius,
+      limitCelsius: limits[kind],
+      withinLimit: withinLimit(celsius, limits[kind]),
+    });
   }
 
   const codes = lines.map((line) => line.shortCode).filter(Boolean);
@@ -277,13 +374,94 @@ export async function receive(db, payload) {
       ),
   ];
 
+  statements.push(
+    db
+      .prepare(
+        `INSERT INTO delivery_checks (event_id, vehicle_condition, vehicle_note,
+                                      condition_ok, labels_applied, allergens_confirmed, note)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .bind(
+        envelope.event_id,
+        envelope.checks.vehicle_condition,
+        envelope.checks.vehicle_note,
+        envelope.checks.condition_ok,
+        envelope.checks.labels_applied,
+        envelope.checks.allergens_confirmed,
+        envelope.checks.note,
+      ),
+  );
+
+  // Every reading is kept, in limit or not. The in-limit ones are the evidence
+  // that the check was made at all, which is the thing an auditor asks for.
+  const readingRow = (reading, lotId) =>
+    db
+      .prepare(
+        `INSERT INTO temperature_readings (id, event_id, lot_id, kind, celsius,
+                                           limit_celsius, within_limit, staff_id, recorded_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .bind(
+        reading.id,
+        envelope.event_id,
+        lotId,
+        reading.kind,
+        reading.celsius,
+        reading.limitCelsius,
+        reading.withinLimit ? 1 : 0,
+        envelope.staff_id,
+        envelope.occurred_at,
+      );
+
+  // A breach opens a deviation with a recheck due, and holds the stock it is
+  // about. A vehicle breach is about the whole load, so it holds every lot of
+  // that temperature class in the delivery: if the van was warm, nothing that
+  // came out of it is cleared by one good probe reading.
+  const deviationRow = (reading, lotId) =>
+    db
+      .prepare(
+        `INSERT INTO temperature_deviations (id, reading_id, lot_id, opened_at, recheck_due_at)
+         VALUES (?, ?, ?, ?, ?)`,
+      )
+      .bind(
+        `${reading.id}-DEV${lotId ? `-${lotId}` : ''}`,
+        reading.id,
+        lotId,
+        envelope.occurred_at,
+        recheckDueAt(envelope.occurred_at),
+      );
+
+  // Collected rather than appended, because a reading points at a lot and the
+  // lots are written further down. Foreign keys are checked as each statement
+  // runs, not at the end of the batch, so the order is not cosmetic.
+  const afterLots = [];
+  const held = new Set();
+
+  for (const reading of vehicleReadings) {
+    afterLots.push(readingRow(reading, null));
+    if (reading.withinLimit) continue;
+    const kind = reading.kind === 'vehicle_chilled' ? 'chilled' : 'frozen';
+    for (const line of lines.filter((row) => probeKindFor(row.item) === kind)) {
+      afterLots.push(deviationRow(reading, line.lotId));
+      held.add(line.lotId);
+    }
+  }
+
+  for (const line of lines) {
+    if (!line.reading) continue;
+    afterLots.push(readingRow(line.reading, line.lotId));
+    if (line.reading.withinLimit) continue;
+    afterLots.push(deviationRow(line.reading, line.lotId));
+    held.add(line.lotId);
+  }
+
   for (const line of lines) {
     statements.push(
       db
         .prepare(
           `INSERT INTO lots (id, item_id, short_code, batch_code, origin, supplier_id, supplier_lot,
-                             supplier_invoice, originated_at, use_by, use_by_source, event_id, note)
-           VALUES (?, ?, ?, ?, 'received', ?, ?, ?, ?, ?, ?, ?, ?)`,
+                             supplier_invoice, originated_at, use_by, use_by_source, status, event_id, note)
+           VALUES (?, ?, ?, ?, 'received', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .bind(
           line.lotId,
@@ -296,6 +474,10 @@ export async function receive(db, payload) {
           envelope.occurred_at,
           line.useBy,
           line.useBySource,
+          // Held rather than open, decided here rather than by a later update,
+          // so a lot is never briefly usable between being written and being
+          // held.
+          held.has(line.lotId) ? 'held' : 'open',
           envelope.event_id,
           line.note,
         ),
@@ -332,6 +514,8 @@ export async function receive(db, payload) {
         ),
     );
   }
+
+  statements.push(...afterLots);
 
   try {
     await db.batch(statements);
