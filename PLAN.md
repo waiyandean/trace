@@ -351,6 +351,24 @@ intake cannot print.
 Described by Dean, 2026-08-28. This is the current practice the rebuild has to
 replace, and it explains the gap better than the data analysis does.
 
+**Stock is not routinely moved (Dean, 2026-08-31).** Frozen ingredients go
+from the freezer straight to batching, chilled from the fridge straight to
+batching, ambient from the dry store. A `MOVE` is the exception rather than a
+step in the normal day: it covers a genuine relocation, not the ordinary
+journey from storage to production.
+
+Two things follow, and the second is the one that matters.
+
+The stock screen orders its actions by how often each is used, with the move
+last. And **batching consumes stock from the storage area it is already in**,
+rather than requiring it to be moved to a production location first. Modelling
+production as a place stock has to arrive at would put a `MOVE` in front of
+every batch that nobody performs in the kitchen, and a step staff do not
+actually take is a step they will skip — leaving the ledger describing a
+journey that did not happen. The `production` location kind stays in the
+schema for the case where something genuinely is staged, but the recipe path
+does not depend on it.
+
 **Where the iPad actually is.** Goods-in is the one form taken outside — to
 the van, the yard, the back door — and the wifi drops out there (Dean,
 2026-08-31). Batching and the weekly count stay indoors on wifi and do not

@@ -66,11 +66,15 @@
   <div class="chosen" id="action-chosen"></div>
   <p class="note" id="action-where"></p>
 
+  <!-- Ordered by how often each is actually used. Stock is not routinely
+       moved: frozen goes from the freezer to batching, chilled from the
+       fridge to batching (Dean, 2026-08-31). A move is the exception, so it
+       is last rather than first. -->
   <div class="actions" id="action-pick">
-    <button id="do-move">Move it</button>
-    <button class="secondary" id="do-waste">Throw it away</button>
+    <button id="do-waste">Throw it away</button>
     <button class="secondary" id="do-hold">Hold it</button>
     <button class="secondary" id="do-release">Release the hold</button>
+    <button class="secondary" id="do-move">Move it to another area</button>
   </div>
 
   <div id="action-form" hidden>
