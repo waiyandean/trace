@@ -2,6 +2,7 @@ import {
   ulid, makeStore, makeQueue, makePool, makeCatalogCache,
   unitsFor, batchCodeFor, buildSubmission, syncQueue, POOL_TARGET,
   groupByStorage, soleLocationFor, forSupplier, splitByRole, usualSupplierFor, duplicateLines,
+  probeKindFor, withinLimit, vehicleReadingsNeeded,
 } from './lib/offline.js';
 
 // The goods intake form. Everything it needs to accept a delivery is on the
@@ -73,13 +74,18 @@ async function loadCatalog() {
   if (!online()) return;
 
   try {
-    const parts = ['items', 'locations', 'suppliers', 'staff', 'devices', 'conversions', 'item_suppliers'];
+    const parts = [
+      'items', 'locations', 'suppliers', 'staff', 'devices', 'conversions',
+      'item_suppliers', 'temperature_limits',
+    ];
     const responses = await Promise.all(parts.map((action) => api(`/api/catalog?action=${action}`)));
     if (responses.some((response) => !response.ok)) return;
 
-    const [items, locations, suppliers, staff, devices, conversions, itemSuppliers] =
+    const [items, locations, suppliers, staff, devices, conversions, itemSuppliers, limitRows] =
       responses.map((response) => response.body.rows);
-    state.catalog = { items, locations, suppliers, staff, devices, conversions, itemSuppliers };
+    const limits = {};
+    for (const row of limitRows) limits[row.kind] = row.celsius;
+    state.catalog = { items, locations, suppliers, staff, devices, conversions, itemSuppliers, limits };
     catalogCache.write(state.catalog);
   } catch {
     // Offline in all but name. The cache stands.
@@ -269,6 +275,48 @@ function renderStatus() {
   $('queue-count').textContent = rejected ? `${pending} · ${rejected}!` : String(pending);
 }
 
+// The van's compartments are asked about only where the delivery carries
+// stock they are about. A frozen reading on an all-ambient load is a number
+// with nothing to say.
+function renderVehicle() {
+  const needed = vehicleReadingsNeeded(state.lines, itemById);
+  const limits = state.catalog?.limits || {};
+
+  $('vehicle-chilled-field').hidden = !needed.has('chilled');
+  $('vehicle-frozen-field').hidden = !needed.has('frozen');
+  $('vehicle-note-field').hidden = $('vehicle-condition').value !== 'poor';
+
+  const said = [];
+  for (const [kind, id] of [['chilled', 'vehicle-chilled'], ['frozen', 'vehicle-frozen']]) {
+    if (!needed.has(kind)) continue;
+    const raw = $(id).value;
+    if (raw === '') {
+      said.push(`${kind} compartment: needs a reading, ${limits[kind]}° or below`);
+      continue;
+    }
+    const celsius = Number(raw);
+    said.push(
+      withinLimit(celsius, limits[kind])
+        ? `${kind} compartment ${celsius}°, within the ${limits[kind]}° limit`
+        : `${kind} compartment ${celsius}° is above the ${limits[kind]}° limit — everything ${kind} ` +
+          'in this delivery will be held until it is rechecked',
+    );
+  }
+
+  const hint = $('vehicle-note-hint');
+  hint.replaceChildren();
+  if (!needed.size) {
+    hint.textContent = 'Nothing chilled or frozen on this delivery, so no compartment readings are needed.';
+    return;
+  }
+  for (const line of said) {
+    const div = document.createElement('div');
+    if (line.includes('above the')) div.className = 'breach';
+    div.textContent = line;
+    hint.append(div);
+  }
+}
+
 function renderSubmitNote() {
   const note = $('submit-note');
   const problems = [];
@@ -276,6 +324,24 @@ function renderSubmitNote() {
   if (!$('supplier').value) problems.push('the supplier');
   if (!state.deviceId) problems.push('a registered device');
   if (!state.lines.length) problems.push('at least one ingredient');
+
+  for (const [kind, id] of [['chilled', 'vehicle-chilled'], ['frozen', 'vehicle-frozen']]) {
+    if (vehicleReadingsNeeded(state.lines, itemById).has(kind) && $(id).value === '') {
+      problems.push(`the van's ${kind} temperature`);
+    }
+  }
+  if ($('vehicle-condition').value === 'poor' && !$('vehicle-note').value.trim()) {
+    problems.push('what was wrong with the vehicle');
+  }
+  // Unticked by default and required: a box that starts ticked records that
+  // the form was submitted, not that anybody checked.
+  for (const [id, said] of [
+    ['condition-ok', 'that the goods arrived in good condition'],
+    ['labels-applied', 'that the labels went on'],
+    ['allergens-confirmed', 'that the allergens were checked'],
+  ]) {
+    if (!$(id).checked) problems.push(said);
+  }
 
   if (problems.length) {
     note.textContent = `Still needed: ${problems.join(', ')}.`;
@@ -330,6 +396,7 @@ function renderDeviceNote() {
 function render() {
   renderStatus();
   renderLines();
+  renderVehicle();
   renderSubmitNote();
   renderDeviceNote();
 }
@@ -527,6 +594,18 @@ function openLineDialog(item) {
     placeholder: 'Choose where it is going',
     selected: soleLocationFor(item, state.catalog.locations),
   });
+  // Only chilled and frozen stock is probed, so the field appears only where
+  // it means something. An ambient item shown a temperature box teaches staff
+  // that some fields are decorative.
+  const probeKind = probeKindFor(item);
+  $('line-temp-row').hidden = !probeKind;
+  $('line-temp').value = '';
+  if (probeKind) {
+    const limit = state.catalog?.limits?.[probeKind];
+    $('line-temp-label').textContent =
+      `Product temperature °C — must be ${limit}° or below`;
+  }
+
   $('line-quantity').value = '';
   $('line-use-by').value = '';
   $('line-batch').textContent = batchCode();
@@ -558,6 +637,13 @@ async function saveLine() {
   if (!unit) problems.push('choose a unit');
   if (!locationId) problems.push('choose where it is going');
 
+  const probeKind = probeKindFor(item);
+  let productTemp = null;
+  if (probeKind) {
+    if ($('line-temp').value === '') problems.push('take a product temperature');
+    else productTemp = Number($('line-temp').value);
+  }
+
   if (problems.length) {
     const div = document.createElement('div');
     div.className = 'banner bad';
@@ -565,6 +651,23 @@ async function saveLine() {
     $('line-error').replaceChildren(div);
     return;
   }
+
+  // Said here rather than at submit, while the person is still holding the
+  // probe and can take another reading if the first was a mis-key.
+  if (probeKind && !withinLimit(productTemp, state.catalog.limits[probeKind])) {
+    const limit = state.catalog.limits[probeKind];
+    const div = document.createElement('div');
+    div.className = 'banner warn';
+    div.textContent =
+      `${productTemp}°C is above the ${limit}°C limit. This case will be booked in and held ` +
+      'until somebody rechecks it. Add it if the reading is right; take another if it is not.';
+    if (!state.acknowledgedBreach) {
+      state.acknowledgedBreach = true;
+      $('line-error').replaceChildren(div);
+      return;
+    }
+  }
+  state.acknowledgedBreach = false;
 
   // The code is taken now, at the moment the line is added, because that is
   // when the label is written. An empty pool is worth one attempt to refill
@@ -582,6 +685,7 @@ async function saveLine() {
     unit,
     location_id: locationId,
     use_by: $('line-use-by').value || null,
+    product_temp_c: productTemp,
   });
 
   $('line-dialog').close();
@@ -597,6 +701,17 @@ async function submitDelivery() {
     staff_id: $('staff').value,
     supplier_id: $('supplier').value,
     invoice: $('invoice').value.trim(),
+    checks: {
+      vehicle_condition: $('vehicle-condition').value,
+      vehicle_note: $('vehicle-note').value.trim() || null,
+      condition_ok: $('condition-ok').checked,
+      labels_applied: $('labels-applied').checked,
+      allergens_confirmed: $('allergens-confirmed').checked,
+      vehicle_chilled_c: $('vehicle-chilled-field').hidden || $('vehicle-chilled').value === ''
+        ? undefined : Number($('vehicle-chilled').value),
+      vehicle_frozen_c: $('vehicle-frozen-field').hidden || $('vehicle-frozen').value === ''
+        ? undefined : Number($('vehicle-frozen').value),
+    },
     occurred_at: $('occurred').value ? new Date($('occurred').value) : new Date(),
     lines: state.lines.map((line) => ({ ...line, batch_code: batchCode() })),
   };
@@ -612,6 +727,11 @@ async function submitDelivery() {
 
   state.lines = [];
   $('invoice').value = '';
+  // Cleared between deliveries. An attestation carried over from the last one
+  // is an attestation nobody made about this one.
+  for (const id of ['condition-ok', 'labels-applied', 'allergens-confirmed']) $(id).checked = false;
+  for (const id of ['vehicle-chilled', 'vehicle-frozen', 'vehicle-note']) $(id).value = '';
+  $('vehicle-condition').value = 'good';
   render();
   notify('Booked in and queued. Write each short code on its case.', 'ok');
 
@@ -726,6 +846,11 @@ $('staff').addEventListener('change', (event) => {
 $('supplier').addEventListener('change', renderSubmitNote);
 // The batch code is the arrival date, so changing one changes the other.
 $('occurred').addEventListener('change', render);
+for (const id of ['vehicle-condition', 'vehicle-chilled', 'vehicle-frozen', 'vehicle-note',
+                  'condition-ok', 'labels-applied', 'allergens-confirmed']) {
+  $(id).addEventListener('change', render);
+  $(id).addEventListener('input', render);
+}
 $('device').addEventListener('change', (event) => {
   state.deviceId = event.target.value || null;
   store.write(DEVICE_KEY, state.deviceId);

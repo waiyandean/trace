@@ -81,6 +81,13 @@ export function getItemSuppliers(db, { supplierId = null } = {}) {
   );
 }
 
+// The temperature limits, so the form can say "5° or below" on the field
+// itself and judge a reading as it is keyed rather than after the person has
+// walked away from the pallet.
+export function getTemperatureLimits(db) {
+  return selectAll(db, 'SELECT * FROM temperature_limits ORDER BY kind');
+}
+
 // Conversions are returned with the item's name attached, because every
 // caller that reads a conversion is showing it against an item.
 export function getConversions(db, { itemId = null } = {}) {
@@ -104,6 +111,7 @@ const ACTIONS = {
   devices: (db, params) => getDevices(db, params),
   conversions: (db, params) => getConversions(db, params),
   item_suppliers: (db, params) => getItemSuppliers(db, params),
+  temperature_limits: (db) => getTemperatureLimits(db),
 };
 
 export const CATALOG_ACTIONS = Object.keys(ACTIONS);

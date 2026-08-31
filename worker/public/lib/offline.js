@@ -287,6 +287,34 @@ export function duplicateLines(lines) {
   return duplicates;
 }
 
+// Which temperature class an item belongs to, and so whether a line needs a
+// probe reading at all. The same rule the server applies — kept here too so
+// the form asks for exactly what will be accepted, rather than finding out
+// after somebody has walked away from the pallet.
+export function probeKindFor(item) {
+  if (item.storage_unopened === 'chill') return 'chilled';
+  if (item.storage_unopened === 'freezer') return 'frozen';
+  return null;
+}
+
+// Upper bounds, both of them. The frozen limit reads as the smaller number,
+// which is exactly why this is written down once and used everywhere.
+export function withinLimit(celsius, limitCelsius) {
+  return celsius <= limitCelsius;
+}
+
+// Which van compartments this delivery needs a reading from: only the ones it
+// is actually carrying stock for.
+export function vehicleReadingsNeeded(lines, itemsById) {
+  const kinds = new Set();
+  for (const line of lines) {
+    const item = itemsById(line.item_id);
+    const kind = item && probeKindFor(item);
+    if (kind) kinds.add(kind);
+  }
+  return kinds;
+}
+
 // One delivery, as the form holds it, turned into the submission the server
 // takes. Ids are minted here so that they exist before any network call.
 export function buildSubmission(draft, { now = new Date(), mintId = ulid } = {}) {
@@ -298,6 +326,7 @@ export function buildSubmission(draft, { now = new Date(), mintId = ulid } = {})
     occurred_at: (draft.occurred_at ? new Date(draft.occurred_at) : now).toISOString(),
     supplier_id: draft.supplier_id,
     invoice: draft.invoice || null,
+    checks: draft.checks,
     lines: draft.lines.map((line) => ({
       lot_id: line.lot_id,
       item_id: line.item_id,
@@ -307,6 +336,7 @@ export function buildSubmission(draft, { now = new Date(), mintId = ulid } = {})
       location_id: line.location_id,
       use_by: line.use_by || undefined,
       batch_code: line.batch_code || undefined,
+      product_temp_c: line.product_temp_c ?? undefined,
     })),
   };
 }
