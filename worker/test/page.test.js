@@ -28,3 +28,20 @@ test('the form is sized for a thumb rather than a cursor', () => {
   assert.match(html, /min-height: 44px/);
   assert.match(html, /viewport-fit=cover/);
 });
+
+test('no rule sets display on a dialog unless it is scoped to [open]', () => {
+  // A closed <dialog> is hidden by the browser's own `display: none`. Any
+  // rule that sets `display` on a dialog selector without `[open]` beats it,
+  // and the sheet then sits in the page flow below the form, permanently
+  // open. It cost a round trip to spot, so it is pinned here.
+  const styles = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
+  const rules = styles.split('}');
+
+  const offenders = rules
+    .filter((rule) => /(^|[\s,>+~])(dialog|#[\w-]*dialog)\b/.test(rule.split('{')[0] || ''))
+    .filter((rule) => /display\s*:/.test(rule))
+    .filter((rule) => !/\[open\]/.test(rule.split('{')[0]))
+    .map((rule) => (rule.split('{')[0] || '').trim());
+
+  assert.deepEqual(offenders, []);
+});

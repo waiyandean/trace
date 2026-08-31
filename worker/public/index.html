@@ -107,8 +107,13 @@ dialog {
 }
 /* The picker is the one sheet that is always full height: it is a list to
    scan, and a short sheet that grows and shrinks with the search results
-   moves the tiles under the thumb between taps. */
-#picker-dialog {
+   moves the tiles under the thumb between taps.
+   
+   `[open]` is load-bearing, not decoration. A closed <dialog> is hidden by
+   the browser's own `display: none`, so setting `display` on the bare
+   selector overrides that and leaves the sheet sitting in the page flow,
+   permanently open, below the rest of the form. */
+#picker-dialog[open] {
   height: 92vh; display: flex; flex-direction: column;
 }
 #picker-dialog > header,
