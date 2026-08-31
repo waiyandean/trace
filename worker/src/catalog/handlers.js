@@ -88,6 +88,12 @@ export function getTemperatureLimits(db) {
   return selectAll(db, 'SELECT * FROM temperature_limits ORDER BY kind');
 }
 
+// The waste reasons staff may pick. The system's own reason for stock that
+// failed a temperature check is excluded: it is written, never chosen.
+export function getWasteReasons(db) {
+  return selectAll(db, 'SELECT * FROM waste_reasons WHERE staff_selectable = 1 ORDER BY sort_order');
+}
+
 // Conversions are returned with the item's name attached, because every
 // caller that reads a conversion is showing it against an item.
 export function getConversions(db, { itemId = null } = {}) {
@@ -112,6 +118,7 @@ const ACTIONS = {
   conversions: (db, params) => getConversions(db, params),
   item_suppliers: (db, params) => getItemSuppliers(db, params),
   temperature_limits: (db) => getTemperatureLimits(db),
+  waste_reasons: (db) => getWasteReasons(db),
 };
 
 export const CATALOG_ACTIONS = Object.keys(ACTIONS);

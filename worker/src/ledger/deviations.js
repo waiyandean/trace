@@ -1,5 +1,7 @@
 import { BadRequest } from '../http.js';
 import { loadLimits, withinLimit, requireReading } from './temperature.js';
+import { wasteRow } from './stock.js';
+import { payloadHash, eventRow } from './envelope.js';
 
 // Closing a temperature deviation.
 //
@@ -84,7 +86,30 @@ export async function closeDeviation(db, payload) {
 
   const rechecked = payload.rechecked_at || new Date().toISOString();
 
+  // Closing a deviation is a submission like any other, so it gets an event of
+  // its own carrying the request as evidence. It was not getting one, which
+  // left the movements a disposal writes with no event to belong to.
+  //
+  // The idempotency key is the deviation's own id: a deviation closes exactly
+  // once, so a second attempt is refused above rather than writing twice.
+  const closeEnvelope = {
+    event_id: `${deviation.id}-CLOSE`,
+    idempotency_key: `close:${deviation.id}`,
+    occurred_at: rechecked,
+    staff_id: staff.id,
+    device_id: null,
+  };
+
   const statements = [
+    // 'waste' where stock leaves the ledger, 'adjust' where the reading simply
+    // came back within limit and nothing moved.
+    eventRow(
+      db,
+      closeEnvelope,
+      payload.outcome === 'resolved' ? 'adjust' : 'waste',
+      await payloadHash(payload),
+      payload,
+    ),
     db
       .prepare(
         `UPDATE temperature_deviations
@@ -120,15 +145,45 @@ export async function closeDeviation(db, payload) {
     );
   }
 
-  // Rejected or disposed stock is not usable, and saying so on the lot is
-  // what stops it appearing in a picker later. The stock movement that empties
-  // it is P2's WASTE; until that exists the status is the honest record.
+  // Rejected or disposed stock is not usable, and the status alone would leave
+  // the quantity sitting on the balance for ever. Stock that was thrown away
+  // has to leave the ledger the same way any other waste does, or the weekly
+  // count finds a shortfall nothing explains.
+  //
+  // Sent back with the supplier is written off the same way: it is not the
+  // kitchen's stock any more, and the reason on the movement says which.
   if (deviation.lot_id && payload.outcome !== 'resolved') {
     statements.push(
       db
         .prepare("UPDATE lots SET status = 'written_off', updated_at = datetime('now') WHERE id = ?")
         .bind(deviation.lot_id),
     );
+
+    // Wherever it is now, not where it was received: a lot rejected the next
+    // morning may already have been moved.
+    const { results } = await db
+      .prepare(
+        `SELECT COALESCE(to_location_id, from_location_id) AS location_id,
+                SUM(quantity) AS quantity
+           FROM movements WHERE lot_id = ? GROUP BY location_id HAVING quantity > 0`,
+      )
+      .bind(deviation.lot_id)
+      .all();
+
+    for (const place of results || []) {
+      statements.push(
+        wasteRow(
+          db,
+          closeEnvelope.event_id,
+          deviation.lot_id,
+          place.quantity,
+          place.location_id,
+          'waste:temperature',
+          closeEnvelope,
+          `${payload.outcome} after a temperature deviation${payload.note ? `: ${payload.note}` : ''}`,
+        ),
+      );
+    }
   }
 
   await db.batch(statements);

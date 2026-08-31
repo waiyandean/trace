@@ -4,6 +4,7 @@ import { handleLedger, LEDGER_ACTIONS, lookupCode } from './ledger/reads.js';
 import { issueCodes, poolFor } from './ledger/codes.js';
 import { receive } from './ledger/receive.js';
 import { openDeviations, closeDeviation } from './ledger/deviations.js';
+import { move, waste, hold, releaseHold, openHolds } from './ledger/stock.js';
 
 // The `trace` Worker.
 //
@@ -22,6 +23,10 @@ import { openDeviations, closeDeviation } from './ledger/deviations.js';
 //   GET  /api/deviations          temperature holds nobody has closed yet
 //   POST /api/receive             book a delivery: opens lots, writes RECEIVE
 //   POST /api/deviations          close one: a second reading, an outcome, a name
+//   GET  /api/holds               lots held by hand, and why
+//   POST /api/move                move stock between storage areas
+//   POST /api/waste               throw stock away, with a reason
+//   POST /api/hold                hold a lot; ?release to let it go
 //
 // The old `forms` system stays authoritative until Dean cuts over, so nothing
 // here is yet the kitchen's record of anything.
@@ -48,6 +53,10 @@ const ROUTES = {
   '/api/codes': ['GET', 'POST'],
   '/api/receive': ['POST'],
   '/api/deviations': ['GET', 'POST'],
+  '/api/holds': ['GET'],
+  '/api/move': ['POST'],
+  '/api/waste': ['POST'],
+  '/api/hold': ['POST'],
 };
 
 async function readBody(request) {
@@ -71,6 +80,10 @@ async function route(request, env, url) {
       const rows = await openDeviations(db);
       return json({ count: rows.length, rows });
     }
+    if (url.pathname === '/api/holds') {
+      const rows = await openHolds(db);
+      return json({ count: rows.length, rows });
+    }
     return null;
   }
 
@@ -81,6 +94,14 @@ async function route(request, env, url) {
     }
     if (url.pathname === '/api/deviations') {
       return json(await closeDeviation(db, await readBody(request)));
+    }
+    if (url.pathname === '/api/move') return json(await move(db, await readBody(request)), { status: 201 });
+    if (url.pathname === '/api/waste') return json(await waste(db, await readBody(request)), { status: 201 });
+    if (url.pathname === '/api/hold') {
+      const body = await readBody(request);
+      return url.searchParams.get('release') !== null
+        ? json(await releaseHold(db, body))
+        : json(await hold(db, body), { status: 201 });
     }
     if (url.pathname === '/api/receive') {
       const result = await receive(db, await readBody(request));
