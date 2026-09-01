@@ -49,8 +49,9 @@ function drawTypes(types) {
 
 async function openType(type) {
   state.type = type;
-  /* The hash makes a type bookmarkable, so the machine at the printer can be
-     left on the list it uses rather than starting from the tiles each time. */
+  /* The hash makes a view bookmarkable, so the machine at the printer can be
+     left on the list -- or on the one label it prints all day -- rather than
+     starting from the tiles each time. */
   location.hash = type.id;
   el("title").textContent = type.name;
   show("items");
@@ -165,6 +166,7 @@ function itemRow(item) {
 
 async function openLabel(item) {
   state.item = item;
+  location.hash = `${state.type.id}/${item.id}`;
   el("title").textContent = `${state.type.name} — ${item.name}`;
   show("label");
   el("quantity").value = 1;
@@ -185,6 +187,43 @@ function drawFields(fields) {
     wrap.append(label);
 
     let input;
+    if (field.kind === "choice") {
+      /* A row of buttons rather than a dropdown: the pot number is picked on
+         every print, often several times in a row, and a dropdown costs two
+         clicks and a read where this costs one click and a glance. The value
+         itself lives on a hidden input so it is collected like any other. */
+      const row = document.createElement("div");
+      row.className = "choices";
+      input = document.createElement("input");
+      input.type = "hidden";
+      input.value = field.value;
+      for (const option of field.options) {
+        const choice = document.createElement("button");
+        choice.type = "button";
+        choice.textContent = option;
+        choice.className = option === field.value ? "on" : "";
+        choice.onclick = () => {
+          input.value = option;
+          for (const other of row.children) {
+            other.classList.toggle("on", other === choice);
+          }
+          recompute();
+          scheduleRender();
+        };
+        row.append(choice);
+      }
+      row.append(input);
+      input.id = `f-${field.key}`;
+      input.dataset.key = field.key;
+      wrap.append(row);
+      if (field.hint) {
+        const hint = document.createElement("p");
+        hint.className = "hint";
+        hint.textContent = field.hint;
+        wrap.append(hint);
+      }
+      return wrap;
+    }
     if (field.kind === "select") {
       input = document.createElement("select");
       input.append(...field.options.map((option) => {
@@ -202,17 +241,15 @@ function drawFields(fields) {
     input.dataset.key = field.key;
     input.disabled = !field.editable;
     input.addEventListener("input", () => {
-      follow(field.key);
+      recompute();
       scheduleRender();
     });
-    if (field.follows) {
-      /* A derived field keeps following its source until somebody types into
-         it. After that it is theirs: the batch number is the delivery date as
-         six digits most of the time, and the supplier's own code the rest of
-         the time, and the second case must not be undone by touching the date
-         afterwards. */
-      input.dataset.follows = field.follows;
-      input.dataset.derive = field.derive || "";
+    if (field.derive) {
+      /* A derived field keeps working itself out until somebody types into it.
+         After that it is theirs: the batch number is the date most of the
+         time and a supplier's own code the rest of the time, and the second
+         case must not be undone by touching the date afterwards. */
+      input.dataset.derive = field.derive;
       input.addEventListener("input", () => { input.dataset.own = "yes"; });
     }
     wrap.append(input);
@@ -227,12 +264,11 @@ function drawFields(fields) {
   }));
 }
 
-function follow(sourceKey) {
-  const source = el("fields").querySelector(`[data-key="${sourceKey}"]`);
-  for (const input of el("fields").querySelectorAll(
-      `[data-follows="${sourceKey}"]`)) {
+function recompute() {
+  const current = values();
+  for (const input of el("fields").querySelectorAll("[data-derive]")) {
     if (input.dataset.own === "yes") continue;
-    input.value = derive(input.dataset.derive, source.value);
+    input.value = derive(input.dataset.derive, current);
   }
 }
 
@@ -244,13 +280,19 @@ const BATCH_SUFFIX = "GA";
    to agree with server.py, which computes the same values for the first
    render; they are duplicated because the field has to update as it is typed
    in without a round trip. */
-function derive(kind, iso) {
-  const parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+function derive(kind, current) {
+  const source = kind === "ddmmyy" ? current.delivered : current.packed;
+  const parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(source || "");
   if (!parts) return "";
   const [, year, month, day] = parts;
 
   if (kind === "ddmmyy") return `${day}${month}${year.slice(2)}`;
-  if (kind === "batch") return `${day}${month}${BATCH_SUFFIX}`;
+  /* The pot is part of the code, not a note beside it: the broths are cooked
+     several times a day and each pot is its own batch. A product cooked once
+     a day has no pot and the code ends at the suffix. */
+  if (kind === "batch") {
+    return `${day}${month}${BATCH_SUFFIX}${current.pot || ""}`;
+  }
 
   const months = kind && kind.startsWith("months:") ? Number(kind.slice(7)) : 0;
   if (!months) return "";
@@ -407,6 +449,7 @@ async function saveSettings() {
 el("back").onclick = () => {
   if (!el("screen-label").hidden) {
     el("title").textContent = state.type.name;
+    location.hash = state.type.id;
     show("items");
   } else {
     el("title").textContent = "Labels";
@@ -434,6 +477,15 @@ el("settings").addEventListener("close", () => {
   drawTypes(boot.types);
   drawSettings(boot);
   show("types");
-  const wanted = boot.types.find((t) => t.id === location.hash.slice(1));
-  if (wanted) await openType(wanted);
+  const [typeId, itemId] = location.hash.slice(1).split("/");
+  const wanted = boot.types.find((t) => t.id === typeId);
+  if (!wanted) return;
+  await openType(wanted);
+  if (itemId) {
+    const item = state.groups
+      .flatMap((group) => group.sections)
+      .flatMap((section) => section.items)
+      .find((candidate) => candidate.id === itemId);
+    if (item) await openLabel(item);
+  }
 })();

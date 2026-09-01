@@ -15,9 +15,10 @@ python server.py          # then http://localhost:8642
 
 or double-click `start.bat` on Windows.
 
-A label type can be linked to directly — `http://localhost:8642/#goods-in` —
-so the machine at the printer can sit on the list it uses rather than starting
-from the tiles every time.
+A view can be linked to directly — `#goods-in` for the list, `#box/<item id>`
+for one label — so the machine at the printer can sit on the list it uses, or
+on the one label it prints all day, rather than starting from the tiles every
+time.
 
 ## What it does
 
@@ -102,7 +103,7 @@ by touching the date afterwards.
 | Field | Follows | Rule |
 | --- | --- | --- |
 | Goods In, batch number | Delivered | `ddmmyy` — a delivery on 01/09/2026 is batch `010926` |
-| Product, batch code | Packed | `ddmm` then the run suffix `GA` — packed 01/09/2026 is `0109GA` |
+| Product, batch code | Packed, Pot | `ddmm`, the run suffix `GA`, then the pot — `0109GA3` |
 | Product, use by | Packed | Whole months on, landing on the **first** of that month |
 
 Shelf life is twelve months for the two broths and six for everything else
@@ -113,8 +114,35 @@ month can only shorten the life, never extend it past what was intended, and
 counting in whole months means there is no 31st to fall off the end of a short
 month.
 
-The result is that a product label needs **nothing typed at all** on the day
-it is packed: pick the product, press Print.
+The broths are cooked several times a day and **each pot is its own batch**,
+so the pot number is part of the code rather than a note beside it. It is
+picked from a row of buttons under the batch, not a dropdown: it is chosen on
+every print, often several in a row, and a row of targets costs one click and
+a glance where a dropdown costs two clicks and a read. Which products get a
+pot, and how many the picker offers, is `pot_numbers` in `label-data.json`.
+
+The result is that a product label needs **nothing typed** on the day it is
+packed: pick the product, pick the pot if it has one, press Print.
+
+## The QR
+
+It encodes the **SKU**, and nothing else for now. That is the only thing on a
+product label that resolves to something today: there is no trace endpoint for
+a batch code to point at yet, and a code that scans to nothing is worse than
+no code. A product sold without a SKU carries no QR at all rather than one
+encoding a blank.
+
+Once the trace endpoint is live the QR should carry a URL to the batch record,
+so any phone camera reaches it without an app — but not before that page
+exists, for the same reason.
+
+The symbol is **sized to fit** rather than printed at a fixed magnification. A
+seven-character batch code and a fourteen-character SKU are different-sized
+symbols, and the fixed magnification that suited the first put the second over
+the keep-out margin. `zpl.py` picks the largest magnification from 6 down to 4
+that stays inside the margin, and says so if it has to drop below 5, where a
+symbol starts to struggle being read off a cold packet through condensation.
+Error correction is level H throughout, for the same reason.
 
 Everything else is filled from the catalog and locked. Where the catalog has
 no answer, the field is unlocked and outlined, and the item is flagged

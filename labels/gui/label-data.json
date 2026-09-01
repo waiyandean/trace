@@ -31,6 +31,11 @@
     "               than being filed under Sauces, so a new product is visible as",
     "               one nobody has placed yet.",
     "",
+    "pot_numbers    Which products are cooked several batches to a day, so the",
+    "               batch code carries the pot the batch came out of: 3108GA1,",
+    "               3108GA2 and so on. Named by category. `highest` is only how",
+    "               many the picker offers -- raise it if the kitchen runs more.",
+    "",
     "               no_sku on a variant means that variant is not given a SKU at",
     "               all, which is not the same as one nobody has supplied yet. The",
     "               frozen ramen packs are sold without one (Dean, 2026-09-01), so",
@@ -459,5 +464,11 @@
     "Frozen Ramen",
     "Soups",
     "Sauces"
-  ]
+  ],
+  "pot_numbers": {
+    "categories": [
+      "Broths"
+    ],
+    "highest": 8
+  }
 }

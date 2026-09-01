@@ -126,12 +126,19 @@ def ddmmyy(iso):
 BATCH_SUFFIX = "GA"
 
 
-def batch_code(iso):
-    """A production batch code: the day and month, then the run suffix."""
+def batch_code(iso, pot=""):
+    """A production batch code: the day and month, the run suffix, then the pot.
+
+    The broths are cooked several batches to a day and each pot is its own
+    batch, so the pot number is part of the code rather than a note beside it.
+    A product cooked once a day carries no pot number and the code ends at the
+    suffix.
+    """
     try:
-        return datetime.strptime(iso, "%Y-%m-%d").strftime("%d%m") + BATCH_SUFFIX
+        day = datetime.strptime(iso, "%Y-%m-%d").strftime("%d%m")
     except (ValueError, TypeError):
         return ""
+    return f"{day}{BATCH_SUFFIX}{pot}"
 
 
 def months_on(iso, months):
@@ -378,7 +385,7 @@ class Data:
                 # being typed twice. Typing into it stops it following, because
                 # a supplier's own batch code sometimes has to be used instead.
                 field("batch", "Batch number", ddmmyy(today),
-                      follows="delivered", derive="ddmmyy",
+                      derive="ddmmyy",
                       hint="The delivery date as ddmmyy. Type over it to use "
                            "the supplier's own code instead."),
                 field("supplier", "Supplier",
@@ -422,6 +429,9 @@ class Data:
             # 2026-09-01); it is held per category rather than per product
             # because that is the level at which it was decided.
             months = 12 if product.get("category") == "Broths" else 6
+            pots = self.extra.get("pot_numbers", {})
+            uses_pots = product.get("category") in pots.get("categories", [])
+            first_pot = "1" if uses_pots else ""
             fields += [
                 # The label prints the catalog name. Where a product is named
                 # differently on its packaging, a label_name in
@@ -432,13 +442,14 @@ class Data:
                 field("packed", "Packed", today, kind="date",
                       hint="The batch code and the use-by both follow this."),
                 field("use_by", "Use by", months_on(today, months), kind="date",
-                      follows="packed", derive=f"months:{months}",
+                      derive=f"months:{months}",
                       hint=f"{months} months from packing, on the first of that "
                            f"month. Type over it to set a different date."),
-                field("batch", "Batch code", batch_code(today),
-                      follows="packed", derive="batch",
+                field("batch", "Batch code", batch_code(today, first_pot),
+                      derive="batch",
                       hint="The packing date as ddmm, then the run suffix "
-                           f"{BATCH_SUFFIX}. Also what the QR carries."),
+                           f"{BATCH_SUFFIX}"
+                           + (", then the pot." if uses_pots else ".")),
                 field("qty", "Quantity", variant.get("qty", ""),
                       editable=not variant.get("qty") and not variant.get("no_qty"),
                       missing=not variant.get("qty") and not variant.get("no_qty"),
@@ -449,7 +460,9 @@ class Data:
                 field("sku", "Customer SKU", variant.get("sku", ""),
                       editable=not variant.get("sku") and not variant.get("no_sku"),
                       missing=not variant.get("sku") and not variant.get("no_sku"),
-                      hint="Sold without a SKU." if variant.get("no_sku") else ""),
+                      hint="Sold without a SKU, so the label carries no QR."
+                           if variant.get("no_sku") else "Also what the QR "
+                           "carries."),
                 field("health_mark", "Health mark",
                       "yes" if mark else "no", kind="select",
                       editable=mark is None, options=["yes", "no"],
@@ -459,6 +472,16 @@ class Data:
                 field("allergens", "Allergens",
                       allergens, missing=not allergens),
             ]
+            if uses_pots:
+                # These are cooked several times a day and every pot is its own
+                # batch, so which pot this is has to be picked before printing.
+                # It sits directly under the code it changes.
+                fields.insert(4, field(
+                    "pot", "Pot", first_pot, kind="choice",
+                    options=[str(n) for n in
+                             range(1, int(pots.get("highest", 8)) + 1)],
+                    hint="Which pot this batch came out of. It is the last "
+                         "character of the batch code."))
             # Only shown where the matrix names a cross-contact allergen. With
             # nothing to name, the label falls back to the generic line and
             # there is no value here to show or to edit.

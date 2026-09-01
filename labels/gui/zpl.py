@@ -33,6 +33,58 @@ CHAR_W = 0.47
 NAME_HEIGHT = 44
 ALLERGEN_HEIGHT = 24
 
+# Modules per side for QR versions 1-6, and how many alphanumeric characters
+# each version holds at error-correction level H. Mirrors ../lint-zpl.py,
+# including its one version of headroom: the printer's own encoder picks the
+# version, and a symbol that comes out larger than predicted is the failure
+# this guards against.
+QR_MODULES = {1: 21, 2: 25, 3: 29, 4: 33, 5: 37, 6: 41}
+QR_ALNUM_H = [10, 20, 35, 50, 64, 84]
+
+# Level H, because these get read off a cold packet through condensation and
+# through whatever the label has been dragged across. The magnification is
+# chosen to fit rather than fixed; below 5 the symbol starts to struggle at
+# 203 dpi, so dropping there is worth saying out loud.
+QR_ECC = "H"
+QR_MAGNIFICATIONS = (6, 5, 4)
+QR_COMFORTABLE = 5
+
+
+def qr_side(data, magnification):
+    """How wide the printed symbol is likely to be, in dots."""
+    alnum = all(c in "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:"
+                for c in data)
+    caps = QR_ALNUM_H if alnum else [c * 2 // 3 for c in QR_ALNUM_H]
+    for index, cap in enumerate(caps):
+        if len(data) <= cap:
+            return QR_MODULES[min(index + 2, 6)] * magnification
+    return QR_MODULES[6] * magnification
+
+
+def qr_field(data, x, y, warnings):
+    """A QR at x,y sized so it cannot run past the keep-out margin.
+
+    The symbol grows with what it encodes, so a fixed magnification that suits
+    a seven-character batch code puts a fourteen-character SKU over the edge.
+    Sizing it here means the payload can change without the layout being
+    re-checked by hand.
+    """
+    room = WIDTH - MARGIN - x
+    for magnification in QR_MAGNIFICATIONS:
+        if qr_side(data, magnification) <= room:
+            if magnification < QR_COMFORTABLE:
+                warnings.append(
+                    f"The QR had to be printed at magnification {magnification} "
+                    f"to fit '{data}'. Below {QR_COMFORTABLE} it gets hard to "
+                    f"read off a cold packet through condensation. A shorter "
+                    f"code would be better than a smaller symbol.")
+            return f"^FO{x},{y}^BQN,2,{magnification}^FD{QR_ECC}A,{data}^FS"
+    warnings.append(
+        f"'{data}' is too long to fit a readable QR in the space beside the "
+        f"batch, so the label carries no QR.")
+    return ""
+
+
 STORAGE_BANNER = {
     "ambient": "AMBIENT",
     "chill": "CHILLED",
@@ -259,6 +311,11 @@ def product(*, name, use_by, batch, packed, qty, sku, allergens, producer,
             is_case=False, quantity=1):
     """The customer-facing product label, packet and case from one layout.
 
+    The QR encodes the SKU. Once the trace endpoint exists it should carry a
+    URL that resolves to the batch record, so any phone camera reaches it
+    without an app -- but not before that page is live, because a dead link on
+    a customer's packet is worse than no link.
+
     The oval health mark is conditional and follows animal origin, so with the
     mark absent the SKU moves up into the space it occupied. The case version
     adds a rule and a case line at the foot; that plus the quantity is the only
@@ -304,7 +361,13 @@ def product(*, name, use_by, batch, packed, qty, sku, allergens, producer,
     else:
         # With no oval, the SKU rises into the space it would have occupied.
         out += [f"^FO450,192^A0N,20^FD{escape(sku)}^FS"]
-    out += ["", f"^FO622,110^BQN,2,6^FDHA,{escape(batch)}^FS", ""]
+    # The QR carries the SKU, which is the only thing on the label that
+    # resolves to something today: there is no trace endpoint for a batch code
+    # to point at yet, and a code that scans to nothing is worse than no code.
+    # A product sold without a SKU therefore carries no QR at all rather than
+    # one encoding a blank.
+    field = qr_field(escape(sku), 622, 110, warnings) if escape(sku) else ""
+    out += ["", field, ""] if field else [""]
 
     out += _allergen_block(allergens, warnings, is_case=is_case,
                            may_contain=may_contain)
