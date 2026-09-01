@@ -61,15 +61,19 @@ Three screens, one decision each.
    Ambient. Null means nobody has determined it, and quietly defaulting it is
    what puts an opened jar back on a dry shelf.
 
-   Each row carries the ingredient's **photograph** from the kitchen's own
-   catalog. Catalog names are not what is written on the box, and a jar is
-   quicker to match by sight than by reading "Toban Djan Chilli Bean Sauce".
-   Ten ingredients have no photograph and show an initial instead, which keeps
-   the rows the same height. Photographs are served from
-   `worker/public/photos`, not copied in here: two copies of the same two
-   megabytes would drift apart the first time one was re-imported. Drop a
-   `static/photos` directory in and it wins, for a machine that has this tool
-   without the rest of the repository.
+   Each row carries the item's **photograph** from the kitchen's own catalog —
+   50 of the 60 ingredients and 18 of the 25 products. Catalog names are not
+   what is written on the box, and a jar is quicker to match by sight than by
+   reading "Toban Djan Chilli Bean Sauce". Anything without one shows an
+   initial instead, which keeps the rows the same height.
+
+   Photographs are served from `worker/public/photos` rather than copied in
+   here: two copies of the same two megabytes would drift apart the first time
+   one was re-imported. `worker/scripts/import_photos.py` puts them there,
+   taking ingredients from the old batching API and products from the forms
+   Worker's catalog, matched by item id because both catalogs were built from
+   the same workbook. Drop a `static/photos` directory in and it wins, for a
+   machine that has this tool without the rest of the repository.
 3. **The label** — a live render of what will print, the fields, how many
    copies, and a Print button.
 
@@ -103,9 +107,9 @@ no answer, the field is unlocked and outlined, and the item is flagged
 to retype every time; typing into it prints a correct label today without
 recording anything.
 
-The gaps as things stand: **allergens for the seven catalog items the Allergen
-Matrix does not cover**, all of them ingredients. Everything the product
-labels need is recorded.
+There are no gaps. Every label the tool prints is filled in from the catalog,
+the Allergen Matrix and `label-data.json`, and nothing has to be typed except
+the batch and the dates.
 
 ## Allergens
 

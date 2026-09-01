@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Copy the kitchen's ingredient photographs into the trace repo.
+"""Copy the kitchen's photographs into the trace repo.
 
-The old system already holds a photograph of every ingredient, taken by the
-kitchen, and staff recognise their stock by those pictures far faster than by
-reading a name off a list. There is no reason to make them take them again.
+The old system already holds a photograph of most ingredients and finished
+products, taken by the kitchen, and staff recognise their stock by those
+pictures far faster than by reading a name off a list. There is no reason to
+make them take them again.
 
 What this does NOT do is depend on the old system at run time. The photographs
 are downloaded once, resized to a thumbnail and committed here, so the intake
@@ -23,7 +24,9 @@ Usage:
                                      [--report scripts/photo-import-report.txt]
 
 The trace API must be reachable (`npm run dev` is enough) so the script knows
-which items exist.
+which items exist. `--catalog labels/gui/catalog.json` reads the same list from
+the file the label GUI already carries, for when the dev server is not worth
+starting.
 """
 
 import argparse
@@ -36,7 +39,15 @@ import urllib.request
 # Where the old system keeps them. Two forms appear in its catalog: a path
 # relative to the forms site, and an absolute URL that redirects to the
 # original upload.
-SOURCE_CATALOG = "https://batching-api.waiyandean.workers.dev/catalog?action=getIngredients"
+# Ingredients come from the old batching API, which is where they were when
+# this script was first written. Products are only in the forms Worker, whose
+# catalog rewrites its photo URLs to its own image proxy.
+SOURCE_CATALOGS = {
+    "ingredient": ("https://batching-api.waiyandean.workers.dev"
+                   "/catalog?action=getIngredients", "ingredients"),
+    "product": ("https://forms.deanops.uk"
+                "/api/catalog?action=getFinProducts", "products"),
+}
 FORMS_ORIGIN = "https://forms.deanops.uk"
 
 # Big enough to recognise a bag of chicken feet on an iPad, small enough that
@@ -87,6 +98,8 @@ def thumbnail(path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--api", default="http://localhost:8799", help="a running trace API")
+    parser.add_argument("--catalog", help="read the item list from this JSON file "
+                                          "instead of the API (labels/gui/catalog.json)")
     parser.add_argument("--out", default="public/photos", help="where the thumbnails are written")
     parser.add_argument("--report", default="scripts/photo-import-report.txt")
     args = parser.parse_args()
@@ -94,20 +107,25 @@ def main():
     out = pathlib.Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
 
-    try:
-        items = fetch_json(f"{args.api}/api/catalog?action=items&active=all")["rows"]
-    except Exception as error:  # noqa: BLE001 — the message matters more than the type
-        sys.exit(f"could not read the trace catalog from {args.api}: {error}")
+    if args.catalog:
+        items = json.loads(pathlib.Path(args.catalog).read_text())["items"]
+    else:
+        try:
+            items = fetch_json(f"{args.api}/api/catalog?action=items&active=all")["rows"]
+        except Exception as error:  # noqa: BLE001 — the message matters more than the type
+            sys.exit(f"could not read the trace catalog from {args.api}: {error}")
 
-    ingredients = [item for item in items if item["kind"] == "ingredient"]
-    source = {row["id"]: row for row in fetch_json(SOURCE_CATALOG)["ingredients"]}
+    wanted = [item for item in items if item["kind"] in SOURCE_CATALOGS]
+    sources = {}
+    for kind, (url, key) in SOURCE_CATALOGS.items():
+        sources[kind] = {row["id"]: row for row in fetch_json(url)[key]}
 
     copied, missing, failed = [], [], []
 
-    for item in sorted(ingredients, key=lambda row: row["name"]):
-        photo = source.get(item["id"], {}).get("photo")
+    for item in sorted(wanted, key=lambda row: (row["kind"], row["name"])):
+        photo = sources[item["kind"]].get(item["id"], {}).get("photo")
         if not photo:
-            missing.append(item["name"])
+            missing.append(f"{item['kind']:10} {item['name']}")
             continue
 
         target = out / f"{item['id']}.jpg"
@@ -125,11 +143,12 @@ def main():
             failed.append(f"{item['name']} — {error}")
             continue
 
-        copied.append(f"{item['name']} — {target.stat().st_size // 1024} kB")
+        copied.append(f"{item['kind']:10} {item['name']} — "
+                      f"{target.stat().st_size // 1024} kB")
 
     lines = [
-        f"{len(copied)} of {len(ingredients)} ingredients have a photograph, "
-        f"copied from the kitchen's existing catalog and resized to {THUMBNAIL_PX}px.",
+        f"{len(copied)} of {len(wanted)} items have a photograph, copied from "
+        f"the kitchen's existing catalog and resized to {THUMBNAIL_PX}px.",
         "",
     ]
     if missing:

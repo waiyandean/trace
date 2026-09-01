@@ -1,8 +1,21 @@
-59 of 64 ingredients have a photograph, copied from the kitchen's existing catalog and resized to 320px.
+68 of 86 items have a photograph, copied from the kitchen's existing catalog and resized to 320px.
 
-No photograph in the source catalog (2)
-  - Chicken Fillet
-  - Pork Belly
+No photograph in the source catalog (15)
+  - ingredient Chicken Fillet
+  - ingredient Coconut Milk
+  - ingredient Memma Bamboo Shoots
+  - ingredient Pak Choi
+  - ingredient Pork Belly
+  - ingredient Ramen Noodles
+  - ingredient Wakame Seaweed
+  - product    BBQ Seasoning
+  - product    Black Garlic Tonkotsu (Soup)
+  - product    Chicken Ramen (Soup)
+  - product    Green Curry Sauce
+  - product    Hell Ramen (Soup)
+  - product    Laksa Ramen (Soup)
+  - product    Pork Chasiu
+  - product    Tom Yum Tare
 
   These show as a plain named tile. A photograph is worth adding, but a
   stand-in picture of something else would be worse than none.
@@ -13,62 +26,71 @@ Could not be copied (3)
   - Japanese Soy Sauce — the source is not an image — a Google Drive link that is not publicly readable (https://batching-api.waiyandean.workers.dev/catalog/image/1uQf3yw2EMX1vVh0qFvPL3OAkEACDHSaC)
 
 Copied
-  - 100% Rapeseed Oil — 44 kB
-  - Aji-no Moto MSG — 17 kB
-  - Ariake Tonkotsu Paste — 20 kB
-  - Balsamic Vinegar — 23 kB
-  - Blended Sesame Oil — 61 kB
-  - Carrots — 34 kB
-  - Chicken Carcass — 16 kB
-  - Chicken Feet — 26 kB
-  - Chicken Powder — 21 kB
-  - Chicken Wings — 20 kB
-  - Chinese Leaves — 32 kB
-  - Cider Vinegar — 21 kB
-  - Cracked Black Pepper — 32 kB
-  - Curry Laksa Paste — 55 kB
-  - Dark Soy Sauce — 17 kB
-  - Diced Onions — 31 kB
-  - Dried Bird Eye Chillies — 29 kB
-  - Femur Bones — 12 kB
-  - Fine Salt — 29 kB
-  - Ginger Root — 36 kB
-  - Granulated Sugar — 31 kB
-  - Ground Bean Sauce — 22 kB
-  - Haepyo Gochujang — 22 kB
-  - Hind Feet — 14 kB
-  - Hoi Sin Sauce 20kg — 113 kB
-  - Hoi Sin Sauce Cans — 16 kB
-  - JA Yuzu Seasoning — 11 kB
-  - Korean Hot Pepper Powder — 34 kB
-  - Mae Ploy Green Curry Paste — 26 kB
-  - Mae Ploy Red Curry Paste — 26 kB
-  - Mae Ploy Tom Yum Paste — 27 kB
-  - Maggi Seasoning — 27 kB
-  - Medium Eggs — 14 kB
-  - Mirin Style Seasoning — 17 kB
-  - Paprika Sweet — 29 kB
-  - Peeled Garlic — 35 kB
-  - Peeled Potatoes — 29 kB
-  - Pork Fat — 92 kB
-  - Rajah Whole Red Chillies — 25 kB
-  - Red Bean Curd — 23 kB
-  - Red Chillies — 40 kB
-  - Rice Vinegar — 17 kB
-  - Shimaya Konbudashi — 32 kB
-  - Shio G — 16 kB
-  - Shio Paitan — 20 kB
-  - Sichuan Toban Chilli Sauce — 22 kB
-  - Spicy Bean Sauce (Mapo) — 23 kB
-  - Spinach — 33 kB
-  - Spring Onion — 40 kB
-  - Sriracha Chilli Sauce — 15 kB
-  - Syrup — 27 kB
-  - Tahini — 23 kB
-  - Toban Djan Chilli Bean Sauce — 144 kB
-  - Tomato Ketchup — 14 kB
-  - Tomato Puree Paste — 17 kB
-  - White Miso — 16 kB
-  - White Truffle Oil — 29 kB
-  - Yakisoba Sauce — 15 kB
-  - Yutaka Gochujang — 123 kB
+  - ingredient 100% Rapeseed Oil — 44 kB
+  - ingredient Aji-no Moto MSG — 17 kB
+  - ingredient Ariake Tonkotsu Paste — 20 kB
+  - ingredient Balsamic Vinegar — 23 kB
+  - ingredient Blended Sesame Oil — 61 kB
+  - ingredient Chicken Carcass — 16 kB
+  - ingredient Chicken Feet — 26 kB
+  - ingredient Chicken Wings — 20 kB
+  - ingredient Cider Vinegar — 21 kB
+  - ingredient Cracked Black Pepper — 32 kB
+  - ingredient Curry Laksa Paste — 55 kB
+  - ingredient Diced Onions — 31 kB
+  - ingredient Dried Bird Eye Chillies — 29 kB
+  - ingredient Femur Bones — 12 kB
+  - ingredient Fine Salt — 29 kB
+  - ingredient Ginger Root — 36 kB
+  - ingredient Granulated Sugar — 31 kB
+  - ingredient Ground Bean Sauce — 22 kB
+  - ingredient Haepyo Gochujang — 22 kB
+  - ingredient Hind Feet — 14 kB
+  - ingredient Hoi Sin Sauce 20kg — 113 kB
+  - ingredient JA Yuzu Seasoning — 11 kB
+  - ingredient Korean Hot Pepper Powder — 34 kB
+  - ingredient Mae Ploy Green Curry Paste — 26 kB
+  - ingredient Mae Ploy Red Curry Paste — 26 kB
+  - ingredient Mae Ploy Tom Yum Paste — 27 kB
+  - ingredient Maggi Seasoning — 27 kB
+  - ingredient Mirin Style Seasoning — 17 kB
+  - ingredient Paprika Sweet — 29 kB
+  - ingredient Peeled Garlic — 35 kB
+  - ingredient Peeled Potatoes — 29 kB
+  - ingredient Pork Fat — 92 kB
+  - ingredient Rajah Whole Red Chillies — 25 kB
+  - ingredient Red Bean Curd — 23 kB
+  - ingredient Red Chillies — 40 kB
+  - ingredient Rice Vinegar — 17 kB
+  - ingredient Shimaya Konbudashi — 32 kB
+  - ingredient Shio G — 16 kB
+  - ingredient Shio Paitan — 20 kB
+  - ingredient Sichuan Toban Chilli Sauce — 22 kB
+  - ingredient Spicy Bean Sauce (Mapo) — 23 kB
+  - ingredient Spinach — 33 kB
+  - ingredient Spring Onion — 40 kB
+  - ingredient Syrup — 27 kB
+  - ingredient Tahini — 23 kB
+  - ingredient Toban Djan Chilli Bean Sauce — 144 kB
+  - ingredient White Miso — 16 kB
+  - ingredient White Truffle Oil — 29 kB
+  - ingredient Yakisoba Sauce — 15 kB
+  - ingredient Yutaka Gochujang — 123 kB
+  - product    Beef Tataki — 89 kB
+  - product    Chicken Broth — 16 kB
+  - product    Chicken Paste — 90 kB
+  - product    Chilli Oil — 20 kB
+  - product    Frozen Ramen : Black Garlic — 30 kB
+  - product    Frozen Ramen : Chicken Tori Paitan — 24 kB
+  - product    Frozen Ramen : Hell Ramen — 31 kB
+  - product    Frozen Ramen : Laksa Ramen — 27 kB
+  - product    Garlic Oil — 88 kB
+  - product    Hell Sauce — 84 kB
+  - product    Kimchi Sauce — 31 kB
+  - product    Laksa Paste — 16 kB
+  - product    Soba Sauce — 59 kB
+  - product    Spicy Miso — 78 kB
+  - product    Spicy Teriyaki — 70 kB
+  - product    Tantan Sauce — 93 kB
+  - product    Teriyaki Sauce — 44 kB
+  - product    Tonkotsu Broth — 83 kB

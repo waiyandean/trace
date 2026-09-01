@@ -77,9 +77,15 @@ ALIASES = {
 DECIDED = {
     "Chicken Fillet": [],
     "Coconut Milk": [],
+    "Dried Bird Eye Chillies": [],
+    "Memma Bamboo Shoots": [],
+    "Pak Choi": [],
     "Pork Belly": [],
     "Ramen Noodles": ["GLU"],
+    "Shio G": ["GLU", "SOY"],
+    "Sichuan Toban Chilli Sauce": ["GLU", "SOY"],
     "Wakame Seaweed": [],
+    "White Truffle Oil": [],
 }
 
 # Catalog items the matrix does not list, whose declaration somebody has
@@ -183,7 +189,11 @@ def main():
     data["may_contain"] = dict(sorted(may_contain.items()))
     LABEL_DATA.write_text(json.dumps(data, indent=2) + "\n")
 
-    uncovered = sorted(n for n in names if n not in set(matched))
+    # An item that never gets a label printed cannot have a missing allergen
+    # line on one, so reporting it as a gap is noise that hides the real ones.
+    never_labelled = set(data.get("not_labelled", {}))
+    uncovered = sorted(n for n in names
+                       if n not in set(matched) and n not in never_labelled)
     report = [
         f"Allergen import from {matrix_path}",
         f"",
@@ -207,7 +217,8 @@ def main():
         *(f"     {n}" for n in unmatched),
         f"",
         f"-- In the catalog, no matrix row ({len(uncovered)})",
-        f"   These print 'Not recorded' until the matrix covers them.",
+        f"   These print 'Not recorded' until the matrix covers them. Items in",
+        f"   not_labelled are left out: no label is printed for them at all.",
         *(f"     {n}" for n in uncovered),
     ]
     REPORT.write_text("\n".join(report) + "\n")
