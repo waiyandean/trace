@@ -31,27 +31,100 @@
   "producer": "AAHQ LTD, 90 Renfield Street, Glasgow",
   "health_mark_country": "GB",
   "health_mark_code": "GA 121",
-
   "allergens": {
-    "Tonkotsu Broth": "Wheat, Fish, Soy",
-    "Soba Sauce": "Wheat, Soy"
+    "100% Rapeseed Oil": "None declared",
+    "Aji-no Moto MSG": "None declared",
+    "Apple Juice": "None declared",
+    "Ariake Tonkotsu Paste": "Gluten, Fish, Soya",
+    "Balsamic Vinegar": "Sulphites",
+    "Beef Tataki": "Crustaceans, Soya",
+    "Blended Sesame Oil": "Sesame, Soya",
+    "Chicken Broth": "Gluten, Sesame, Soya",
+    "Chicken Carcass": "None declared",
+    "Chicken Feet": "None declared",
+    "Chicken Paste": "Gluten, Soya",
+    "Chicken Wings": "None declared",
+    "Chilli Oil": "None declared",
+    "Cider Vinegar": "None declared",
+    "Cracked Black Pepper": "None declared",
+    "Curry Laksa Paste": "Crustaceans, Soya",
+    "Diced Onions": "None declared",
+    "Femur Bones": "None declared",
+    "Fine Salt": "None declared",
+    "Garlic Oil": "None declared",
+    "Ginger Root": "None declared",
+    "Granulated Sugar": "None declared",
+    "Green Curry Sauce": "Gluten, Crustaceans, Soya",
+    "Ground Bean Sauce": "Soya",
+    "Ground White Pepper": "None declared",
+    "Haepyo Gochujang": "Gluten, Soya",
+    "Hell Sauce": "Gluten, Sesame, Soya",
+    "Hind Feet": "None declared",
+    "Hoi Sin Sauce 20kg": "Sesame, Soya",
+    "JA Yuzu Seasoning": "None declared",
+    "Japanese Soy Sauce": "Gluten, Soya",
+    "Kimchi Sauce": "Sesame, Soya",
+    "Korean Hot Pepper Powder": "None declared",
+    "Laksa Paste": "Crustaceans, Soya",
+    "Mae Ploy Green Curry Paste": "Crustaceans",
+    "Mae Ploy Red Curry Paste": "Crustaceans",
+    "Mae Ploy Tom Yum Paste": "Crustaceans, Fish, Soya",
+    "Maggi Seasoning": "Gluten",
+    "Mirin Style Seasoning": "None declared",
+    "Paprika Sweet": "None declared",
+    "Peeled Garlic": "None declared",
+    "Peeled Potatoes": "None declared",
+    "Pork Fat": "None declared",
+    "Rajah Whole Red Chillies": "None declared",
+    "Red Bean Curd": "Gluten, Soya",
+    "Red Chillies": "None declared",
+    "Rice Vinegar": "None declared",
+    "Shimaya Konbudashi": "None declared",
+    "Shio Paitan": "Gluten, Peanuts, Sesame, Soya",
+    "Soba Sauce": "Celery, Gluten, Sesame, Soya",
+    "Spicy Bean Sauce (Mapo)": "Gluten, Sesame, Soya",
+    "Spicy Miso": "Soya",
+    "Spicy Teriyaki": "Gluten, Sesame, Soya",
+    "Spinach": "None declared",
+    "Spring Onion": "None declared",
+    "Syrup": "None declared",
+    "Tahini": "Sesame",
+    "Tantan Sauce": "Gluten, Sesame, Soya, Sulphites",
+    "Teriyaki Sauce": "Gluten, Soya",
+    "Toban Djan Chilli Bean Sauce": "Soya",
+    "Tom Yum Tare": "Gluten, Crustaceans, Fish, Soya",
+    "Tonkotsu Broth": "Gluten, Fish, Soya",
+    "White Miso": "Soya",
+    "Yakisoba Sauce": "Celery, Soya",
+    "Yutaka Gochujang": "None declared"
   },
-
   "products": {
     "Tonkotsu Broth": {
       "label_name": "M&R Tonkotsu Broth",
       "health_mark": true,
-      "packet": { "sku": "BF-TKBR-2K", "qty": "1.8 Litres" },
-      "box": { "sku": "BF-TKBR-4C", "qty": "8 x 1.8 Litres" }
+      "packet": {
+        "sku": "BF-TKBR-2K",
+        "qty": "1.8 Litres"
+      },
+      "box": {
+        "sku": "BF-TKBR-4C",
+        "qty": "8 x 1.8 Litres"
+      }
     },
     "Soba Sauce": {
       "label_name": "M&R Soba Sauce",
       "health_mark": false,
-      "packet": { "sku": "BF-SOBA-2K", "qty": "2.5 Litres" }
+      "packet": {
+        "sku": "BF-SOBA-2K",
+        "qty": "2.5 Litres"
+      }
     },
     "Spicy Miso": {
       "label_name": "M&R Spicy Miso",
       "health_mark": null
     }
+  },
+  "may_contain": {
+    "Chicken Broth": "Peanuts"
   }
 }

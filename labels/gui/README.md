@@ -56,15 +56,46 @@ The gaps as things stand:
 
 | Gap | Where it gets fixed |
 | --- | --- |
-| Allergens, all but two items | `label-data.json` |
+| Allergens, 21 items the matrix does not cover | the Allergen Matrix |
 | Product SKU and pack size, all but three | `label-data.json` |
 | Whether a product carries the health mark | `label-data.json` |
 | The label name of a product (`M&R …`) | `label-data.json` |
 
-Allergens are deliberately empty rather than guessed. An allergen line is a
-compliance statement, and deriving one from an ingredient's name is exactly
-the error that makes a label worse than no label. The two that are filled were
-transcribed from the existing artwork.
+## Allergens
+
+They come from the kitchen's own Allergen Matrix, maintained in the `forms`
+repository and published at `/wiki/html/1.4 Allergen Management/1.4.1 Allergen
+Matrix`. It is the only place a declaration should come from, and nothing here
+derives one from an ingredient's name: an allergen line is a compliance
+statement, not a naming pattern.
+
+```
+python3 import_allergens.py
+```
+
+reads the matrix, maps its column codes to the words the label prints, and
+fills in `label-data.json`. `allergen-import-report.txt` records what matched
+and what did not. Re-run it whenever the matrix changes.
+
+Three things worth knowing about the result:
+
+- **`GLU` prints as "Gluten", not "Wheat".** The hand-written artwork says
+  Wheat, which is narrower than the matrix states and would be wrong on a
+  product whose gluten comes from barley.
+- **Where the matrix names a cross-contact allergen, the label names it** —
+  "May contain: Peanuts" in place of the generic "May contain other
+  allergens", which says less.
+- **Six matrix rows are not applied.** Four are a name that could mean either
+  of two catalog rows: `Hell Ramen` is both a soup and a frozen retail pack.
+  Two name nothing in the catalog at all. They are listed in the report, and
+  an alias in the importer's `ALIASES` fixes each one once it is decided which
+  is meant. An allergen line on the wrong product is worse than one that says
+  nothing.
+
+The right long-term home for this is the trace catalog, beside storage and
+shelf life, where the goods-in form and the recipe explosion can see it too.
+`label-data.json` holds it because the label GUI is the only thing that needs
+it today.
 
 ## Files
 
@@ -74,6 +105,7 @@ transcribed from the existing artwork.
 | `zpl.py` | Builds each label format from field values. |
 | `printers.py` | Four ways of getting ZPL to a printer. |
 | `build_catalog.py` | Regenerates `catalog.json` from `worker/scripts/`. |
+| `import_allergens.py` | Fills the allergen declarations in from the Allergen Matrix. |
 | `catalog.json` | The catalog, baked in. Generated — do not edit. |
 | `label-data.json` | The answers the catalog cannot give. Edited by hand. |
 | `static/` | The page. |

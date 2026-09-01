@@ -1,0 +1,40 @@
+Allergen import from /Users/grid/Repos/forms/apps/wiki/html/1.4 Allergen Management/1.4.1 Allergen Matrix.html
+
+71 rows in the matrix, 65 matched to catalog items.
+1 carry a 'may contain'.
+
+-- In the matrix, no catalog item (6)
+   Left out. Several are a matrix name that could mean either of two
+   catalog rows -- 'Hell Ramen' is both a soup and a frozen retail
+   pack -- and one wrong allergen line is worse than a missing one.
+   Add an alias in ALIASES once it is decided which is meant.
+     Black Garlic Ramen
+     Chicken Ramen
+     Dark Soy Sauce
+     Hell Ramen
+     Laksa Ramen
+     Mapo Tare
+
+-- In the catalog, no matrix row (21)
+   These print 'Not recorded' until the matrix covers them.
+     BBQ Seasoning
+     Black Garlic Tonkotsu (Soup)
+     Chicken Fillet
+     Chicken Ramen (Soup)
+     Coconut Milk
+     Dried Bird Eye Chillies
+     Frozen Ramen : Black Garlic
+     Frozen Ramen : Chicken Tori Paitan
+     Frozen Ramen : Hell Ramen
+     Frozen Ramen : Laksa Ramen
+     Hell Ramen (Soup)
+     Laksa Ramen (Soup)
+     Memma Bamboo Shoots
+     Pak Choi
+     Pork Belly
+     Pork Chasiu
+     Ramen Noodles
+     Shio G
+     Sichuan Toban Chilli Sauce
+     Wakame Seaweed
+     White Truffle Oil

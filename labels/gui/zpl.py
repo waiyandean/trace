@@ -98,7 +98,7 @@ def _shrink_to_one_line(text, width, sizes):
     return sizes[-1], 2
 
 
-def _allergen_block(text, warnings, is_case=False):
+def _allergen_block(text, warnings, is_case=False, may_contain=""):
     """The customer-facing allergen box: declaration and disclaimer, boxed.
 
     Geometry is held at the coordinates the printed artwork uses rather than
@@ -108,6 +108,11 @@ def _allergen_block(text, warnings, is_case=False):
     """
     text = escape(text) or "Not recorded"
     body = f"ALLERGENS: {text}"
+    # The matrix records which allergens a product may carry from
+    # cross-contact, so where it names them the label names them too. The
+    # generic line is what is left when it does not, and it says less.
+    may = escape(may_contain)
+    disclaimer = f"May contain: {may}" if may else "May contain other allergens"
     # A case label gives up two dots of box to the rule and case line at its
     # foot, which is the only geometric difference between the two variants.
     top, box_h = (288, 50) if is_case else (292, 52)
@@ -126,7 +131,7 @@ def _allergen_block(text, warnings, is_case=False):
         f"^FO{MARGIN + 16},{top + 6}^A0N,{size},0"
         f"^FB{inner_w},{lines},0,L^FD{body}^FS",
         f"^FO{MARGIN + 16},{top + 6 + lines * (size + 2)}^A0N,17"
-        f"^FB{inner_w},1,0,L^FDMay contain other allergens^FS",
+        f"^FB{inner_w},1,0,L^FD{disclaimer}^FS",
     ]
     return out
 
@@ -247,8 +252,8 @@ def date_opened(*, name, opened, use_by, batch, allergens, storage_opened,
 
 
 def product(*, name, use_by, batch, packed, qty, sku, allergens, producer,
-            health_mark=False, hm_country="GB", hm_code="", is_case=False,
-            quantity=1):
+            may_contain="", health_mark=False, hm_country="GB", hm_code="",
+            is_case=False, quantity=1):
     """The customer-facing product label, packet and case from one layout.
 
     The oval health mark is conditional and follows animal origin, so with the
@@ -293,7 +298,8 @@ def product(*, name, use_by, batch, packed, qty, sku, allergens, producer,
         out += [f"^FO450,192^A0N,20^FD{escape(sku)}^FS"]
     out += ["", f"^FO622,110^BQN,2,6^FDHA,{escape(batch)}^FS", ""]
 
-    out += _allergen_block(allergens, warnings, is_case=is_case)
+    out += _allergen_block(allergens, warnings, is_case=is_case,
+                           may_contain=may_contain)
     out += [""]
 
     if is_case:

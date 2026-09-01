@@ -288,6 +288,15 @@ class Data:
                 field("allergens", "Allergens",
                       allergens, missing=not allergens),
             ]
+            # Only shown where the matrix names a cross-contact allergen. With
+            # nothing to name, the label falls back to the generic line and
+            # there is no value here to show or to edit.
+            may = self.extra.get("may_contain", {}).get(item["name"], "")
+            if may:
+                fields.append(field("may_contain", "May contain", may,
+                                    editable=False,
+                                    hint="From the allergen matrix. Replaces "
+                                         "the generic line at the foot."))
         return {"type": type_id, "item": item_id,
                 "title": self.label_name(item, type_id),
                 "gaps": self.gaps(item, type_id), "fields": fields}
@@ -323,6 +332,7 @@ def build(data, type_id, item_id, values, quantity):
         qty=values.get("qty", ""),
         sku=values.get("sku", ""),
         allergens=values.get("allergens", ""),
+        may_contain=values.get("may_contain", ""),
         producer=data.extra.get("producer", ""),
         health_mark=values.get("health_mark") == "yes",
         hm_country=data.extra.get("health_mark_country", "GB"),
