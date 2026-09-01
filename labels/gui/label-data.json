@@ -134,7 +134,13 @@
       }
     },
     "Black Garlic Tonkotsu (Soup)": {
-      "health_mark": false
+      "health_mark": false,
+      "packet": {
+        "no_sku": true
+      },
+      "box": {
+        "no_sku": true
+      }
     },
     "Chicken Broth": {
       "health_mark": true,
@@ -159,7 +165,13 @@
       }
     },
     "Chicken Ramen (Soup)": {
-      "health_mark": false
+      "health_mark": false,
+      "packet": {
+        "no_sku": true
+      },
+      "box": {
+        "no_sku": true
+      }
     },
     "Chilli Oil": {
       "packet": {
@@ -239,7 +251,13 @@
       }
     },
     "Hell Ramen (Soup)": {
-      "health_mark": false
+      "health_mark": false,
+      "packet": {
+        "no_sku": true
+      },
+      "box": {
+        "no_sku": true
+      }
     },
     "Hell Sauce": {
       "packet": {
@@ -275,13 +293,23 @@
       }
     },
     "Laksa Ramen (Soup)": {
-      "health_mark": false
+      "health_mark": false,
+      "packet": {
+        "no_sku": true
+      },
+      "box": {
+        "no_sku": true
+      }
     },
     "Pork Chasiu": {
       "packet": {
-        "qty": "2 kg"
+        "qty": "2 kg",
+        "no_sku": true
       },
-      "health_mark": false
+      "health_mark": false,
+      "box": {
+        "no_sku": true
+      }
     },
     "Soba Sauce": {
       "health_mark": false,

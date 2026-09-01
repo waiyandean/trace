@@ -36,6 +36,12 @@ import zpl
 HERE = Path(__file__).resolve().parent
 STATIC = HERE / "static"
 CONFIG_PATH = HERE / "config.json"
+# The kitchen's catalog photographs, 320px, named by item id. They live with
+# the Worker's assets rather than being copied in here: two copies of two
+# megabytes of the same JPEGs would drift apart the first time one is
+# re-imported. A local `static/photos` wins if it exists, so the tool can be
+# carried to a machine without the rest of the repository.
+PHOTO_DIRS = [STATIC / "photos", HERE.parents[1] / "worker" / "public" / "photos"]
 LOG_PATH = HERE / "print-log.jsonl"
 PORT = int(os.environ.get("TRACE_LABELS_PORT", "8642"))
 
@@ -65,6 +71,14 @@ DEFAULT_CONFIG = {
     "folder": str(HERE / "printed"),
     "preview": True,
 }
+
+
+def photo_path(item_id):
+    for folder in PHOTO_DIRS:
+        candidate = folder / f"{item_id}.jpg"
+        if candidate.is_file():
+            return candidate
+    return None
 
 
 def load_json(path):
@@ -136,7 +150,14 @@ class Data:
         return self
 
     def listing(self, type_id):
-        """The items a given label type applies to."""
+        """The items a given label type applies to, in the groups they are
+        picked from.
+
+        Ingredients are grouped by supplier because that is how a delivery
+        arrives: one van, one supplier, and the twenty-odd things it might be
+        carrying rather than the whole catalog. An ingredient bought from both
+        appears under both, since at the door it genuinely could be either.
+        """
         source = next(t["source"] for t in TYPES if t["id"] == type_id)
         out = []
         for item in self.catalog["items"]:
@@ -163,8 +184,24 @@ class Data:
                 "name": self.label_name(item, type_id),
                 "detail": self.detail(item, type_id),
                 "incomplete": bool(self.gaps(item, type_id)),
+                "photo": photo_path(item["id"]) is not None,
+                "suppliers": item["suppliers"],
             })
-        return out
+
+        if source == "product":
+            return [{"name": "", "items": out}]
+
+        groups = []
+        for supplier in self.catalog["suppliers"]:
+            members = [i for i in out if supplier in i["suppliers"]]
+            if members:
+                groups.append({"name": supplier, "items": members})
+        # An ingredient with no supplier recorded would otherwise vanish from
+        # a screen that only draws the groups it knows about.
+        loose = [i for i in out if not i["suppliers"]]
+        if loose:
+            groups.append({"name": "No supplier recorded", "items": loose})
+        return groups
 
     def label_name(self, item, type_id):
         if type_id in ("packet", "box"):
@@ -392,7 +429,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def send_file(self, path):
         types = {".html": "text/html; charset=utf-8", ".css": "text/css",
-                 ".js": "text/javascript", ".svg": "image/svg+xml"}
+                 ".js": "text/javascript", ".svg": "image/svg+xml",
+                 ".jpg": "image/jpeg", ".png": "image/png"}
         body = path.read_bytes()
         self.send_response(200)
         self.send_header("Content-Type", types.get(path.suffix, "application/octet-stream"))
@@ -431,7 +469,12 @@ class Handler(BaseHTTPRequestHandler):
                 "windows": printers.IS_WINDOWS,
             })
         if match := re.fullmatch(r"/api/items/([\w-]+)", path):
-            return self.send_json({"items": data.listing(match.group(1))})
+            return self.send_json({"groups": data.listing(match.group(1))})
+        if match := re.fullmatch(r"/photos/([\w:%-]+)\.jpg", path):
+            found = photo_path(urllib.parse.unquote(match.group(1)))
+            if not found:
+                return self.send_json({"error": "no photograph"}, 404)
+            return self.send_file(found)
         if match := re.fullmatch(r"/api/form/([\w-]+)/([\w:%-]+)", path):
             item_id = urllib.parse.unquote(match.group(2))
             if item_id not in data.items:
