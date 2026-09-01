@@ -190,7 +190,8 @@ class Data:
         if type_id in ("packet", "box"):
             product = self.extra.get("products", {}).get(item["name"], {})
             variant = product.get("box" if type_id == "box" else "packet", {})
-            if not variant.get("sku"):
+            # A variant that is sold without a SKU is a decision, not a gap.
+            if not variant.get("sku") and not variant.get("no_sku"):
                 gaps.append("sku")
             if not variant.get("qty"):
                 gaps.append("qty")
@@ -283,8 +284,9 @@ class Data:
                            if type_id == "packet" else
                            "What one case holds, e.g. 8 x 1.8 Litres."),
                 field("sku", "Customer SKU", variant.get("sku", ""),
-                      editable=not variant.get("sku"),
-                      missing=not variant.get("sku")),
+                      editable=not variant.get("sku") and not variant.get("no_sku"),
+                      missing=not variant.get("sku") and not variant.get("no_sku"),
+                      hint="Sold without a SKU." if variant.get("no_sku") else ""),
                 field("health_mark", "Health mark",
                       "yes" if mark else "no", kind="select",
                       editable=mark is None, options=["yes", "no"],

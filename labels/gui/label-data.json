@@ -25,6 +25,11 @@
     "               dropped (Dean, 2026-09-01), which is why most products need no",
     "               label_name at all.",
     "",
+    "               no_sku on a variant means that variant is not given a SKU at",
+    "               all, which is not the same as one nobody has supplied yet. The",
+    "               frozen ramen packs are sold without one (Dean, 2026-09-01), so",
+    "               they are stated rather than left looking unfinished.",
+    "",
     "health_mark is stated for every product, true or false, and never left",
     "unset. The catalog holds null for all of them, which means nobody had",
     "determined it; Dean determined it on 2026-09-01 -- the two broths and the",
@@ -119,9 +124,14 @@
   "products": {
     "Beef Tataki": {
       "packet": {
-        "qty": "2 kg"
+        "qty": "2 kg",
+        "sku": "SC-BEEF-2K"
       },
-      "health_mark": false
+      "health_mark": false,
+      "box": {
+        "sku": "SC-BEEF-4C",
+        "qty": "4 x 2 kg"
+      }
     },
     "Black Garlic Tonkotsu (Soup)": {
       "health_mark": false
@@ -129,80 +139,140 @@
     "Chicken Broth": {
       "health_mark": true,
       "packet": {
-        "qty": "1.8 Litres"
+        "qty": "1.8 Litres",
+        "sku": "BF-CKBR-2K"
+      },
+      "box": {
+        "sku": "BF-CKBR-8C",
+        "qty": "8 x 1.8 Litres"
       }
     },
     "Chicken Paste": {
       "packet": {
-        "qty": "2 kg"
+        "qty": "2 kg",
+        "sku": "SC-CHKP-2K"
       },
-      "health_mark": false
+      "health_mark": false,
+      "box": {
+        "sku": "SC-CHKP-4C",
+        "qty": "4 x 2 kg"
+      }
     },
     "Chicken Ramen (Soup)": {
       "health_mark": false
     },
     "Chilli Oil": {
       "packet": {
-        "qty": "2 kg"
+        "qty": "2 kg",
+        "sku": "SA-CHLI-2K"
       },
-      "health_mark": false
+      "health_mark": false,
+      "box": {
+        "sku": "SA-CHLI-4C",
+        "qty": "4 x 2 kg"
+      }
     },
     "Frozen Ramen : Black Garlic": {
       "health_mark": true,
       "packet": {
-        "qty": "700 g"
+        "qty": "700 g",
+        "no_sku": true
+      },
+      "box": {
+        "sku": "MF-BGTK-5C",
+        "qty": "5 x 700 g"
       }
     },
     "Frozen Ramen : Chicken Tori Paitan": {
       "health_mark": true,
       "packet": {
-        "qty": "700 g"
+        "qty": "700 g",
+        "no_sku": true
+      },
+      "box": {
+        "sku": "MF-CHKR-5C",
+        "qty": "5 x 700 g"
       }
     },
     "Frozen Ramen : Hell Ramen": {
       "health_mark": true,
       "packet": {
-        "qty": "700 g"
+        "qty": "700 g",
+        "no_sku": true
+      },
+      "box": {
+        "sku": "MF-HLLR-5C",
+        "qty": "5 x 700 g"
       }
     },
     "Frozen Ramen : Laksa Ramen": {
       "health_mark": true,
       "packet": {
-        "qty": "700 g"
+        "qty": "700 g",
+        "no_sku": true
+      },
+      "box": {
+        "sku": "MF-LKSR-5C",
+        "qty": "5 x 700 g"
       }
     },
     "Garlic Oil": {
       "packet": {
-        "qty": "2 kg"
+        "qty": "2 kg",
+        "sku": "SA-GRLC-2K"
       },
-      "health_mark": false
+      "health_mark": false,
+      "box": {
+        "sku": "SA-GRLC-4C",
+        "qty": "4 x 2 kg"
+      }
     },
     "Green Curry Sauce": {
       "packet": {
-        "qty": "2 kg"
+        "qty": "2 kg",
+        "sku": "SC-GRCR-2K"
       },
-      "health_mark": false
+      "health_mark": false,
+      "box": {
+        "sku": "SC-GRCR-4C",
+        "qty": "4 x 2 kg"
+      }
     },
     "Hell Ramen (Soup)": {
       "health_mark": false
     },
     "Hell Sauce": {
       "packet": {
-        "qty": "2 kg"
+        "qty": "2 kg",
+        "sku": "SC-HELL-2K"
       },
-      "health_mark": false
+      "health_mark": false,
+      "box": {
+        "sku": "SC-HELL-4C",
+        "qty": "4 x 2 kg"
+      }
     },
     "Kimchi Sauce": {
       "packet": {
-        "qty": "2 kg"
+        "qty": "2 kg",
+        "sku": "SC-KIMC-2K"
       },
-      "health_mark": false
+      "health_mark": false,
+      "box": {
+        "sku": "SC-KIMC-4C",
+        "qty": "4 x 2 kg"
+      }
     },
     "Laksa Paste": {
       "packet": {
-        "qty": "2 kg"
+        "qty": "2 kg",
+        "sku": "SC-LAKS-2K"
       },
-      "health_mark": false
+      "health_mark": false,
+      "box": {
+        "sku": "SC-LAKS-4C",
+        "qty": "4 x 2 kg"
+      }
     },
     "Laksa Ramen (Soup)": {
       "health_mark": false
@@ -216,39 +286,68 @@
     "Soba Sauce": {
       "health_mark": false,
       "packet": {
-        "sku": "BF-SOBA-2K",
+        "sku": "SA-SOBA-2K",
         "qty": "2 kg"
+      },
+      "box": {
+        "sku": "SA-SOBA-4C",
+        "qty": "4 x 2 kg"
       }
     },
     "Spicy Miso": {
       "health_mark": false,
       "packet": {
-        "qty": "2 kg"
+        "qty": "2 kg",
+        "sku": "SC-MISO-2K"
+      },
+      "box": {
+        "sku": "SC-MISO-4C",
+        "qty": "4 x 2 kg"
       }
     },
     "Spicy Teriyaki": {
       "packet": {
-        "qty": "2 kg"
+        "qty": "2 kg",
+        "sku": "SA-SPCY-2K"
       },
-      "health_mark": false
+      "health_mark": false,
+      "box": {
+        "sku": "SA-SPCY-4C",
+        "qty": "4 x 2 kg"
+      }
     },
     "Tantan Sauce": {
       "packet": {
-        "qty": "2 kg"
+        "qty": "2 kg",
+        "sku": "SC-TNTN-2K"
       },
-      "health_mark": false
+      "health_mark": false,
+      "box": {
+        "sku": "SC-TNTN-4C",
+        "qty": "4 x 2 kg"
+      }
     },
     "Teriyaki Sauce": {
       "packet": {
-        "qty": "2 kg"
+        "qty": "2 kg",
+        "sku": "SA-TERI-2K"
       },
-      "health_mark": false
+      "health_mark": false,
+      "box": {
+        "sku": "SA-TERI-4C",
+        "qty": "4 x 2 kg"
+      }
     },
     "Tom Yum Tare": {
       "packet": {
-        "qty": "2 kg"
+        "qty": "2 kg",
+        "sku": "SC-TMYM-2K"
       },
-      "health_mark": false
+      "health_mark": false,
+      "box": {
+        "sku": "SC-TMYM-4C",
+        "qty": "4 x 2 kg"
+      }
     },
     "Tonkotsu Broth": {
       "health_mark": true,
@@ -257,7 +356,7 @@
         "qty": "1.8 Litres"
       },
       "box": {
-        "sku": "BF-TKBR-4C",
+        "sku": "BF-TKBR-8C",
         "qty": "8 x 1.8 Litres"
       }
     }

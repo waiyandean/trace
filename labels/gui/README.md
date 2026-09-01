@@ -57,8 +57,8 @@ The gaps as things stand:
 | Gap | Where it gets fixed |
 | --- | --- |
 | Allergens, 13 items the matrix does not cover | the Allergen Matrix |
-| Product SKU, all but two | `label-data.json` |
-| Pack size for the four ramen soups | `label-data.json` |
+| SKU and pack size for the four ramen soups | `label-data.json` |
+| SKU for Pork Chasiu | `label-data.json` |
 
 ## Allergens
 
