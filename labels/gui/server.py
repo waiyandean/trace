@@ -144,6 +144,13 @@ class Data:
                 continue
             if source == "product" and item["kind"] != "product":
                 continue
+            # Some catalog rows are real stock that simply never gets a label
+            # of this kind printed. They stay active in the catalog -- this is
+            # a statement about labelling, not about whether the kitchen holds
+            # the item -- and are named in label-data.json rather than filtered
+            # by a rule, so that adding one is a decision somebody recorded.
+            if item["name"] in self.extra.get("not_labelled", {}):
+                continue
             # Only the fifteen ingredients that are used a bit at a time get a
             # Date Opened label. A pack that is never partly used has nothing
             # to record, and offering one invites labelling that says nothing.

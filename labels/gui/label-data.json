@@ -25,9 +25,12 @@
     "               dropped (Dean, 2026-09-01), which is why most products need no",
     "               label_name at all.",
     "",
-    "health_mark is null in the catalog for every product, meaning not yet",
-    "determined rather than no mark, so it is stated per product here and",
-    "never defaulted."
+    "health_mark is stated for every product, true or false, and never left",
+    "unset. The catalog holds null for all of them, which means nobody had",
+    "determined it; Dean determined it on 2026-09-01 -- the two broths and the",
+    "four frozen ramen carry the oval, and nothing else does. A wrongly-absent",
+    "mark and a considered absence have to stay distinguishable when an auditor",
+    "asks, which is why false is written out rather than assumed."
   ],
   "producer": "AAHQ LTD, 90 Renfield Street, Glasgow",
   "health_mark_country": "GB",
@@ -107,31 +110,145 @@
     "Yakisoba Sauce": "Celery, Soya",
     "Yutaka Gochujang": "None declared"
   },
+  "_not_labelled_comment": [
+    "Catalog rows that never get a label printed. They stay active in the",
+    "catalog, because this says nothing about whether the kitchen holds the",
+    "item -- only that no label of ours goes on it. The value is why, and who",
+    "said so."
+  ],
   "products": {
+    "Beef Tataki": {
+      "packet": {
+        "qty": "2 kg"
+      },
+      "health_mark": false
+    },
+    "Black Garlic Tonkotsu (Soup)": {
+      "health_mark": false
+    },
     "Chicken Broth": {
-      "health_mark": true
+      "health_mark": true,
+      "packet": {
+        "qty": "1.8 Litres"
+      }
+    },
+    "Chicken Paste": {
+      "packet": {
+        "qty": "2 kg"
+      },
+      "health_mark": false
+    },
+    "Chicken Ramen (Soup)": {
+      "health_mark": false
+    },
+    "Chilli Oil": {
+      "packet": {
+        "qty": "2 kg"
+      },
+      "health_mark": false
     },
     "Frozen Ramen : Black Garlic": {
-      "health_mark": true
+      "health_mark": true,
+      "packet": {
+        "qty": "700 g"
+      }
     },
     "Frozen Ramen : Chicken Tori Paitan": {
-      "health_mark": true
+      "health_mark": true,
+      "packet": {
+        "qty": "700 g"
+      }
     },
     "Frozen Ramen : Hell Ramen": {
-      "health_mark": true
+      "health_mark": true,
+      "packet": {
+        "qty": "700 g"
+      }
     },
     "Frozen Ramen : Laksa Ramen": {
-      "health_mark": true
+      "health_mark": true,
+      "packet": {
+        "qty": "700 g"
+      }
+    },
+    "Garlic Oil": {
+      "packet": {
+        "qty": "2 kg"
+      },
+      "health_mark": false
+    },
+    "Green Curry Sauce": {
+      "packet": {
+        "qty": "2 kg"
+      },
+      "health_mark": false
+    },
+    "Hell Ramen (Soup)": {
+      "health_mark": false
+    },
+    "Hell Sauce": {
+      "packet": {
+        "qty": "2 kg"
+      },
+      "health_mark": false
+    },
+    "Kimchi Sauce": {
+      "packet": {
+        "qty": "2 kg"
+      },
+      "health_mark": false
+    },
+    "Laksa Paste": {
+      "packet": {
+        "qty": "2 kg"
+      },
+      "health_mark": false
+    },
+    "Laksa Ramen (Soup)": {
+      "health_mark": false
+    },
+    "Pork Chasiu": {
+      "packet": {
+        "qty": "2 kg"
+      },
+      "health_mark": false
     },
     "Soba Sauce": {
       "health_mark": false,
       "packet": {
         "sku": "BF-SOBA-2K",
-        "qty": "2.5 Litres"
+        "qty": "2 kg"
       }
     },
     "Spicy Miso": {
-      "health_mark": null
+      "health_mark": false,
+      "packet": {
+        "qty": "2 kg"
+      }
+    },
+    "Spicy Teriyaki": {
+      "packet": {
+        "qty": "2 kg"
+      },
+      "health_mark": false
+    },
+    "Tantan Sauce": {
+      "packet": {
+        "qty": "2 kg"
+      },
+      "health_mark": false
+    },
+    "Teriyaki Sauce": {
+      "packet": {
+        "qty": "2 kg"
+      },
+      "health_mark": false
+    },
+    "Tom Yum Tare": {
+      "packet": {
+        "qty": "2 kg"
+      },
+      "health_mark": false
     },
     "Tonkotsu Broth": {
       "health_mark": true,
@@ -151,5 +268,8 @@
     "Frozen Ramen : Chicken Tori Paitan": "Peanuts",
     "Frozen Ramen : Laksa Ramen": "Peanuts",
     "Laksa Ramen (Soup)": "Peanuts"
+  },
+  "not_labelled": {
+    "BBQ Seasoning": "No product label printed for it (Dean, 2026-09-01)."
   }
 }

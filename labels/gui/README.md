@@ -57,8 +57,8 @@ The gaps as things stand:
 | Gap | Where it gets fixed |
 | --- | --- |
 | Allergens, 13 items the matrix does not cover | the Allergen Matrix |
-| Product SKU and pack size, all but three | `label-data.json` |
-| Whether a product carries the health mark | `label-data.json` |
+| Product SKU, all but two | `label-data.json` |
+| Pack size for the four ramen soups | `label-data.json` |
 
 ## Allergens
 
@@ -118,6 +118,14 @@ it today.
 
 `config.json`, `print-log.jsonl` and `printed/` are written at runtime and are
 not in the repository.
+
+## Products that get no label
+
+`not_labelled` in `label-data.json` names catalog rows that never get a label
+printed, with the reason and who decided. They stay active in the catalog:
+this says nothing about whether the kitchen holds the item, only that no label
+of ours goes on it. Naming them one at a time is deliberate — a rule that
+filtered them automatically would quietly drop a product nobody had looked at.
 
 ## Printing
 
