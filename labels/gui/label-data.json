@@ -1,0 +1,57 @@
+{
+  "_comment": [
+    "The answers the catalog seed cannot give, maintained by hand.",
+    "",
+    "worker/scripts/ knows what an ingredient is, how it is stored, what",
+    "opening does to it and who delivers it. It does not know any of the",
+    "following, and nothing in the repository does:",
+    "",
+    "allergens      What a person has determined an item declares. Deliberately",
+    "               empty rather than guessed: an allergen line is a compliance",
+    "               statement, and inferring one from an ingredient's name is",
+    "               exactly the error that makes a label worse than no label.",
+    "               An item absent from this map prints 'Not recorded' and can",
+    "               still be typed into the form for a one-off print. The two",
+    "               entries present were transcribed from the existing artwork",
+    "               in ../tonkotsu-packet.zpl and ../sauce-packet.zpl, not",
+    "               derived.",
+    "",
+    "products       Per finished product: the name as it appears on the label",
+    "               (the catalog holds 'Tonkotsu Broth', the label says 'M&R",
+    "               Tonkotsu Broth'), whether it carries the oval health mark,",
+    "               and the customer SKU and pack quantity for the packet and",
+    "               the case. Only the three products that already exist as",
+    "               artwork are filled in. The rest are typed into the form",
+    "               until somebody fills them in here.",
+    "",
+    "health_mark is null in the catalog for every product, meaning not yet",
+    "determined rather than no mark, so it is stated per product here and",
+    "never defaulted."
+  ],
+  "producer": "AAHQ LTD, 90 Renfield Street, Glasgow",
+  "health_mark_country": "GB",
+  "health_mark_code": "GA 121",
+
+  "allergens": {
+    "Tonkotsu Broth": "Wheat, Fish, Soy",
+    "Soba Sauce": "Wheat, Soy"
+  },
+
+  "products": {
+    "Tonkotsu Broth": {
+      "label_name": "M&R Tonkotsu Broth",
+      "health_mark": true,
+      "packet": { "sku": "BF-TKBR-2K", "qty": "1.8 Litres" },
+      "box": { "sku": "BF-TKBR-4C", "qty": "8 x 1.8 Litres" }
+    },
+    "Soba Sauce": {
+      "label_name": "M&R Soba Sauce",
+      "health_mark": false,
+      "packet": { "sku": "BF-SOBA-2K", "qty": "2.5 Litres" }
+    },
+    "Spicy Miso": {
+      "label_name": "M&R Spicy Miso",
+      "health_mark": null
+    }
+  }
+}

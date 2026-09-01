@@ -1,0 +1,1329 @@
+{
+ "generated_from": "worker/scripts/catalog.sql + item-suppliers.sql",
+ "suppliers": [
+  "Lynas",
+  "Tazaki"
+ ],
+ "items": [
+  {
+   "id": "mpuc771xt0jo",
+   "name": "100% Rapeseed Oil",
+   "kind": "ingredient",
+   "base_unit": "L",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "shortens",
+   "days_after_opening": 42,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpuhgjfoxsvf",
+   "name": "Aji-no Moto MSG",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "shortens",
+   "days_after_opening": 42,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpucf3ruuoa9",
+   "name": "Apple Juice",
+   "kind": "ingredient",
+   "base_unit": "L",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": {
+    "size": 1,
+    "unit": "L",
+    "per_case": 12,
+    "kind": "bottle"
+   }
+  },
+  {
+   "id": "mpv2moh60h4k",
+   "name": "Ariake Tonkotsu Paste",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": {
+    "size": 1,
+    "unit": "kg",
+    "per_case": 10,
+    "kind": "packet"
+   }
+  },
+  {
+   "id": "mpwqnttivfp9",
+   "name": "BBQ Seasoning",
+   "kind": "product",
+   "base_unit": "Units",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "mpucqr4q51x5",
+   "name": "Balsamic Vinegar",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "shortens",
+   "days_after_opening": 90,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpwp0iaq5eol",
+   "name": "Beef Tataki",
+   "kind": "product",
+   "base_unit": "Units",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "msx19517161apq",
+   "name": "Black Garlic Tonkotsu (Soup)",
+   "kind": "product",
+   "base_unit": "kg",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "mpuzg1idxdpk",
+   "name": "Blended Sesame Oil",
+   "kind": "ingredient",
+   "base_unit": "L",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "shortens",
+   "days_after_opening": 42,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpwqoafdxpka",
+   "name": "Chicken Broth",
+   "kind": "product",
+   "base_unit": "L",
+   "storage_unopened": "freezer",
+   "storage_opened": "freezer",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "mpv4uvjvdk38",
+   "name": "Chicken Carcass",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "freezer",
+   "storage_opened": "freezer",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": 1,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpv4x5mait4u",
+   "name": "Chicken Feet",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "freezer",
+   "storage_opened": "freezer",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": 1,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": {
+    "size": 2,
+    "unit": "kg",
+    "per_case": 5,
+    "kind": "packet"
+   }
+  },
+  {
+   "id": "trace:chicken-fillet",
+   "name": "Chicken Fillet",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": 1,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpwokfhqje42",
+   "name": "Chicken Paste",
+   "kind": "product",
+   "base_unit": "kg",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "msx197b0svuci1",
+   "name": "Chicken Ramen (Soup)",
+   "kind": "product",
+   "base_unit": "kg",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "mpv4w2k806ce",
+   "name": "Chicken Wings",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "freezer",
+   "storage_opened": "freezer",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": 1,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": {
+    "size": 10,
+    "unit": "kg",
+    "per_case": 1,
+    "kind": "case"
+   }
+  },
+  {
+   "id": "mpwqcudx7vkq",
+   "name": "Chilli Oil",
+   "kind": "product",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "mpucrpe8rlh5",
+   "name": "Cider Vinegar",
+   "kind": "ingredient",
+   "base_unit": "L",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "shortens",
+   "days_after_opening": 42,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "trace:coconut-milk",
+   "name": "Coconut Milk",
+   "kind": "ingredient",
+   "base_unit": "L",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpucspup5soi",
+   "name": "Cracked Black Pepper",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "shortens",
+   "days_after_opening": 42,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpxzs2w0ltja",
+   "name": "Curry Laksa Paste",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": {
+    "size": 1,
+    "unit": "kg",
+    "per_case": 6,
+    "kind": "jar"
+   }
+  },
+  {
+   "id": "mpv3vzatkfqx",
+   "name": "Diced Onions",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpv2kmqueish",
+   "name": "Dried Bird Eye Chillies",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": {
+    "size": 1,
+    "unit": "kg",
+    "per_case": 10,
+    "kind": "bag"
+   }
+  },
+  {
+   "id": "mpv4ya5ookoo",
+   "name": "Femur Bones",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "freezer",
+   "storage_opened": "freezer",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": 1,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpuct8qvh4np",
+   "name": "Fine Salt",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "shortens",
+   "days_after_opening": 42,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpylom0aijw5",
+   "name": "Frozen Ramen : Black Garlic",
+   "kind": "product",
+   "base_unit": "Units",
+   "storage_unopened": "freezer",
+   "storage_opened": "freezer",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "mpylq1xtnwoq",
+   "name": "Frozen Ramen : Chicken Tori Paitan",
+   "kind": "product",
+   "base_unit": "Units",
+   "storage_unopened": "freezer",
+   "storage_opened": "freezer",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "mpylp7salypk",
+   "name": "Frozen Ramen : Hell Ramen",
+   "kind": "product",
+   "base_unit": "Units",
+   "storage_unopened": "freezer",
+   "storage_opened": "freezer",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "mpylqnqkh9k0",
+   "name": "Frozen Ramen : Laksa Ramen",
+   "kind": "product",
+   "base_unit": "Units",
+   "storage_unopened": "freezer",
+   "storage_opened": "freezer",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "mpwqjdw1mzjc",
+   "name": "Garlic Oil",
+   "kind": "product",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "mpv41h7l50xw",
+   "name": "Ginger Root",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpucubc5jfmh",
+   "name": "Granulated Sugar",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpwqlw405avb",
+   "name": "Green Curry Sauce",
+   "kind": "product",
+   "base_unit": "kg",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "mpuzmv42k3qt",
+   "name": "Ground Bean Sauce",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas",
+    "Tazaki"
+   ],
+   "pack": {
+    "size": 454,
+    "unit": "g",
+    "per_case": 24,
+    "kind": "can"
+   }
+  },
+  {
+   "id": "mpucv3qqzv8r",
+   "name": "Ground White Pepper",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "shortens",
+   "days_after_opening": 42,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpuzklcwj9wl",
+   "name": "Haepyo Gochujang",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": {
+    "size": 500,
+    "unit": "g",
+    "per_case": 20,
+    "kind": "tub"
+   }
+  },
+  {
+   "id": "msx196i5t9lvzj",
+   "name": "Hell Ramen (Soup)",
+   "kind": "product",
+   "base_unit": "kg",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "mpwoga5uqxpp",
+   "name": "Hell Sauce",
+   "kind": "product",
+   "base_unit": "kg",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "mpv4zal7ks2g",
+   "name": "Hind Feet",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "freezer",
+   "storage_opened": "freezer",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": 1,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpuzoq8ebfnm",
+   "name": "Hoi Sin Sauce 20kg",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "chill",
+   "opening_rule": "shortens",
+   "days_after_opening": 42,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpv2v85ihjwb",
+   "name": "JA Yuzu Seasoning",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "shortens",
+   "days_after_opening": 42,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpudo60gpapk",
+   "name": "Japanese Soy Sauce",
+   "kind": "ingredient",
+   "base_unit": "L",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "shortens",
+   "days_after_opening": 56,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki",
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpwo883223am",
+   "name": "Kimchi Sauce",
+   "kind": "product",
+   "base_unit": "kg",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "mpv2xn3jyhta",
+   "name": "Korean Hot Pepper Powder",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpwp47uz9ugz",
+   "name": "Laksa Paste",
+   "kind": "product",
+   "base_unit": "kg",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "msx197xjx312in",
+   "name": "Laksa Ramen (Soup)",
+   "kind": "product",
+   "base_unit": "kg",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "mpuzxj9jnk33",
+   "name": "Mae Ploy Green Curry Paste",
+   "kind": "ingredient",
+   "base_unit": "Units",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpuztdxmggmq",
+   "name": "Mae Ploy Red Curry Paste",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": {
+    "size": 1,
+    "unit": "kg",
+    "per_case": 12,
+    "kind": "jar"
+   }
+  },
+  {
+   "id": "mpuzytgt4umm",
+   "name": "Mae Ploy Tom Yum Paste",
+   "kind": "ingredient",
+   "base_unit": "Units",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpv34d94nwrv",
+   "name": "Maggi Seasoning",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": null
+  },
+  {
+   "id": "trace:memma",
+   "name": "Memma Bamboo Shoots",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpuh5g71a757",
+   "name": "Mirin Style Seasoning",
+   "kind": "ingredient",
+   "base_unit": "L",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "shortens",
+   "days_after_opening": 42,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki",
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "trace:pak-choi",
+   "name": "Pak Choi",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpudkxf1b97v",
+   "name": "Paprika Sweet",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpv3t4jmh10w",
+   "name": "Peeled Garlic",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpv40knt0qpi",
+   "name": "Peeled Potatoes",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "trace:pork-belly",
+   "name": "Pork Belly",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": 1,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "trace:pork-chasiu",
+   "name": "Pork Chasiu",
+   "kind": "product",
+   "base_unit": "kg",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "mpv5107jwcxi",
+   "name": "Pork Fat",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "freezer",
+   "storage_opened": "freezer",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": 1,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpv2hhfz4f61",
+   "name": "Rajah Whole Red Chillies",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": null
+  },
+  {
+   "id": "trace:ramen-noodles",
+   "name": "Ramen Noodles",
+   "kind": "ingredient",
+   "base_unit": "Units",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpv2lln2mcfh",
+   "name": "Red Bean Curd",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas",
+    "Tazaki"
+   ],
+   "pack": {
+    "size": 397,
+    "unit": "g",
+    "per_case": 48,
+    "kind": "jar"
+   }
+  },
+  {
+   "id": "mpv42tb8kk7i",
+   "name": "Red Chillies",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpuh883tfymc",
+   "name": "Rice Vinegar",
+   "kind": "ingredient",
+   "base_unit": "L",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki",
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpuhckliqwi7",
+   "name": "Shimaya Konbudashi",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki",
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpv2qb0p8fnl",
+   "name": "Shio G",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": {
+    "size": 1,
+    "unit": "kg",
+    "per_case": 10,
+    "kind": "packet"
+   }
+  },
+  {
+   "id": "mpv2thqzwsy1",
+   "name": "Shio Paitan",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": {
+    "size": 1,
+    "unit": "kg",
+    "per_case": 10,
+    "kind": "packet"
+   }
+  },
+  {
+   "id": "mpv081l4itu1",
+   "name": "Sichuan Toban Chilli Sauce",
+   "kind": "ingredient",
+   "base_unit": "Units",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpwqa03mcg0g",
+   "name": "Soba Sauce",
+   "kind": "product",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "mpv2zxrmbswt",
+   "name": "Spicy Bean Sauce (Mapo)",
+   "kind": "ingredient",
+   "base_unit": "Units",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpvbwhnirxon",
+   "name": "Spicy Miso",
+   "kind": "product",
+   "base_unit": "kg",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "mpwqh1089j2e",
+   "name": "Spicy Teriyaki",
+   "kind": "product",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "mpv43vqscfkx",
+   "name": "Spinach",
+   "kind": "ingredient",
+   "base_unit": "Units",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpv452gsu2ll",
+   "name": "Spring Onion",
+   "kind": "ingredient",
+   "base_unit": "Units",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpudm0lkbvi8",
+   "name": "Syrup",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "shortens",
+   "days_after_opening": 42,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpv3bqob8hyp",
+   "name": "Tahini",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "shortens",
+   "days_after_opening": 42,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpwp3fcg6zvj",
+   "name": "Tantan Sauce",
+   "kind": "product",
+   "base_unit": "kg",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "mpwq61oizabz",
+   "name": "Teriyaki Sauce",
+   "kind": "product",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "mpv0637u6fag",
+   "name": "Toban Djan Chilli Bean Sauce",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas",
+    "Tazaki"
+   ],
+   "pack": {
+    "size": 368,
+    "unit": "g",
+    "per_case": 12,
+    "kind": "jar"
+   }
+  },
+  {
+   "id": "mpwqlj8blcjs",
+   "name": "Tom Yum Tare",
+   "kind": "product",
+   "base_unit": "kg",
+   "storage_unopened": "chill",
+   "storage_opened": "chill",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "mpwqpwl8j1px",
+   "name": "Tonkotsu Broth",
+   "kind": "product",
+   "base_unit": "L",
+   "storage_unopened": "freezer",
+   "storage_opened": "freezer",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "trace:wakame",
+   "name": "Wakame Seaweed",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpuhe0qrp0fd",
+   "name": "White Miso",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "chill",
+   "opening_rule": "shortens",
+   "days_after_opening": 42,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": null
+  },
+  {
+   "id": "ms4h8bkmsw2l",
+   "name": "White Truffle Oil",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Lynas"
+   ],
+   "pack": null
+  },
+  {
+   "id": "mpuhhy0yrbs7",
+   "name": "Yakisoba Sauce",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": {
+    "size": 1795,
+    "unit": "g",
+    "per_case": 6,
+    "kind": "bottle"
+   }
+  },
+  {
+   "id": "mpuzjice0yy4",
+   "name": "Yutaka Gochujang",
+   "kind": "ingredient",
+   "base_unit": "kg",
+   "storage_unopened": "ambient",
+   "storage_opened": "ambient",
+   "opening_rule": "whole_pack",
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [
+    "Tazaki"
+   ],
+   "pack": {
+    "size": 500,
+    "unit": "g",
+    "per_case": 16,
+    "kind": "tub"
+   }
+  }
+ ]
+}
