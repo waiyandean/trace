@@ -1,5 +1,5 @@
 overrides: catalog-overrides.json (Dean, 2026-08-31)
-97 items (69 ingredients, 28 products), 128 conversions, 4 locations, 2 suppliers, 10 staff -> /Users/grid/Repos/trace/worker/scripts/catalog.sql
+97 items (69 ingredients, 28 products), 127 conversions, 4 locations, 2 suppliers, 10 staff -> /Users/grid/Repos/trace/worker/scripts/catalog.sql
 
 Opened pack shortens the use-by, per the supplier's specification (2)
   - Balsamic Vinegar — 90 days
@@ -51,10 +51,28 @@ Added from the overrides, not in the workbook (8)
 No case conversion, by decision (1)
   - Pork Belly — sold per kg, so there is no fixed case size to convert from
 
+No item-to-base conversion written (15)
+  - Apple Juice — the item size carries no unit the workbook recognises
+  - Ariake Tonkotsu Paste — the item size carries no unit the workbook recognises
+  - Chicken Feet — the item size carries no unit the workbook recognises
+  - Chicken Wings — the item size carries no unit the workbook recognises
+  - Curry Laksa Paste — the item size carries no unit the workbook recognises
+  - Dried Bird Eye Chillies — the item size carries no unit the workbook recognises
+  - Ground Bean Sauce — the item size carries no unit the workbook recognises
+  - Haepyo Gochujang — the item size carries no unit the workbook recognises
+  - Mae Ploy Red Curry Paste — the item size carries no unit the workbook recognises
+  - Red Bean Curd — the item size carries no unit the workbook recognises
+  - Shio G — the item size carries no unit the workbook recognises
+  - Shio Paitan — the item size carries no unit the workbook recognises
+  - Toban Djan Chilli Bean Sauce — the item size carries no unit the workbook recognises
+  - Yakisoba Sauce — the item size carries no unit the workbook recognises
+  - Yutaka Gochujang — the item size carries no unit the workbook recognises
+
 Opened pack shortens the use-by by the kitchen's 42-day rule: 13 rows
 After-opening storage taken from the kitchen's rule: same as unopened: 94 rows
 Health mark not yet determined, left null: 83 rows
 Used whole, so no Date Opened label: 54 rows
+Base unit set from the pack size the kitchen stated: 15 rows
 Product storage from the kitchen's default: chill: 16 rows
 Product counted in Units, not named in the overrides: 6 rows
 Case count taken from Items per Case over the workbook's Kobas `1 x` form: 9 rows

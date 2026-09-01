@@ -1,30 +1,15 @@
 23 of 25 recipes imported -> scripts/recipes.sql
 
-Recipe lines stated in a unit the catalog cannot convert (20)
+Recipe lines stated in a unit the catalog cannot convert (5)
   Imported as stated, because the recipe on the wall is what staff follow. But
   until the conversions master can reach the item's base unit, what was used
   cannot be checked against what the recipe asked for.
 
-  - Apple Juice — recipe says Litres, catalog counts Units  (in Kimchi Sauce)
-  - Ariake Tonkotsu Paste — recipe says kg, catalog counts Units  (in Tonkotsu Broth)
   - Balsamic Vinegar — recipe says Litres, catalog counts kg  (in Tantan Sauce)
-  - Chicken Feet — recipe says kg, catalog counts Units  (in Chicken Broth, Tonkotsu Broth)
-  - Chicken Wings — recipe says kg, catalog counts Units  (in Chicken Broth)
   - Chilli Oil — recipe says Litres, catalog counts kg  (in Spicy Teriyaki)
-  - Curry Laksa Paste — recipe says kg, catalog counts Units  (in Laksa Paste)
-  - Dried Bird Eye Chillies — recipe says kg, catalog counts Units  (in Chilli Oil)
-  - Ground Bean Sauce — recipe says kg, catalog counts Units  (in Hell Sauce)
-  - Haepyo Gochujang — recipe says kg, catalog counts Units  (in Chicken Paste, Hell Sauce, Tantan Sauce)
   - Japanese Soy Sauce — recipe says g, catalog counts L  (in Pork Chasiu)
   - Japanese Soy Sauce — recipe says kg, catalog counts L  (in Black Garlic Tonkotsu (Soup))
-  - Mae Ploy Red Curry Paste — recipe says kg, catalog counts Units  (in Beef Tataki)
-  - Red Bean Curd — recipe says kg, catalog counts Units  (in Hell Sauce)
-  - Shio G — recipe says kg, catalog counts Units  (in Chicken Ramen (Soup))
-  - Shio Paitan — recipe says kg, catalog counts Units  (in Chicken Broth)
   - Spring Onion — recipe says g, catalog counts Units  (in Frozen Ramen : Black Garlic, Frozen Ramen : Chicken Tori Paitan, Frozen Ramen : Hell Ramen, Frozen Ramen : Laksa Ramen)
-  - Toban Djan Chilli Bean Sauce — recipe says kg, catalog counts Units  (in Hell Sauce, Tantan Sauce)
-  - Yakisoba Sauce — recipe says kg, catalog counts Units  (in Soba Sauce)
-  - Yutaka Gochujang — recipe says kg, catalog counts Units  (in Kimchi Sauce, Spicy Miso)
 
 Products with no recipe in the batching system (2)
   Nothing to import. They cannot be batched through a recipe until somebody

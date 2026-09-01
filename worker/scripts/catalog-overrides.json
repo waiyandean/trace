@@ -344,5 +344,102 @@
       ],
       "kg_per_unit": 2
     }
+  },
+  "pack_sizes": {
+    "_comment": "What one pack holds and how many come in a case (Dean, 2026-09-01). The workbook's Case Size column carries the size but never says what unit the number is in, and its LooseUnit column is empty for all of these, so the P0 rule counted them in Units while the recipes weigh them. These figures set the base unit and give the case -> pack -> base conversions.",
+    "items": {
+      "Ariake Tonkotsu Paste": {
+        "size": 1,
+        "unit": "kg",
+        "per_case": 10,
+        "pack": "packet"
+      },
+      "Chicken Feet": {
+        "size": 2,
+        "unit": "kg",
+        "per_case": 5,
+        "pack": "packet"
+      },
+      "Chicken Wings": {
+        "size": 10,
+        "unit": "kg",
+        "per_case": 1,
+        "pack": "case"
+      },
+      "Ground Bean Sauce": {
+        "size": 454,
+        "unit": "g",
+        "per_case": 24,
+        "pack": "can"
+      },
+      "Red Bean Curd": {
+        "size": 397,
+        "unit": "g",
+        "per_case": 48,
+        "pack": "jar"
+      },
+      "Toban Djan Chilli Bean Sauce": {
+        "size": 368,
+        "unit": "g",
+        "per_case": 12,
+        "pack": "jar"
+      },
+      "Yakisoba Sauce": {
+        "size": 1795,
+        "unit": "g",
+        "per_case": 6,
+        "pack": "bottle"
+      },
+      "Haepyo Gochujang": {
+        "size": 500,
+        "unit": "g",
+        "per_case": 20,
+        "pack": "tub"
+      },
+      "Yutaka Gochujang": {
+        "size": 500,
+        "unit": "g",
+        "per_case": 16,
+        "pack": "tub"
+      },
+      "Apple Juice": {
+        "size": 1,
+        "unit": "L",
+        "per_case": 12,
+        "pack": "bottle"
+      },
+      "Curry Laksa Paste": {
+        "size": 1,
+        "unit": "kg",
+        "per_case": 6,
+        "pack": "jar"
+      },
+      "Mae Ploy Red Curry Paste": {
+        "size": 1,
+        "unit": "kg",
+        "per_case": 12,
+        "pack": "jar"
+      },
+      "Shio G": {
+        "size": 1,
+        "unit": "kg",
+        "per_case": 10,
+        "pack": "packet"
+      },
+      "Shio Paitan": {
+        "size": 1,
+        "unit": "kg",
+        "per_case": 10,
+        "pack": "packet"
+      },
+      "Dried Bird Eye Chillies": {
+        "size": 1,
+        "unit": "kg",
+        "per_case": 10,
+        "pack": "bag"
+      }
+    },
+    "_spring_onion": "Spring Onion is 12 bunches to a case and the recipes use it in grams, but nobody has weighed a bunch. It stays counted in bunches and its recipe line stays unconvertible until somebody does — a made-up bunch weight would make every yield using it wrong.",
+    "recorded_on": "2026-09-01"
   }
 }

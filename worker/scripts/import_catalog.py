@@ -268,7 +268,34 @@ def product_unit(name, units, report):
     return "Units", None
 
 
-def build_items(ingredients, products, overrides, rule, policy, excluded, opening, units, report):
+# What one pack holds, stated by the kitchen where the workbook could not say.
+# These decide the base unit as well as the conversions: an ingredient the
+# recipes weigh is measured in kilograms whatever the stock-count column says.
+def pack_base_unit(pack):
+    return {"g": "kg", "kg": "kg", "ml": "L", "L": "L"}[pack["unit"]]
+
+
+def pack_conversions(item_id, pack, provenance):
+    """case -> pack -> base, in the units the kitchen actually handles.
+
+    Two hops rather than one so a delivery can be keyed in cases and a batch in
+    jars, which is what staff hold in each case.
+    """
+    base = pack_base_unit(pack)
+    size = pack["size"] / 1000 if pack["unit"] in ("g", "ml") else pack["size"]
+    rows = [(
+        f"{item_id}:item:{base}", item_id, "item", base, float(size),
+        f"one {pack['pack']} is {pack['size']} {pack['unit']} ({provenance})",
+    )]
+    if pack["per_case"] and pack["per_case"] > 1:
+        rows.append((
+            f"{item_id}:case:item", item_id, "case", "item", float(pack["per_case"]),
+            f"{pack['per_case']} {pack['pack']}s to a case ({provenance})",
+        ))
+    return rows
+
+
+def build_items(ingredients, products, overrides, rule, policy, excluded, opening, units, packs, report):
     """One items row per ingredient and per finished product.
 
     Rows the kitchen has excluded are still imported, but inactive. Skipping
@@ -315,6 +342,13 @@ def build_items(ingredients, products, overrides, rule, policy, excluded, openin
             report.add("No unopened storage, left null", name)
 
         opening_rule, days_after_opening = opening_for(name, base_unit, opening, report)
+
+        pack = (packs or {}).get(name)
+        if pack:
+            # The recipes weigh it, so it is measured, whatever the
+            # stock-count column implies.
+            base_unit = pack_base_unit(pack)
+            report.tally("Base unit set from the pack size the kitchen stated")
 
         items[item_id] = {
             "id": item_id,
@@ -580,6 +614,17 @@ def render_sql(items, conversions, locations, suppliers, staff, source):
 
     lines.append("")
     lines.append("-- Unit conversions")
+    # A conversion this import no longer produces is removed rather than left
+    # behind. Upserting alone would let a hop that was corrected upstream, or
+    # a base unit that changed, go on sitting in the database with nothing to
+    # say it is stale — and a wrong factor is worse than a missing one,
+    # because it converts.
+    if conversions:
+        kept = ", ".join(sql_str(row[0]) for row in conversions)
+        owned = ", ".join(sql_str(item["id"]) for item in items.values())
+        lines.append(
+            f"DELETE FROM unit_conversions WHERE item_id IN ({owned}) AND id NOT IN ({kept});"
+        )
     for conv_id, item_id, from_unit, to_unit, factor, note in conversions:
         lines.append(
             "INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)\n"
@@ -648,12 +693,27 @@ def main():
     report = Report(provenance or "unrecorded")
     items, product_packs = build_items(ingredients, products, overrides, decisions.get("after_opening"),
                         decisions.get("product_storage"), decisions.get("excluded"),
-                        decisions.get("opening"), decisions.get("product_units"), report)
+                        decisions.get("opening"), decisions.get("product_units"),
+                        (decisions.get("pack_sizes") or {}).get("items"), report)
     conversions = build_conversions(mapping, ingredients, items, overrides, report)
 
     # A tub of sauce is two kilograms, so a batch counted in tubs reaches the
     # base unit in one hop. Stated by the kitchen rather than read off a pack,
     # which is why it comes from the overrides and not the workbook.
+    stated_packs = (decisions.get("pack_sizes") or {}).get("items") or {}
+    by_name = {item["name"]: item for item in items.values()}
+    for name, pack in stated_packs.items():
+        item = by_name.get(name)
+        if not item:
+            report.add("Pack size stated for something not in the catalog", name)
+            continue
+        # Replaces whatever the workbook implied: these are the hops the
+        # kitchen confirmed, and two sources for one conversion is one too many.
+        conversions = [row for row in conversions if row[1] != item["id"]]
+        stated_on = (decisions.get("pack_sizes") or {}).get("recorded_on")
+        who = f"Dean, {stated_on}" if stated_on else (provenance or "the kitchen")
+        conversions.extend(pack_conversions(item["id"], pack, who))
+
     for item_id, kg_per_unit in sorted(product_packs.items()):
         conversions.append((
             f"{item_id}:item:kg", item_id, "item", "kg", float(kg_per_unit),

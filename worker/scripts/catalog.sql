@@ -41,7 +41,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpucf3ruuoa9', 'Apple Juice', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
+VALUES ('mpucf3ruuoa9', 'Apple Juice', 'ingredient', 'L', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -57,7 +57,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv2moh60h4k', 'Ariake Tonkotsu Paste', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
+VALUES ('mpv2moh60h4k', 'Ariake Tonkotsu Paste', 'ingredient', 'kg', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -137,7 +137,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv4x5mait4u', 'Chicken Feet', 'ingredient', 'Units', 'freezer', 'freezer', 'whole_pack', NULL, 1, 1, NULL)
+VALUES ('mpv4x5mait4u', 'Chicken Feet', 'ingredient', 'kg', 'freezer', 'freezer', 'whole_pack', NULL, 1, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -185,7 +185,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv4w2k806ce', 'Chicken Wings', 'ingredient', 'Units', 'freezer', 'freezer', 'whole_pack', NULL, 1, 1, NULL)
+VALUES ('mpv4w2k806ce', 'Chicken Wings', 'ingredient', 'kg', 'freezer', 'freezer', 'whole_pack', NULL, 1, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -265,7 +265,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpxzs2w0ltja', 'Curry Laksa Paste', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
+VALUES ('mpxzs2w0ltja', 'Curry Laksa Paste', 'ingredient', 'kg', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -313,7 +313,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv2kmqueish', 'Dried Bird Eye Chillies', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
+VALUES ('mpv2kmqueish', 'Dried Bird Eye Chillies', 'ingredient', 'kg', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -393,7 +393,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuzmv42k3qt', 'Ground Bean Sauce', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
+VALUES ('mpuzmv42k3qt', 'Ground Bean Sauce', 'ingredient', 'kg', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -425,7 +425,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuzklcwj9wl', 'Haepyo Gochujang', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
+VALUES ('mpuzklcwj9wl', 'Haepyo Gochujang', 'ingredient', 'kg', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -553,7 +553,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuztdxmggmq', 'Mae Ploy Red Curry Paste', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
+VALUES ('mpuztdxmggmq', 'Mae Ploy Red Curry Paste', 'ingredient', 'kg', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -777,7 +777,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv2lln2mcfh', 'Red Bean Curd', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
+VALUES ('mpv2lln2mcfh', 'Red Bean Curd', 'ingredient', 'kg', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -841,7 +841,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv2qb0p8fnl', 'Shio G', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
+VALUES ('mpv2qb0p8fnl', 'Shio G', 'ingredient', 'kg', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -857,7 +857,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv2thqzwsy1', 'Shio Paitan', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
+VALUES ('mpv2thqzwsy1', 'Shio Paitan', 'ingredient', 'kg', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -985,7 +985,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpv0637u6fag', 'Toban Djan Chilli Bean Sauce', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
+VALUES ('mpv0637u6fag', 'Toban Djan Chilli Bean Sauce', 'ingredient', 'kg', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1081,7 +1081,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuhhy0yrbs7', 'Yakisoba Sauce', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
+VALUES ('mpuhhy0yrbs7', 'Yakisoba Sauce', 'ingredient', 'kg', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1097,7 +1097,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuzjice0yy4', 'Yutaka Gochujang', 'ingredient', 'Units', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
+VALUES ('mpuzjice0yy4', 'Yutaka Gochujang', 'ingredient', 'kg', 'ambient', 'ambient', 'whole_pack', NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1560,6 +1560,7 @@ ON CONFLICT (id) DO UPDATE SET
   updated_at = datetime('now');
 
 -- Unit conversions
+DELETE FROM unit_conversions WHERE item_id IN ('mpuc771xt0jo', 'mpucf3ruuoa9', 'mpucqr4q51x5', 'mpucrpe8rlh5', 'mpucspup5soi', 'mpuct8qvh4np', 'mpucubc5jfmh', 'mpucv3qqzv8r', 'mpudkxf1b97v', 'mpudm0lkbvi8', 'mpudo60gpapk', 'mpuh5g71a757', 'mpuh883tfymc', 'mpuhckliqwi7', 'mpuhe0qrp0fd', 'mpuhgjfoxsvf', 'mpuhhy0yrbs7', 'mpuzg1idxdpk', 'mpuzhbhus7w8', 'mpuzjice0yy4', 'mpuzklcwj9wl', 'mpuzmv42k3qt', 'mpuzoq8ebfnm', 'mpuzrf5htyrc', 'mpuztdxmggmq', 'mpuzxj9jnk33', 'mpuzytgt4umm', 'mpv0637u6fag', 'mpv081l4itu1', 'mpv2hhfz4f61', 'mpv2kmqueish', 'mpv2lln2mcfh', 'mpxzs2w0ltja', 'mpv2moh60h4k', 'mpv2qb0p8fnl', 'mpv2thqzwsy1', 'mpv2v85ihjwb', 'mpv2xn3jyhta', 'mpv2zxrmbswt', 'mpv34d94nwrv', 'mpv3bqob8hyp', 'mpv3t4jmh10w', 'mpv3vzatkfqx', 'mpv40knt0qpi', 'mpv41h7l50xw', 'mpv42tb8kk7i', 'mpv43vqscfkx', 'mpv452gsu2ll', 'mpv46rcpaytv', 'mpv49dty4hdf', 'mpv4dmq37alr', 'mpv4ep7cxb5t', 'mpv4frxnle13', 'mpv4gpc6mcvn', 'mpv4j0ic2j14', 'mpv4uvjvdk38', 'mpv4w2k806ce', 'mpv4x5mait4u', 'mpv4ya5ookoo', 'mpv4zal7ks2g', 'mpv5107jwcxi', 'ms4h8bkmsw2l', 'mpvbwhnirxon', 'mpwo883223am', 'mpwoga5uqxpp', 'mpwokfhqje42', 'mpwp0iaq5eol', 'mpwp3fcg6zvj', 'mpwp47uz9ugz', 'mpwq61oizabz', 'mpwqa03mcg0g', 'mpwqcudx7vkq', 'mpwqh1089j2e', 'mpwqjdw1mzjc', 'mpwqlj8blcjs', 'mpwqlw405avb', 'mpwqoafdxpka', 'mpwqpwl8j1px', 'mpylom0aijw5', 'mpylp7salypk', 'mpylq1xtnwoq', 'mpylqnqkh9k0', 'mpybhcrx14qt', 'mpwqnttivfp9', 'mpwqnkqbuyiw', 'msx19517161apq', 'msx196i5t9lvzj', 'msx197b0svuci1', 'msx197xjx312in', 'trace:chicken-fillet', 'trace:pork-belly', 'trace:ramen-noodles', 'trace:pak-choi', 'trace:wakame', 'trace:memma', 'trace:coconut-milk', 'trace:pork-chasiu') AND id NOT IN ('mpv4uvjvdk38:case:kg', 'mpv4ya5ookoo:case:kg', 'mpv4zal7ks2g:case:kg', 'mpv5107jwcxi:case:kg', 'mpv2hhfz4f61:case:item', 'mpv2hhfz4f61:item:kg', 'trace:chicken-fillet:case:item', 'trace:chicken-fillet:item:kg', 'mpuc771xt0jo:case:item', 'mpuc771xt0jo:item:L', 'mpucqr4q51x5:case:item', 'mpucqr4q51x5:item:kg', 'mpucrpe8rlh5:case:item', 'mpucrpe8rlh5:item:L', 'mpucspup5soi:case:item', 'mpucspup5soi:item:kg', 'mpuct8qvh4np:case:item', 'mpuct8qvh4np:item:kg', 'mpucubc5jfmh:case:item', 'mpucubc5jfmh:item:kg', 'mpucv3qqzv8r:case:item', 'mpucv3qqzv8r:item:kg', 'mpudkxf1b97v:case:item', 'mpudkxf1b97v:item:kg', 'mpudm0lkbvi8:case:item', 'mpudm0lkbvi8:item:kg', 'mpudo60gpapk:case:item', 'mpudo60gpapk:item:L', 'mpuh5g71a757:case:item', 'mpuh5g71a757:item:L', 'mpuh883tfymc:case:item', 'mpuh883tfymc:item:L', 'mpuhckliqwi7:case:item', 'mpuhckliqwi7:item:kg', 'mpuhe0qrp0fd:case:item', 'mpuhe0qrp0fd:item:kg', 'mpuhgjfoxsvf:case:item', 'mpuhgjfoxsvf:item:kg', 'mpuzg1idxdpk:case:item', 'mpuzg1idxdpk:item:L', 'mpuzhbhus7w8:case:item', 'mpuzhbhus7w8:item:L', 'mpuzoq8ebfnm:case:item', 'mpuzoq8ebfnm:item:kg', 'mpv2v85ihjwb:case:item', 'mpv2v85ihjwb:item:kg', 'mpuzxj9jnk33:case:item', 'mpuzxj9jnk33:item:Units', 'mpuzytgt4umm:case:item', 'mpuzytgt4umm:item:Units', 'mpv3bqob8hyp:case:item', 'mpv3bqob8hyp:item:kg', 'mpv49dty4hdf:case:item', 'mpv49dty4hdf:item:kg', 'mpv46rcpaytv:case:item', 'mpv46rcpaytv:item:Units', 'mpv3t4jmh10w:case:item', 'mpv3t4jmh10w:item:kg', 'mpv3vzatkfqx:case:item', 'mpv3vzatkfqx:item:kg', 'mpv40knt0qpi:case:item', 'mpv40knt0qpi:item:kg', 'mpv42tb8kk7i:case:item', 'mpv42tb8kk7i:item:kg', 'mpv41h7l50xw:case:item', 'mpv41h7l50xw:item:kg', 'mpv43vqscfkx:case:item', 'mpv43vqscfkx:item:Units', 'mpv452gsu2ll:case:item', 'mpv452gsu2ll:item:Units', 'mpv4dmq37alr:case:item', 'mpv4dmq37alr:item:Units', 'mpv4ep7cxb5t:case:item', 'mpv4ep7cxb5t:item:Units', 'mpv4frxnle13:case:item', 'mpv4frxnle13:item:Units', 'mpv4gpc6mcvn:case:item', 'mpv4gpc6mcvn:item:kg', 'mpv4j0ic2j14:case:item', 'mpv4j0ic2j14:item:Units', 'mpv34d94nwrv:case:item', 'mpv34d94nwrv:item:kg', 'mpv081l4itu1:case:item', 'mpv081l4itu1:item:Units', 'mpv2moh60h4k:item:kg', 'mpv2moh60h4k:case:item', 'mpv4x5mait4u:item:kg', 'mpv4x5mait4u:case:item', 'mpv4w2k806ce:item:kg', 'mpuzmv42k3qt:item:kg', 'mpuzmv42k3qt:case:item', 'mpv2lln2mcfh:item:kg', 'mpv2lln2mcfh:case:item', 'mpv0637u6fag:item:kg', 'mpv0637u6fag:case:item', 'mpuhhy0yrbs7:item:kg', 'mpuhhy0yrbs7:case:item', 'mpuzklcwj9wl:item:kg', 'mpuzklcwj9wl:case:item', 'mpuzjice0yy4:item:kg', 'mpuzjice0yy4:case:item', 'mpucf3ruuoa9:item:L', 'mpucf3ruuoa9:case:item', 'mpxzs2w0ltja:item:kg', 'mpxzs2w0ltja:case:item', 'mpuztdxmggmq:item:kg', 'mpuztdxmggmq:case:item', 'mpv2qb0p8fnl:item:kg', 'mpv2qb0p8fnl:case:item', 'mpv2thqzwsy1:item:kg', 'mpv2thqzwsy1:case:item', 'mpv2kmqueish:item:kg', 'mpv2kmqueish:case:item', 'mpvbwhnirxon:item:kg', 'mpwo883223am:item:kg', 'mpwoga5uqxpp:item:kg', 'mpwokfhqje42:item:kg', 'mpwp3fcg6zvj:item:kg', 'mpwp47uz9ugz:item:kg', 'mpwq61oizabz:item:kg', 'mpwqa03mcg0g:item:kg', 'mpwqcudx7vkq:item:kg', 'mpwqh1089j2e:item:kg', 'mpwqjdw1mzjc:item:kg', 'mpwqlj8blcjs:item:kg', 'mpwqlw405avb:item:kg', 'mpwqnkqbuyiw:item:kg');
 INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
 VALUES ('mpv4uvjvdk38:case:kg', 'mpv4uvjvdk38', 'case', 'kg', 8.0, '8 kg per case, from catalog-overrides.json (Dean, 2026-08-31)')
 ON CONFLICT (id) DO UPDATE SET
@@ -1616,18 +1617,6 @@ ON CONFLICT (id) DO UPDATE SET
   updated_at = datetime('now');
 INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
 VALUES ('mpuc771xt0jo:item:L', 'mpuc771xt0jo', 'item', 'L', 20.0, '20000 ml per item, from the workbook''s Items per Case and case size ''1 x 20000''')
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpucf3ruuoa9:case:item', 'mpucf3ruuoa9', 'case', 'item', 12.0, '12 items per case, from the workbook''s Items per Case and case size ''12 x 1000''')
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpucf3ruuoa9:item:Units', 'mpucf3ruuoa9', 'item', 'Units', 1.0, NULL)
 ON CONFLICT (id) DO UPDATE SET
   factor = excluded.factor,
   note = excluded.note,
@@ -1789,18 +1778,6 @@ ON CONFLICT (id) DO UPDATE SET
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpuhhy0yrbs7:case:item', 'mpuhhy0yrbs7', 'case', 'item', 6.0, '6 items per case, from the workbook''s Items per Case and case size ''6 x 1795''')
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpuhhy0yrbs7:item:Units', 'mpuhhy0yrbs7', 'item', 'Units', 1.0, NULL)
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
 VALUES ('mpuhgjfoxsvf:case:item', 'mpuhgjfoxsvf', 'case', 'item', 1.0, '1 items per case, from the workbook''s Items per Case and case size ''1 x 22700''')
 ON CONFLICT (id) DO UPDATE SET
   factor = excluded.factor,
@@ -1837,42 +1814,6 @@ ON CONFLICT (id) DO UPDATE SET
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpuzklcwj9wl:case:item', 'mpuzklcwj9wl', 'case', 'item', 20.0, '20 items per case, from the workbook''s Items per Case and case size ''20 x 500''')
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpuzklcwj9wl:item:Units', 'mpuzklcwj9wl', 'item', 'Units', 1.0, NULL)
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpuzjice0yy4:case:item', 'mpuzjice0yy4', 'case', 'item', 16.0, '16 items per case, from the workbook''s Items per Case and case size ''16 x 500''')
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpuzjice0yy4:item:Units', 'mpuzjice0yy4', 'item', 'Units', 1.0, NULL)
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpuzmv42k3qt:case:item', 'mpuzmv42k3qt', 'case', 'item', 24.0, '24 items per case, from the workbook''s Items per Case and case size ''1 x 454''')
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpuzmv42k3qt:item:Units', 'mpuzmv42k3qt', 'item', 'Units', 1.0, NULL)
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
 VALUES ('mpuzoq8ebfnm:case:item', 'mpuzoq8ebfnm', 'case', 'item', 1.0, '1 items per case, from the workbook''s Items per Case and case size ''1 x 20000''')
 ON CONFLICT (id) DO UPDATE SET
   factor = excluded.factor,
@@ -1880,102 +1821,6 @@ ON CONFLICT (id) DO UPDATE SET
   updated_at = datetime('now');
 INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
 VALUES ('mpuzoq8ebfnm:item:kg', 'mpuzoq8ebfnm', 'item', 'kg', 20.0, '20000 g per item, from the workbook''s Items per Case and case size ''1 x 20000''')
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpuztdxmggmq:case:item', 'mpuztdxmggmq', 'case', 'item', 12.0, '12 items per case, from the workbook''s Items per Case and case size ''1 x 1000''')
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpuztdxmggmq:item:Units', 'mpuztdxmggmq', 'item', 'Units', 1.0, NULL)
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpv2kmqueish:case:item', 'mpv2kmqueish', 'case', 'item', 10.0, '10 items per case, from the workbook''s Items per Case and case size ''10 x 1000''')
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpv2kmqueish:item:Units', 'mpv2kmqueish', 'item', 'Units', 1.0, NULL)
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpv2lln2mcfh:case:item', 'mpv2lln2mcfh', 'case', 'item', 48.0, '48 items per case, from the workbook''s Items per Case and case size ''1 x 397''')
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpv2lln2mcfh:item:Units', 'mpv2lln2mcfh', 'item', 'Units', 1.0, NULL)
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpv0637u6fag:case:item', 'mpv0637u6fag', 'case', 'item', 12.0, '12 items per case, from the workbook''s Items per Case and case size ''1 x 368''')
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpv0637u6fag:item:Units', 'mpv0637u6fag', 'item', 'Units', 1.0, NULL)
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpv2moh60h4k:case:item', 'mpv2moh60h4k', 'case', 'item', 10.0, '10 items per case, from the workbook''s Items per Case and case size ''10 x 1000''')
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpv2moh60h4k:item:Units', 'mpv2moh60h4k', 'item', 'Units', 1.0, NULL)
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpxzs2w0ltja:case:item', 'mpxzs2w0ltja', 'case', 'item', 6.0, '6 items per case, from the workbook''s Items per Case and case size ''1 x 1000''')
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpxzs2w0ltja:item:Units', 'mpxzs2w0ltja', 'item', 'Units', 1.0, NULL)
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpv2qb0p8fnl:case:item', 'mpv2qb0p8fnl', 'case', 'item', 10.0, '10 items per case, from the workbook''s Items per Case and case size ''1 x 1000''')
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpv2qb0p8fnl:item:Units', 'mpv2qb0p8fnl', 'item', 'Units', 1.0, NULL)
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpv2thqzwsy1:case:item', 'mpv2thqzwsy1', 'case', 'item', 10.0, '10 items per case, from the workbook''s Items per Case and case size ''1 x 1000''')
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpv2thqzwsy1:item:Units', 'mpv2thqzwsy1', 'item', 'Units', 1.0, NULL)
 ON CONFLICT (id) DO UPDATE SET
   factor = excluded.factor,
   note = excluded.note,
@@ -2149,30 +1994,6 @@ ON CONFLICT (id) DO UPDATE SET
   note = excluded.note,
   updated_at = datetime('now');
 INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpv4x5mait4u:case:item', 'mpv4x5mait4u', 'case', 'item', 5.0, '5 items per case, from the workbook''s Items per Case and case size ''5 x 2000''')
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpv4x5mait4u:item:Units', 'mpv4x5mait4u', 'item', 'Units', 1.0, NULL)
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpv4w2k806ce:case:item', 'mpv4w2k806ce', 'case', 'item', 1.0, '1 items per case, from the workbook''s Items per Case and case size ''1 x 10000''')
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
-VALUES ('mpv4w2k806ce:item:Units', 'mpv4w2k806ce', 'item', 'Units', 1.0, NULL)
-ON CONFLICT (id) DO UPDATE SET
-  factor = excluded.factor,
-  note = excluded.note,
-  updated_at = datetime('now');
-INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
 VALUES ('mpv4ep7cxb5t:case:item', 'mpv4ep7cxb5t', 'case', 'item', 3.0, '3 items per case, from the workbook''s Items per Case and case size ''3 x 1000''')
 ON CONFLICT (id) DO UPDATE SET
   factor = excluded.factor,
@@ -2240,6 +2061,180 @@ ON CONFLICT (id) DO UPDATE SET
   updated_at = datetime('now');
 INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
 VALUES ('mpv081l4itu1:item:Units', 'mpv081l4itu1', 'item', 'Units', 1.0, NULL)
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpv2moh60h4k:item:kg', 'mpv2moh60h4k', 'item', 'kg', 1.0, 'one packet is 1 kg (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpv2moh60h4k:case:item', 'mpv2moh60h4k', 'case', 'item', 10.0, '10 packets to a case (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpv4x5mait4u:item:kg', 'mpv4x5mait4u', 'item', 'kg', 2.0, 'one packet is 2 kg (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpv4x5mait4u:case:item', 'mpv4x5mait4u', 'case', 'item', 5.0, '5 packets to a case (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpv4w2k806ce:item:kg', 'mpv4w2k806ce', 'item', 'kg', 10.0, 'one case is 10 kg (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpuzmv42k3qt:item:kg', 'mpuzmv42k3qt', 'item', 'kg', 0.454, 'one can is 454 g (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpuzmv42k3qt:case:item', 'mpuzmv42k3qt', 'case', 'item', 24.0, '24 cans to a case (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpv2lln2mcfh:item:kg', 'mpv2lln2mcfh', 'item', 'kg', 0.397, 'one jar is 397 g (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpv2lln2mcfh:case:item', 'mpv2lln2mcfh', 'case', 'item', 48.0, '48 jars to a case (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpv0637u6fag:item:kg', 'mpv0637u6fag', 'item', 'kg', 0.368, 'one jar is 368 g (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpv0637u6fag:case:item', 'mpv0637u6fag', 'case', 'item', 12.0, '12 jars to a case (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpuhhy0yrbs7:item:kg', 'mpuhhy0yrbs7', 'item', 'kg', 1.795, 'one bottle is 1795 g (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpuhhy0yrbs7:case:item', 'mpuhhy0yrbs7', 'case', 'item', 6.0, '6 bottles to a case (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpuzklcwj9wl:item:kg', 'mpuzklcwj9wl', 'item', 'kg', 0.5, 'one tub is 500 g (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpuzklcwj9wl:case:item', 'mpuzklcwj9wl', 'case', 'item', 20.0, '20 tubs to a case (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpuzjice0yy4:item:kg', 'mpuzjice0yy4', 'item', 'kg', 0.5, 'one tub is 500 g (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpuzjice0yy4:case:item', 'mpuzjice0yy4', 'case', 'item', 16.0, '16 tubs to a case (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpucf3ruuoa9:item:L', 'mpucf3ruuoa9', 'item', 'L', 1.0, 'one bottle is 1 L (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpucf3ruuoa9:case:item', 'mpucf3ruuoa9', 'case', 'item', 12.0, '12 bottles to a case (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpxzs2w0ltja:item:kg', 'mpxzs2w0ltja', 'item', 'kg', 1.0, 'one jar is 1 kg (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpxzs2w0ltja:case:item', 'mpxzs2w0ltja', 'case', 'item', 6.0, '6 jars to a case (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpuztdxmggmq:item:kg', 'mpuztdxmggmq', 'item', 'kg', 1.0, 'one jar is 1 kg (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpuztdxmggmq:case:item', 'mpuztdxmggmq', 'case', 'item', 12.0, '12 jars to a case (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpv2qb0p8fnl:item:kg', 'mpv2qb0p8fnl', 'item', 'kg', 1.0, 'one packet is 1 kg (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpv2qb0p8fnl:case:item', 'mpv2qb0p8fnl', 'case', 'item', 10.0, '10 packets to a case (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpv2thqzwsy1:item:kg', 'mpv2thqzwsy1', 'item', 'kg', 1.0, 'one packet is 1 kg (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpv2thqzwsy1:case:item', 'mpv2thqzwsy1', 'case', 'item', 10.0, '10 packets to a case (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpv2kmqueish:item:kg', 'mpv2kmqueish', 'item', 'kg', 1.0, 'one bag is 1 kg (Dean, 2026-09-01)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpv2kmqueish:case:item', 'mpv2kmqueish', 'case', 'item', 10.0, '10 bags to a case (Dean, 2026-09-01)')
 ON CONFLICT (id) DO UPDATE SET
   factor = excluded.factor,
   note = excluded.note,
