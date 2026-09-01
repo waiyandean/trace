@@ -220,6 +220,7 @@ it today.
 | `label-data.json` | The answers the catalog cannot give. Edited by hand. |
 | `static/` | The page. |
 | `start.bat` | Windows launcher. |
+| `package.sh` | Assembles a self-contained copy in the shared Drive folder. |
 
 `config.json`, `print-log.jsonl` and `printed/` are written at runtime and are
 not in the repository.
@@ -231,6 +232,26 @@ printed, with the reason and who decided. They stay active in the catalog:
 this says nothing about whether the kitchen holds the item, only that no label
 of ours goes on it. Naming them one at a time is deliberate — a rule that
 filtered them automatically would quietly drop a product nobody had looked at.
+
+## Getting it onto the machine at the printer
+
+```
+./package.sh
+```
+
+writes a self-contained copy into the shared Drive folder, which syncs to the
+Windows machine. The bundle carries its own photographs in `static/photos` and
+its own copy of the linter, so it runs with none of the rest of the repository
+present. That is a distribution copy rather than a second source of truth: it
+is rebuilt every time the script runs, and nothing edits it by hand.
+
+`config.json`, `print-log.jsonl` and `printed/` are deliberately not copied, in
+either direction. They belong to the machine they were made on, and
+overwriting the kitchen's printer settings from a development machine is a
+good way to stop it printing.
+
+Cloning the repository on that machine works too and makes updates a `git
+pull`. The Drive route exists because it needs nothing installed but Python.
 
 ## Printing
 

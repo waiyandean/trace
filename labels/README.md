@@ -19,6 +19,7 @@ questions around it.
 | `sync-to-drive.sh` | Copies the `.zpl` files to the shared Drive folder. |
 | `print-copies.sh` | Writes a copy with a given print quantity into that folder. |
 | `gui/` | A local web app that fills these templates in from a form and prints them. |
+| `gui/package.sh` | Copies that app to the Drive folder, ready to run on the Windows machine. |
 
 ## Filling them in from a form
 
