@@ -59,7 +59,6 @@ The gaps as things stand:
 | Allergens, 13 items the matrix does not cover | the Allergen Matrix |
 | Product SKU and pack size, all but three | `label-data.json` |
 | Whether a product carries the health mark | `label-data.json` |
-| The label name of a product (`M&R …`) | `label-data.json` |
 
 ## Allergens
 
@@ -111,6 +110,7 @@ it today.
 | `printers.py` | Four ways of getting ZPL to a printer. |
 | `build_catalog.py` | Regenerates `catalog.json` from `worker/scripts/`. |
 | `import_allergens.py` | Fills the allergen declarations in from the Allergen Matrix. |
+| `check_layouts.py` | Builds every format at its worst case and lints them. |
 | `catalog.json` | The catalog, baked in. Generated — do not edit. |
 | `label-data.json` | The answers the catalog cannot give. Edited by hand. |
 | `static/` | The page. |
@@ -166,12 +166,15 @@ condition it most needs to work in.
 
 ## Checking a layout change
 
-`zpl.py` produces the same coordinates as the hand-written files, so the
-parent directory's linter applies:
-
 ```
-python3 ../lint-zpl.py some-label.zpl
+python3 check_layouts.py
 ```
 
-A label with the longest name, the longest product code and a seven-allergen
-declaration is the case that catches what short strings hide.
+Builds all four formats at their worst case — the longest name, the longest
+product code, a seven-allergen declaration, a multi-pack quantity, and one
+label with every field empty — and runs each through `../lint-zpl.py`. Run it
+after any change to `zpl.py`.
+
+Text widths are estimated from the resident condensed font, so a clean run is a
+strong signal rather than a proof. Render anything whose shape changed: the
+preview in the app is a real ZPL render and is the last word.

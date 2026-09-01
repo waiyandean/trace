@@ -257,15 +257,14 @@ class Data:
         else:
             product = self.extra.get("products", {}).get(item["name"], {})
             variant = product.get("box" if type_id == "box" else "packet", {})
-            named = bool(product.get("label_name"))
             mark = product.get("health_mark")
             fields += [
+                # The label prints the catalog name. Where a product is named
+                # differently on its packaging, a label_name in
+                # label-data.json says so; there is nothing to type here.
                 field("name", "Product",
                       product.get("label_name") or item["name"],
-                      editable=not named, missing=not named,
-                      hint="" if named else
-                           "The catalog name is not the label name. Add a "
-                           "label_name in label-data.json."),
+                      editable=False),
                 field("use_by", "Use by", "", kind="date"),
                 field("batch", "Batch code", "",
                       hint="Also what the QR carries."),

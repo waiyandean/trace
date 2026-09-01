@@ -16,7 +16,6 @@ questions around it.
 | `png-to-zpl.py` | Converts an image into a ZPL `^GF` graphic field. |
 | `lint-zpl.py` | Reports overlapping or off-label elements in a label. |
 | `preview.sh` | Renders a label to PNG through Labelary's ZPL engine. |
-| `stress-test.zpl` | The same label with worst-case content, for checking layout changes. |
 | `sync-to-drive.sh` | Copies the `.zpl` files to the shared Drive folder. |
 | `print-copies.sh` | Writes a copy with a given print quantity into that folder. |
 | `gui/` | A local web app that fills these templates in from a form and prints them. |
@@ -92,10 +91,12 @@ it shows what the printer will draw rather than an approximation. It starts
 from clean printer state, so it will not reproduce anything caused by settings
 persisting on the printer — see the `^BY` section below.
 
-**Always render `stress-test.zpl` as well as the label itself.** It carries the
-worst-case content — a long product name, a long product code, a seven-allergen
-declaration, a multi-pack quantity — and it is what catches the failures a
-label full of short strings hides.
+**Check the worst case as well as the label itself.** A label full of short
+strings hides the failures that a long product name, a long product code, a
+seven-allergen declaration or a multi-pack quantity produce. `gui/check_layouts.py`
+builds every format at its worst case and lints them in one command; it
+replaced a hand-written `stress-test.zpl`, which could only ever stress one of
+the four formats and had to be edited to keep up with them.
 
 ## Telling the four types apart
 
@@ -205,9 +206,10 @@ the keep-out margins.
 
 The `MR0xx` product code was dropped from the name (Dean, 2026-08-28), which
 freed roughly ten characters and let the name grow from 38 dots to 44. The
-longest current product name, `M&R Spicy Miso Tonkotsu Ramen`, is 29 characters
-and ends at x=635 against a 772 limit, so there is room for longer names than
-any currently in use.
+longest current product name, `Spicy Miso Tonkotsu Ramen`, is 25 characters
+and ends around x=552 against a 772 limit, so there is room for longer names
+than any currently in use. The `M&R` prefix the earlier artwork carried was
+dropped (Dean, 2026-09-01), which returned another four characters.
 
 Note the product code no longer appears anywhere on the product labels. The
 supplier or customer SKU under the approval oval, `BF-TKBR-2K`, remains. If the
@@ -232,8 +234,8 @@ an eighth allergen would overprint.
 
 For generated labels this means the Worker cannot simply drop content into a
 fixed template. It has to size the header font and the allergen box from the
-length of what it is placing, and every layout change needs the stress test
-re-rendered.
+length of what it is placing, and every layout change needs the worst case
+re-checked.
 
 ## Checking a layout
 
