@@ -112,6 +112,48 @@
       },
       "needs_health_mark": true,
       "storage_unopened": "chill"
+    },
+    "Ramen Noodles": {
+      "id": "trace:ramen-noodles",
+      "kind": "ingredient",
+      "base_unit": "Units",
+      "storage_unopened": "ambient",
+      "note": "Lynas, ambient (Dean, 2026-09-01). Recipes consume it in Units."
+    },
+    "Pak Choi": {
+      "id": "trace:pak-choi",
+      "kind": "ingredient",
+      "base_unit": "kg",
+      "storage_unopened": "chill",
+      "note": "Lynas, walk-in fridge (Dean, 2026-09-01). Recipes consume it in grams."
+    },
+    "Wakame Seaweed": {
+      "id": "trace:wakame",
+      "kind": "ingredient",
+      "base_unit": "kg",
+      "storage_unopened": "ambient",
+      "note": "Tazaki, ambient (Dean, 2026-09-01). Recipes consume it in grams."
+    },
+    "Memma Bamboo Shoots": {
+      "id": "trace:memma",
+      "kind": "ingredient",
+      "base_unit": "kg",
+      "storage_unopened": "ambient",
+      "note": "Tazaki, ambient (Dean, 2026-09-01). Recipes consume it in grams."
+    },
+    "Coconut Milk": {
+      "id": "trace:coconut-milk",
+      "kind": "ingredient",
+      "base_unit": "L",
+      "storage_unopened": "ambient",
+      "note": "Tazaki, ambient (Dean, 2026-09-01). Recipes consume it in litres."
+    },
+    "Pork Chasiu": {
+      "id": "trace:pork-chasiu",
+      "kind": "product",
+      "base_unit": "kg",
+      "storage_unopened": "chill",
+      "note": "made here from pork belly, ginger, garlic and japanese soy sauce (Dean, 2026-09-01). Storage follows the kitchen's product default of chill and has not been confirmed for this product specifically."
     }
   },
   "locations": [
@@ -230,7 +272,12 @@
     "primary": {
       "Chicken Fillet": "Lynas",
       "Tahini": "Tazaki",
-      "Dried Bird Eye Chillies": "Tazaki"
+      "Dried Bird Eye Chillies": "Tazaki",
+      "Ramen Noodles": "Lynas",
+      "Pak Choi": "Lynas",
+      "Wakame Seaweed": "Tazaki",
+      "Memma Bamboo Shoots": "Tazaki",
+      "Coconut Milk": "Tazaki"
     },
     "backup": {
       "Ground Bean Sauce": "Lynas",

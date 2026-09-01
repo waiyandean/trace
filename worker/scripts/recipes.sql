@@ -48,6 +48,40 @@ INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VA
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpwqcudx7vkq:mpuc771xt0jo', 'recipe:mpwqcudx7vkq', 'mpuc771xt0jo', 20.0, 'Litres', 2);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpwqcudx7vkq:mpucubc5jfmh', 'recipe:mpwqcudx7vkq', 'mpucubc5jfmh', 1.0, 'kg', 3);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpwqcudx7vkq:mpudkxf1b97v', 'recipe:mpwqcudx7vkq', 'mpudkxf1b97v', 0.5, 'kg', 4);
+INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:mpylom0aijw5', 'mpylom0aijw5', 180, '6 months, as the kitchen states it')
+  ON CONFLICT (item_id) DO UPDATE SET shelf_life_days = excluded.shelf_life_days, note = excluded.note, updated_at = datetime('now');
+DELETE FROM recipe_lines WHERE recipe_id = 'recipe:mpylom0aijw5';
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpylom0aijw5:msx19517161apq', 'recipe:mpylom0aijw5', 'msx19517161apq', 38.0, 'kg', 1);
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpylom0aijw5:trace:ramen-noodles', 'recipe:mpylom0aijw5', 'trace:ramen-noodles', 100.0, 'Units', 2);
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpylom0aijw5:trace:pork-chasiu', 'recipe:mpylom0aijw5', 'trace:pork-chasiu', 4000.0, 'g', 3);
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpylom0aijw5:mpv452gsu2ll', 'recipe:mpylom0aijw5', 'mpv452gsu2ll', 500.0, 'g', 4);
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpylom0aijw5:trace:wakame', 'recipe:mpylom0aijw5', 'trace:wakame', 500.0, 'g', 5);
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpylom0aijw5:trace:memma', 'recipe:mpylom0aijw5', 'trace:memma', 600.0, 'g', 6);
+INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:mpylq1xtnwoq', 'mpylq1xtnwoq', 180, '6 months, as the kitchen states it')
+  ON CONFLICT (item_id) DO UPDATE SET shelf_life_days = excluded.shelf_life_days, note = excluded.note, updated_at = datetime('now');
+DELETE FROM recipe_lines WHERE recipe_id = 'recipe:mpylq1xtnwoq';
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpylq1xtnwoq:msx197b0svuci1', 'recipe:mpylq1xtnwoq', 'msx197b0svuci1', 38.0, 'kg', 1);
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpylq1xtnwoq:trace:ramen-noodles', 'recipe:mpylq1xtnwoq', 'trace:ramen-noodles', 100.0, 'Units', 2);
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpylq1xtnwoq:trace:chicken-fillet', 'recipe:mpylq1xtnwoq', 'trace:chicken-fillet', 4000.0, 'g', 3);
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpylq1xtnwoq:trace:pak-choi', 'recipe:mpylq1xtnwoq', 'trace:pak-choi', 2500.0, 'g', 4);
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpylq1xtnwoq:mpv452gsu2ll', 'recipe:mpylq1xtnwoq', 'mpv452gsu2ll', 500.0, 'g', 5);
+INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:mpylp7salypk', 'mpylp7salypk', 180, '6 months, as the kitchen states it')
+  ON CONFLICT (item_id) DO UPDATE SET shelf_life_days = excluded.shelf_life_days, note = excluded.note, updated_at = datetime('now');
+DELETE FROM recipe_lines WHERE recipe_id = 'recipe:mpylp7salypk';
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpylp7salypk:msx196i5t9lvzj', 'recipe:mpylp7salypk', 'msx196i5t9lvzj', 42.0, 'kg', 1);
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpylp7salypk:trace:ramen-noodles', 'recipe:mpylp7salypk', 'trace:ramen-noodles', 100.0, 'Units', 2);
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpylp7salypk:trace:pork-chasiu', 'recipe:mpylp7salypk', 'trace:pork-chasiu', 4000.0, 'g', 3);
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpylp7salypk:mpv452gsu2ll', 'recipe:mpylp7salypk', 'mpv452gsu2ll', 500.0, 'g', 4);
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpylp7salypk:trace:wakame', 'recipe:mpylp7salypk', 'trace:wakame', 500.0, 'g', 5);
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpylp7salypk:trace:memma', 'recipe:mpylp7salypk', 'trace:memma', 600.0, 'g', 6);
+INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:mpylqnqkh9k0', 'mpylqnqkh9k0', 180, '6 months, as the kitchen states it')
+  ON CONFLICT (item_id) DO UPDATE SET shelf_life_days = excluded.shelf_life_days, note = excluded.note, updated_at = datetime('now');
+DELETE FROM recipe_lines WHERE recipe_id = 'recipe:mpylqnqkh9k0';
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpylqnqkh9k0:msx197xjx312in', 'recipe:mpylqnqkh9k0', 'msx197xjx312in', 42.0, 'kg', 1);
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpylqnqkh9k0:trace:ramen-noodles', 'recipe:mpylqnqkh9k0', 'trace:ramen-noodles', 100.0, 'Units', 2);
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpylqnqkh9k0:trace:chicken-fillet', 'recipe:mpylqnqkh9k0', 'trace:chicken-fillet', 4000.0, 'g', 3);
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpylqnqkh9k0:trace:pak-choi', 'recipe:mpylqnqkh9k0', 'trace:pak-choi', 2500.0, 'g', 4);
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpylqnqkh9k0:mpv452gsu2ll', 'recipe:mpylqnqkh9k0', 'mpv452gsu2ll', 500.0, 'g', 5);
 INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:mpwqjdw1mzjc', 'mpwqjdw1mzjc', 180, '6 months, as the kitchen states it')
   ON CONFLICT (item_id) DO UPDATE SET shelf_life_days = excluded.shelf_life_days, note = excluded.note, updated_at = datetime('now');
 DELETE FROM recipe_lines WHERE recipe_id = 'recipe:mpwqjdw1mzjc';
@@ -89,6 +123,12 @@ INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:mpwp47u
 DELETE FROM recipe_lines WHERE recipe_id = 'recipe:mpwp47uz9ugz';
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpwp47uz9ugz:mpuhe0qrp0fd', 'recipe:mpwp47uz9ugz', 'mpuhe0qrp0fd', 6.0, 'kg', 1);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:mpwp47uz9ugz:mpxzs2w0ltja', 'recipe:mpwp47uz9ugz', 'mpxzs2w0ltja', 12.0, 'kg', 2);
+INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:msx197xjx312in', 'msx197xjx312in', 180, '6 months, as the kitchen states it')
+  ON CONFLICT (item_id) DO UPDATE SET shelf_life_days = excluded.shelf_life_days, note = excluded.note, updated_at = datetime('now');
+DELETE FROM recipe_lines WHERE recipe_id = 'recipe:msx197xjx312in';
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:msx197xjx312in:mpwqoafdxpka', 'recipe:msx197xjx312in', 'mpwqoafdxpka', 18.0, 'Litres', 1);
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:msx197xjx312in:mpwp47uz9ugz', 'recipe:msx197xjx312in', 'mpwp47uz9ugz', 4.5, 'kg', 2);
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:msx197xjx312in:trace:coconut-milk', 'recipe:msx197xjx312in', 'trace:coconut-milk', 2.4, 'Litres', 3);
 INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:mpwqa03mcg0g', 'mpwqa03mcg0g', 180, '6 months, as the kitchen states it')
   ON CONFLICT (item_id) DO UPDATE SET shelf_life_days = excluded.shelf_life_days, note = excluded.note, updated_at = datetime('now');
 DELETE FROM recipe_lines WHERE recipe_id = 'recipe:mpwqa03mcg0g';

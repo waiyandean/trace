@@ -1,4 +1,4 @@
-62 item/supplier pairings over 55 of 55 active ingredients (9 inactive, out of scope at Glasgow) -> scripts/item-suppliers.sql
+67 item/supplier pairings over 60 of 60 active ingredients (9 inactive, out of scope at Glasgow) -> scripts/item-suppliers.sql
 
 Ingredients arriving from more than one supplier (7)
   Both pairings are real. Where one is marked backup the kitchen has said
@@ -13,13 +13,18 @@ Ingredients arriving from more than one supplier (7)
   - Shimaya Konbudashi: Lynas (backup, delivered), Tazaki (primary, delivered)
   - Toban Djan Chilli Bean Sauce: Lynas (backup, delivered), Tazaki (primary, delivered)
 
-Supplier decided by the kitchen rather than found in the records (3)
+Supplier decided by the kitchen rather than found in the records (8)
 
   - Chicken Fillet: Lynas
+  - Coconut Milk: Tazaki
   - Dried Bird Eye Chillies: Tazaki
+  - Memma Bamboo Shoots: Tazaki
+  - Pak Choi: Lynas
+  - Ramen Noodles: Lynas
   - Tahini: Tazaki
+  - Wakame Seaweed: Tazaki
 
-Names in the workbook that match no catalog ingredient (28)
+Names in the workbook that match no catalog ingredient (24)
   Left out rather than matched approximately. Most are packaging, or the
   same ingredient spelled differently; either way a guess here would put an
   ingredient behind the wrong supplier.
@@ -32,16 +37,12 @@ Names in the workbook that match no catalog ingredient (28)
   - Chilli bean sauce (1)
   - Clear refuse sack (1)
   - Clear sack (1)
-  - Coconut Milk (1)
   - Coriander (1)
   - Green curry (1)
   - Hairnet (1)
   - Hoi Sin Sauce (1)
   - Inner compartment tray for ramen (1)
   - Maggi seasoning sauce (1)
-  - Pak choi (2)
-  - Ramen Noodles (2)
-  - Ramen noodles (1)
   - Red Pepper Powder (1)
   - Round ikigai bowl (1)
   - Shio tare (1)
@@ -54,5 +55,5 @@ Names in the workbook that match no catalog ingredient (28)
   - Yuzu seasoning (1)
 
 Suppliers not in the catalog (1)
-  - Alfa Wholesale (2)
+  - Alfa Wholesale (3)
 

@@ -1,23 +1,4 @@
-17 of 24 recipes imported -> scripts/recipes.sql
-
-Ingredients a recipe names that the catalog does not have (6)
-  Every recipe using one of these is skipped whole. A recipe imported without
-  an ingredient would let a batch look complete while something nobody
-  recorded went into the pot.
-
-  - Coconut Milk  (in Laksa Ramen (Soup))
-  - Memma Bamboo Shoots  (in Frozen Ramen : Black Garlic, Frozen Ramen : Hell Ramen)
-  - Pak Choi  (in Frozen Ramen : Chicken Tori Paitan, Frozen Ramen : Laksa Ramen)
-  - Pork Chasiu  (in Frozen Ramen : Black Garlic, Frozen Ramen : Hell Ramen)
-  - Ramen Noodles  (in Frozen Ramen : Black Garlic, Frozen Ramen : Chicken Tori Paitan, Frozen Ramen : Hell Ramen, Frozen Ramen : Laksa Ramen)
-  - Wakame Seaweed  (in Frozen Ramen : Black Garlic, Frozen Ramen : Hell Ramen)
-
-Recipes not imported (5)
-  - Frozen Ramen : Black Garlic — needs Memma Bamboo Shoots, Pork Chasiu, Ramen Noodles, Wakame Seaweed
-  - Frozen Ramen : Chicken Tori Paitan — needs Pak Choi, Ramen Noodles
-  - Frozen Ramen : Hell Ramen — needs Memma Bamboo Shoots, Pork Chasiu, Ramen Noodles, Wakame Seaweed
-  - Frozen Ramen : Laksa Ramen — needs Pak Choi, Ramen Noodles
-  - Laksa Ramen (Soup) — needs Coconut Milk
+22 of 24 recipes imported -> scripts/recipes.sql
 
 Products with no recipe in the batching system (2)
   Nothing to import. They cannot be batched through a recipe until somebody
@@ -33,11 +14,16 @@ Imported
   - Chicken Paste — 4 ingredients, 6 months
   - Chicken Ramen (Soup) — 3 ingredients, 6 months
   - Chilli Oil — 4 ingredients, 6 months
+  - Frozen Ramen : Black Garlic — 6 ingredients, 6 months
+  - Frozen Ramen : Chicken Tori Paitan — 5 ingredients, 6 months
+  - Frozen Ramen : Hell Ramen — 6 ingredients, 6 months
+  - Frozen Ramen : Laksa Ramen — 5 ingredients, 6 months
   - Garlic Oil — 2 ingredients, 6 months
   - Hell Ramen (Soup) — 3 ingredients, 6 months
   - Hell Sauce — 8 ingredients, 6 months
   - Kimchi Sauce — 11 ingredients, 6 months
   - Laksa Paste — 2 ingredients, 6 months
+  - Laksa Ramen (Soup) — 3 ingredients, 6 months
   - Soba Sauce — 4 ingredients, 6 months
   - Spicy Miso — 5 ingredients, 6 months
   - Spicy Teriyaki — 8 ingredients, 6 months
