@@ -19,6 +19,7 @@ import base64
 import json
 import os
 import re
+import socket
 import sys
 import threading
 import urllib.error
@@ -77,6 +78,13 @@ DEFAULT_CONFIG = {
     "port": 9100,
     "folder": str(HERE / "printed"),
     "preview": True,
+    # "local" binds 127.0.0.1 and only this machine can reach the tool.
+    # "network" binds every interface, so anything on the kitchen's wifi can
+    # open it -- an iPad at the goods-in door driving the printer that is
+    # plugged into this laptop. There is no password on it: whoever can reach
+    # it can print. On a kitchen LAN the worst case is wasted labels, but it
+    # is a deliberate choice rather than the default.
+    "listen": "local",
 }
 
 
@@ -104,6 +112,27 @@ def write_config(config):
     merged.update({k: v for k, v in config.items() if k in DEFAULT_CONFIG})
     CONFIG_PATH.write_text(json.dumps(merged, indent=1) + "\n", encoding="utf-8")
     return merged
+
+
+def lan_addresses():
+    """This machine's addresses on the network, for telling people where to go.
+
+    Asking the operating system which address it would use to reach the
+    outside world is the only reliable way to get the one that matters; the
+    hostname often resolves to a loopback address instead. Nothing is sent.
+    """
+    found = []
+    for probe in ("8.8.8.8", "192.168.1.1"):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+                sock.settimeout(0.2)
+                sock.connect((probe, 80))
+                address = sock.getsockname()[0]
+                if address not in found and not address.startswith("127."):
+                    found.append(address)
+        except OSError:
+            continue
+    return found
 
 
 def uk(iso):
@@ -714,10 +743,18 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     Handler.data = Data()
-    server = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
+    config = read_config()
+    on_network = config.get("listen") == "network"
+    server = ThreadingHTTPServer(
+        ("0.0.0.0" if on_network else "127.0.0.1", PORT), Handler)
     url = f"http://localhost:{PORT}"
     print(f"trace labels — {url}")
-    print(f"  printing via: {read_config()['backend']}")
+    print(f"  printing via: {config['backend']}")
+    if on_network:
+        for address in lan_addresses():
+            print(f"  on the network at: http://{address}:{PORT}")
+        print("  anyone who can reach that address can print. There is no "
+              "password on it.")
     if "--no-browser" not in sys.argv:
         threading.Timer(0.5, lambda: webbrowser.open(url)).start()
     try:

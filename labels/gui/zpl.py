@@ -343,14 +343,20 @@ def date_opened(*, name, opened, use_by, batch, allergens, storage_opened,
         f"^FO{MARGIN},72^A0N,{NAME_HEIGHT}^FD{escape(name)}^FS",
         f"^FO{MARGIN},126^GB{INNER},0,4^FS",
         "",
-        f"^FO{MARGIN},142^A0N,20^FDOPENED^FS",
-        f"^FO{MARGIN},166^A0N,42^FD{escape(opened)}^FS",
+        # Use by and batch take the big row, in the same places they occupy
+        # on the Goods In label, so the two read the same way round. They are
+        # what the label is consulted for: how long is this good, and which
+        # batch does the production record point at. The date it was opened
+        # matters less once the use-by has been worked out from it, so it
+        # drops to the small row underneath.
+        f"^FO{MARGIN},142^A0N,20^FDUSE BY^FS",
+        f"^FO{MARGIN},166^A0N,42^FD{escape(use_by)}^FS",
         "",
-        "^FO420,142^A0N,20^FDUSE BY^FS",
-        f"^FO420,166^A0N,42^FD{escape(use_by)}^FS",
+        "^FO420,142^A0N,20^FDBATCH^FS",
+        f"^FO420,166^A0N,42^FD{escape(batch)}^FS",
         "",
-        f"^FT{MARGIN},244^A0N,20^FDBatch^FS",
-        f"^FT190,244^A0N,26^FD{escape(batch)}^FS",
+        f"^FT{MARGIN},244^A0N,20^FDOpened^FS",
+        f"^FT190,244^A0N,28^FD{escape(opened)}^FS",
         "",
     ]
     out += _label_allergen_block(allergens, 258, warnings)

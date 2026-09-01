@@ -103,6 +103,19 @@ Three screens, one decision each.
 3. **The label** — a live render of what will print, the fields, how many
    copies, and a Print button.
 
+## What each label leads with
+
+Both internal labels put **use by** on the left of the big row and **batch** on
+the right, in the same places, so the two read the same way round and a glance
+lands in the same spot on either.
+
+On Date Opened that is a change from the handwritten form it replaces, which
+led with the date the container was opened. The opened date matters while the
+use-by is being worked out from it and much less afterwards; the use-by is
+what decides whether the tub is still good, and the batch is what the
+production record points at (Dean, 2026-09-01). So those two take the big row
+and the opened date drops to the small row underneath.
+
 ## No lot codes
 
 Goods In and Date Opened carry no lot short code and no QR, which the
