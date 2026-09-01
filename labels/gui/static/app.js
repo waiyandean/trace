@@ -430,6 +430,7 @@ function drawSettings(boot) {
   el("host").value = config.host;
   el("folder").value = config.folder;
   el("preview-on").checked = config.preview;
+  el("listen-network").checked = config.listen === "network";
 
   const printer = el("printer");
   const names = boot.printers.length ? boot.printers : ["(none found)"];
@@ -473,6 +474,7 @@ async function saveSettings() {
       host: el("host").value,
       folder: el("folder").value,
       preview: el("preview-on").checked,
+      listen: el("listen-network").checked ? "network" : "local",
     }),
   });
   state.boot.config = boot.config;
