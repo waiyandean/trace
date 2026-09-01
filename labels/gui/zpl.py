@@ -109,10 +109,13 @@ def _allergen_block(text, warnings, is_case=False, may_contain=""):
     text = escape(text) or "Not recorded"
     body = f"ALLERGENS: {text}"
     # The matrix records which allergens a product may carry from
-    # cross-contact, so where it names them the label names them too. The
-    # generic line is what is left when it does not, and it says less.
+    # cross-contact, so where it names them the label names them too. Naming
+    # one does not narrow the statement: the line still ends "and other
+    # allergens", because the matrix names the ones that are known about
+    # rather than every one that is possible (Dean, 2026-09-01).
     may = escape(may_contain)
-    disclaimer = f"May contain: {may}" if may else "May contain other allergens"
+    disclaimer = (f"May contain {may} and other allergens" if may
+                  else "May contain other allergens")
     # A case label gives up two dots of box to the rule and case line at its
     # foot, which is the only geometric difference between the two variants.
     top, box_h = (288, 50) if is_case else (292, 52)

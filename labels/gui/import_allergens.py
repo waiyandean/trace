@@ -45,16 +45,31 @@ CODES = {
     "SOY": "Soya", "SO2": "Sulphites",
 }
 
-# Where the matrix and the catalog name the same thing differently. Only
-# entries whose meaning is not in doubt: a spelling, a suffix, a synonym with
-# exactly one candidate in the catalog. Anything ambiguous is left unmatched
-# and reported, because an allergen line attached to the wrong product is
-# worse than one that says nothing.
+# Where the matrix and the catalog name the same thing differently. Each entry
+# is a decision somebody made, not a string similarity: an allergen line
+# attached to the wrong product is worse than one that says nothing.
+#
+# A matrix row may feed more than one catalog row. The soup and the frozen
+# retail pack of a given ramen are the same recipe in two formats and carry
+# the same declaration, so one matrix row covers both (Dean, 2026-09-01).
 ALIASES = {
-    "Ginger": "Ginger Root",
-    "Tom Tum Tare": "Tom Yum Tare",
-    "Green Curry": "Green Curry Sauce",
+    "Ginger": ["Ginger Root"],
+    "Tom Tum Tare": ["Tom Yum Tare"],
+    "Green Curry": ["Green Curry Sauce"],
+    "Hell Ramen": ["Hell Ramen (Soup)", "Frozen Ramen : Hell Ramen"],
+    "Laksa Ramen": ["Laksa Ramen (Soup)", "Frozen Ramen : Laksa Ramen"],
+    "Black Garlic Ramen": ["Black Garlic Tonkotsu (Soup)",
+                           "Frozen Ramen : Black Garlic"],
+    # The frozen line is named for the broth style rather than the soup, so
+    # this pairing is the one to re-check if the retail range changes.
+    "Chicken Ramen": ["Chicken Ramen (Soup)",
+                      "Frozen Ramen : Chicken Tori Paitan"],
 }
+
+# Matrix rows for things the kitchen has stopped using (Dean, 2026-09-01).
+# Recorded rather than deleted from the matrix, so that a row reappearing is
+# visible as a change rather than as something that was always ignored.
+RETIRED = {"Dark Soy Sauce", "Mapo Tare"}
 
 
 def cells(row):
@@ -101,18 +116,24 @@ def main():
 
     allergens, may_contain = {}, {}
     matched, unmatched = [], []
+    retired = []
     for raw_name, (contains, may) in sorted(matrix.items()):
-        name = ALIASES.get(raw_name, raw_name)
-        if name not in names:
+        if raw_name in RETIRED:
+            retired.append(raw_name)
+            continue
+        targets = [n for n in ALIASES.get(raw_name, [raw_name]) if n in names]
+        if not targets:
             unmatched.append(raw_name)
             continue
-        matched.append(name)
-        # An item with no allergens is a determination, not a gap: it is
-        # recorded as "None declared" so the label says so, and so that a blank
-        # matrix row and an item nobody has assessed stay distinguishable.
-        allergens[name] = ", ".join(contains) if contains else "None declared"
-        if may:
-            may_contain[name] = ", ".join(may)
+        for name in targets:
+            matched.append(name)
+            # An item with no allergens is a determination, not a gap: it is
+            # recorded as "None declared" so the label says so, and so that a
+            # blank matrix row and an item nobody has assessed stay
+            # distinguishable.
+            allergens[name] = ", ".join(contains) if contains else "None declared"
+            if may:
+                may_contain[name] = ", ".join(may)
 
     data["allergens"] = dict(sorted(allergens.items()))
     data["may_contain"] = dict(sorted(may_contain.items()))
@@ -125,11 +146,12 @@ def main():
         f"{len(matrix)} rows in the matrix, {len(matched)} matched to catalog items.",
         f"{len(may_contain)} carry a 'may contain'.",
         f"",
+        f"-- Retired, skipped ({len(retired)})",
+        f"   Still in the matrix, no longer used by the kitchen.",
+        *(f"     {n}" for n in retired),
+        f"",
         f"-- In the matrix, no catalog item ({len(unmatched)})",
-        f"   Left out. Several are a matrix name that could mean either of two",
-        f"   catalog rows -- 'Hell Ramen' is both a soup and a frozen retail",
-        f"   pack -- and one wrong allergen line is worse than a missing one.",
-        f"   Add an alias in ALIASES once it is decided which is meant.",
+        f"   Add an alias in ALIASES once it is decided what each one means.",
         *(f"     {n}" for n in unmatched),
         f"",
         f"-- In the catalog, no matrix row ({len(uncovered)})",

@@ -23,7 +23,7 @@
 ^FO622,110^BQN,2,6^FDHA,2807GB1^FS
 
 ^FO40,292^GB732,52,2^FS
-^FO56,298^A0N,24^FB700,1,0,L^FDALLERGENS: Wheat, Soy^FS
+^FO56,298^A0N,24^FB700,1,0,L^FDALLERGENS: Celery, Gluten, Sesame, Soya^FS
 ^FO56,324^A0N,17^FB700,1,0,L^FDMay contain other allergens^FS
 
 ^FO40,350^A0N,16^FB732,1,0,C^FDProduced by: AAHQ LTD, 90 Renfield Street, Glasgow\&^FS

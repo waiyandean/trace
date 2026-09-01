@@ -56,7 +56,7 @@ The gaps as things stand:
 
 | Gap | Where it gets fixed |
 | --- | --- |
-| Allergens, 21 items the matrix does not cover | the Allergen Matrix |
+| Allergens, 13 items the matrix does not cover | the Allergen Matrix |
 | Product SKU and pack size, all but three | `label-data.json` |
 | Whether a product carries the health mark | `label-data.json` |
 | The label name of a product (`M&R …`) | `label-data.json` |
@@ -83,14 +83,19 @@ Three things worth knowing about the result:
   Wheat, which is narrower than the matrix states and would be wrong on a
   product whose gluten comes from barley.
 - **Where the matrix names a cross-contact allergen, the label names it** —
-  "May contain: Peanuts" in place of the generic "May contain other
-  allergens", which says less.
-- **Six matrix rows are not applied.** Four are a name that could mean either
-  of two catalog rows: `Hell Ramen` is both a soup and a frozen retail pack.
-  Two name nothing in the catalog at all. They are listed in the report, and
-  an alias in the importer's `ALIASES` fixes each one once it is decided which
-  is meant. An allergen line on the wrong product is worse than one that says
-  nothing.
+  "May contain Peanuts and other allergens". Naming one does not narrow the
+  statement: the matrix names the allergens that are known about rather than
+  every one that is possible, so the line still ends "and other allergens"
+  (Dean, 2026-09-01).
+- **A matrix row can feed more than one catalog row.** The soup and the frozen
+  retail pack of a given ramen are the same recipe in two formats and carry
+  the same declaration, so `Hell Ramen` in the matrix fills in both
+  `Hell Ramen (Soup)` and `Frozen Ramen : Hell Ramen`. The pairings are listed
+  in the importer's `ALIASES`, each one a decision rather than a string match.
+- **Retired rows are named, not ignored.** `Dark Soy Sauce` and `Mapo Tare`
+  are still in the matrix and no longer used by the kitchen. They are skipped
+  by name, so one of them reappearing in use shows up as a change rather than
+  as something that was always being dropped.
 
 The right long-term home for this is the trace catalog, beside storage and
 shelf life, where the goods-in form and the recipe explosion can see it too.
