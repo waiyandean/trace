@@ -149,17 +149,24 @@ class Data:
             self.reload()
         return self
 
-    def listing(self, type_id):
+    STORAGE_LABELS = {"chill": "Chilled", "freezer": "Frozen",
+                      "ambient": "Ambient"}
+
+    def listing(self, type_id, _unused=None):
         """The items a given label type applies to, in the groups they are
         picked from.
 
-        Ingredients are grouped by supplier because that is how a delivery
-        arrives: one van, one supplier, and the twenty-odd things it might be
-        carrying rather than the whole catalog. An ingredient bought from both
-        appears under both, since at the door it genuinely could be either.
+        Ingredients are grouped by supplier and then by storage, which is the
+        order the two facts are needed in. A delivery is one van from one
+        supplier, so that narrows sixty things to twenty-odd; within it, what
+        separates one row from the next is where the goods are going, because
+        that is what happens to them next and it is what a wrong answer costs.
+
+        An ingredient bought from both suppliers appears under both, since at
+        the door it genuinely could be either. Storage sections do not overlap.
         """
         source = next(t["source"] for t in TYPES if t["id"] == type_id)
-        out = []
+        rows = []
         for item in self.catalog["items"]:
             if source == "ingredient" and item["kind"] != "ingredient":
                 continue
@@ -179,7 +186,7 @@ class Data:
                     item["kind"] != "ingredient"
                     or item["opening_rule"] in (None, "whole_pack")):
                 continue
-            out.append({
+            rows.append({
                 "id": item["id"],
                 "name": self.label_name(item, type_id),
                 "detail": self.detail(item, type_id),
@@ -189,31 +196,51 @@ class Data:
             })
 
         if source == "product":
-            return [{"name": "", "items": out}]
+            return [{"name": "", "sections": [{"name": "", "items": rows}]}]
 
         groups = []
-        for supplier in self.catalog["suppliers"]:
-            members = []
-            for item in out:
-                if supplier not in item["suppliers"]:
-                    continue
-                member = dict(item)
+        for supplier in self.catalog["suppliers"] + [None]:
+            # A trailing None stands for the ingredients nobody has recorded a
+            # supplier for; they would otherwise vanish from a screen that only
+            # draws the suppliers it knows about.
+            members = ([r for r in rows if supplier in r["suppliers"]] if supplier
+                       else [r for r in rows if not r["suppliers"]])
+            if not members:
+                continue
+            if type_id == "goods-in":
                 # Inside a supplier's own group its name is on the heading, so
                 # repeating it on every row says nothing. What is worth saying
-                # is that an item can also come from the other supplier, which
-                # is why the same row appears twice on the screen.
-                if type_id == "goods-in":
-                    others = [s for s in item["suppliers"] if s != supplier]
-                    member["detail"] = f"also {', '.join(others)}" if others else ""
-                members.append(member)
-            if members:
-                groups.append({"name": supplier, "items": members})
-        # An ingredient with no supplier recorded would otherwise vanish from
-        # a screen that only draws the groups it knows about.
-        loose = [i for i in out if not i["suppliers"]]
-        if loose:
-            groups.append({"name": "No supplier recorded", "items": loose})
+                # is that an item also comes from the other supplier, which is
+                # why the same row appears twice on the screen.
+                members = [dict(row, detail=(
+                    "also " + ", ".join(s for s in row["suppliers"] if s != supplier)
+                    if len(row["suppliers"]) > 1 else "")) for row in members]
+            groups.append({
+                "name": supplier or "No supplier recorded",
+                "sections": self._by_storage(members, type_id),
+            })
         return groups
+
+    def _by_storage(self, rows, type_id):
+        """Split one supplier's rows by where the goods are kept.
+
+        Goods In uses the unopened requirement, which is where a delivery is
+        put away. Date Opened uses the after-opening one, which is the whole
+        point of that label: several things sit on an ambient shelf unopened
+        and have to be refrigerated once they are not.
+        """
+        key = "storage_opened" if type_id == "date-opened" else "storage_unopened"
+        sections = []
+        for value, label in self.STORAGE_LABELS.items():
+            members = [r for r in rows if self.items[r["id"]][key] == value]
+            if members:
+                sections.append({"name": label, "items": members})
+        # Null means nobody has determined it, not that there is no
+        # requirement, so these are named rather than filed under Ambient.
+        loose = [r for r in rows if not self.items[r["id"]][key]]
+        if loose:
+            sections.append({"name": "Storage not recorded", "items": loose})
+        return sections
 
     def label_name(self, item, type_id):
         if type_id in ("packet", "box"):

@@ -15,9 +15,10 @@ python server.py          # then http://localhost:8642
 
 or double-click `start.bat` on Windows.
 
-A label type can be linked to directly — `http://localhost:8642/#goods-in` —
-so the machine at the printer can sit on the list it uses rather than starting
-from the tiles every time.
+A view can be linked to directly — `http://localhost:8642/#goods-in/storage`
+is the Goods In list grouped by storage — so the machine at the printer can
+sit on the list it actually uses rather than starting from the tiles every
+time.
 
 ## What it does
 
@@ -30,11 +31,23 @@ Three screens, one decision each.
    used has nothing to record; the two product types list twenty-five finished
    products.
 
-   Ingredients are **grouped by supplier**, because that is how a delivery
-   arrives: one van from one supplier, and the twenty-odd things it might be
-   carrying rather than sixty in one alphabetical run. Seven ingredients are
-   bought from both and appear under both, marked "also Tazaki" — at the door
-   it genuinely could be either.
+   Ingredients group two ways, switched with the toggle beside the search box
+   and remembered per browser, because the list gets read for two different
+   reasons:
+
+   - **By supplier** — how a delivery arrives. One van from one supplier, and
+     the twenty-odd things it might be carrying rather than sixty in one
+     alphabetical run. Seven ingredients are bought from both and appear under
+     both, marked "also Tazaki": at the door it genuinely could be either.
+   - **By storage** — how the goods are put away, and the more useful of the
+     two when labels are being printed for a shelf rather than at the door.
+     Goods In groups on the unopened requirement; Date Opened groups on the
+     after-opening one, which is the whole point of that label — several
+     things sit on an ambient shelf unopened and must be refrigerated once
+     they are not. Storage groups do not overlap.
+
+   Whichever grouping is off duty becomes the line under the name, so the
+   other fact is still on the row rather than lost.
 
    Each row carries the ingredient's **photograph** from the kitchen's own
    catalog. Catalog names are not what is written on the box, and a jar is

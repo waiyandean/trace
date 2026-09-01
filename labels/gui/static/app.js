@@ -50,15 +50,19 @@ function drawTypes(types) {
 async function openType(type) {
   state.type = type;
   /* The hash makes a type bookmarkable, so the machine at the printer can be
-     left on the Goods In list rather than starting from the tiles each time. */
+     left on the list it uses rather than starting from the tiles each time. */
   location.hash = type.id;
   el("title").textContent = type.name;
   show("items");
   el("search").value = "";
-  const { groups } = await api(`/api/items/${type.id}`);
-  state.groups = groups;
-  drawItems("");
+  await loadItems();
   el("search").focus();
+}
+
+async function loadItems() {
+  const { groups } = await api(`/api/items/${state.type.id}`);
+  state.groups = groups;
+  drawItems(el("search").value);
 }
 
 function drawItems(query) {
@@ -67,25 +71,43 @@ function drawItems(query) {
   let total = 0;
 
   for (const group of state.groups) {
-    const matches = group.items.filter((item) =>
-      item.name.toLowerCase().includes(needle));
-    if (!matches.length) continue;
-    total += matches.length;
+    /* Filter first, then draw: a supplier or a storage area with nothing left
+       in it after a search should disappear rather than sit there as an empty
+       heading. */
+    const kept = group.sections
+      .map((section) => ({
+        name: section.name,
+        items: section.items.filter((item) =>
+          item.name.toLowerCase().includes(needle)),
+      }))
+      .filter((section) => section.items.length);
+    if (!kept.length) continue;
+
+    const count = kept.reduce((sum, section) => sum + section.items.length, 0);
+    total += count;
 
     if (group.name) {
       const heading = document.createElement("h2");
       heading.className = "group";
       heading.textContent = group.name;
-      const count = document.createElement("span");
-      count.textContent = matches.length;
-      heading.append(count);
+      const badge = document.createElement("span");
+      badge.textContent = count;
+      heading.append(badge);
       sections.push(heading);
     }
 
-    const list = document.createElement("ul");
-    list.className = "items";
-    list.append(...matches.map(itemRow));
-    sections.push(list);
+    for (const section of kept) {
+      if (section.name) {
+        const subheading = document.createElement("h3");
+        subheading.className = "section";
+        subheading.textContent = section.name;
+        sections.push(subheading);
+      }
+      const list = document.createElement("ul");
+      list.className = "items";
+      list.append(...section.items.map(itemRow));
+      sections.push(list);
+    }
   }
 
   el("items-empty").hidden = total > 0;
