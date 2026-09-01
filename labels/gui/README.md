@@ -30,6 +30,14 @@ Three screens, one decision each.
    used has nothing to record; the two product types list twenty-five finished
    products.
 
+   Products are grouped into **Broths, Frozen Ramen, Soups and Sauces**. The
+   catalog has one flat kind, `product`, covering a two-litre tub of sauce and
+   a frozen retail ramen alike, and twenty-five of those in one alphabetical
+   run is a list to search rather than a list to pick from. The category is
+   stated per product in `label-data.json`; anything uncategorised falls to
+   the end under its own heading rather than into the largest group, so a new
+   product is visible as one nobody has placed.
+
    Ingredients are grouped **by supplier, then by storage**, which is the
    order the two facts are needed in. A delivery is one van from one supplier,
    so that alone narrows sixty things to twenty-odd; within it, what separates
@@ -95,13 +103,9 @@ no answer, the field is unlocked and outlined, and the item is flagged
 to retype every time; typing into it prints a correct label today without
 recording anything.
 
-The gaps as things stand:
-
-| Gap | Where it gets fixed |
-| --- | --- |
-| Allergens, 13 items the matrix does not cover | the Allergen Matrix |
-| Pack size for the four ramen soups | `label-data.json` |
-| Case size for Pork Chasiu | `label-data.json` |
+The gaps as things stand: **allergens for the seven catalog items the Allergen
+Matrix does not cover**, all of them ingredients. Everything the product
+labels need is recorded.
 
 ## Allergens
 
@@ -119,7 +123,7 @@ reads the matrix, maps its column codes to the words the label prints, and
 fills in `label-data.json`. `allergen-import-report.txt` records what matched
 and what did not. Re-run it whenever the matrix changes.
 
-Three things worth knowing about the result:
+Five things worth knowing about the result:
 
 - **`GLU` prints as "Gluten", not "Wheat".** The hand-written artwork says
   Wheat, which is narrower than the matrix states and would be wrong on a
@@ -134,6 +138,17 @@ Three things worth knowing about the result:
   the same declaration, so `Hell Ramen` in the matrix fills in both
   `Hell Ramen (Soup)` and `Frozen Ramen : Hell Ramen`. The pairings are listed
   in the importer's `ALIASES`, each one a decision rather than a string match.
+- **Five items are stated directly.** Chicken Fillet, Coconut Milk, Pork
+  Belly, Ramen Noodles and Wakame Seaweed are not in the matrix and their
+  declarations were given by Dean, so they sit in the importer's `DECIDED` map in the matrix's
+  own column codes. They belong in the matrix itself, which is the document an
+  auditor reads; every one should disappear from that map as it is added
+  there.
+- **One item borrows another's row.** Pork Chasiu is not in the matrix; it is
+  cooked in the soy sauce and declares what the soy sauce declares, so the
+  importer's `SAME_AS` points it at Japanese Soy Sauce. Recorded there rather
+  than typed into `label-data.json`, so a re-import cannot quietly drop it and
+  so it follows the source item if the matrix changes.
 - **Retired rows are named, not ignored.** `Dark Soy Sauce` and `Mapo Tare`
   are still in the matrix and no longer used by the kitchen. They are skipped
   by name, so one of them reappearing in use shows up as a change rather than

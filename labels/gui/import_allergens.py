@@ -66,6 +66,31 @@ ALIASES = {
                       "Frozen Ramen : Chicken Tori Paitan"],
 }
 
+# Catalog items the matrix does not list, whose declaration somebody has
+# stated directly (Dean, 2026-09-01). Written in the matrix's own column codes
+# so there is one vocabulary rather than two, and an empty list means assessed
+# and declaring nothing -- not unassessed.
+#
+# These belong in the Allergen Matrix itself, which is the document an auditor
+# reads. They are here because the matrix has not caught up with the catalog,
+# and every one of them should disappear from this map as it is added there.
+DECIDED = {
+    "Chicken Fillet": [],
+    "Coconut Milk": [],
+    "Pork Belly": [],
+    "Ramen Noodles": ["GLU"],
+    "Wakame Seaweed": [],
+}
+
+# Catalog items the matrix does not list, whose declaration somebody has
+# stated to be the same as another item's. This is a person's determination
+# recorded here rather than a value typed into label-data.json, so that a
+# re-import does not quietly drop it and so that the reason is visible: Pork
+# Chasiu is cooked in the soy sauce and declares what the soy sauce declares
+# (Dean, 2026-09-01). If the source item's row in the matrix changes, so does
+# this one.
+SAME_AS = {"Pork Chasiu": "Japanese Soy Sauce"}
+
 # Matrix rows for things the kitchen has stopped using (Dean, 2026-09-01).
 # Recorded rather than deleted from the matrix, so that a row reappearing is
 # visible as a change rather than as something that was always ignored.
@@ -135,6 +160,25 @@ def main():
             if may:
                 may_contain[name] = ", ".join(may)
 
+    decided = []
+    for name, codes in DECIDED.items():
+        if name not in names:
+            continue
+        allergens[name] = (", ".join(CODES[c] for c in codes) if codes
+                           else "None declared")
+        matched.append(name)
+        decided.append((name, allergens[name]))
+
+    borrowed = []
+    for name, source_name in SAME_AS.items():
+        if name not in names or source_name not in allergens:
+            continue
+        allergens[name] = allergens[source_name]
+        if source_name in may_contain:
+            may_contain[name] = may_contain[source_name]
+        matched.append(name)
+        borrowed.append((name, source_name))
+
     data["allergens"] = dict(sorted(allergens.items()))
     data["may_contain"] = dict(sorted(may_contain.items()))
     LABEL_DATA.write_text(json.dumps(data, indent=2) + "\n")
@@ -145,6 +189,14 @@ def main():
         f"",
         f"{len(matrix)} rows in the matrix, {len(matched)} matched to catalog items.",
         f"{len(may_contain)} carry a 'may contain'.",
+        f"",
+        f"-- Stated directly, not in the matrix ({len(decided)})",
+        f"   Should be added to the matrix itself; this map is the stopgap.",
+        *(f"     {n}  =  {v}" for n, v in decided),
+        f"",
+        f"-- Taken from another item's row ({len(borrowed)})",
+        f"   Not in the matrix; declared the same as the item named.",
+        *(f"     {n}  <-  {src}" for n, src in borrowed),
         f"",
         f"-- Retired, skipped ({len(retired)})",
         f"   Still in the matrix, no longer used by the kitchen.",

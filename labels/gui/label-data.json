@@ -25,6 +25,12 @@
     "               dropped (Dean, 2026-09-01), which is why most products need no",
     "               label_name at all.",
     "",
+    "               category puts a product under a heading on the picker. The",
+    "               order the headings appear in is product_categories; anything",
+    "               with no category falls to the end under its own heading rather",
+    "               than being filed under Sauces, so a new product is visible as",
+    "               one nobody has placed yet.",
+    "",
     "               no_sku on a variant means that variant is not given a SKU at",
     "               all, which is not the same as one nobody has supplied yet. The",
     "               frozen ramen packs are sold without one (Dean, 2026-09-01), so",
@@ -55,11 +61,13 @@
     "Chicken Broth": "Gluten, Sesame, Soya",
     "Chicken Carcass": "None declared",
     "Chicken Feet": "None declared",
+    "Chicken Fillet": "None declared",
     "Chicken Paste": "Gluten, Soya",
     "Chicken Ramen (Soup)": "Gluten, Sesame, Soya",
     "Chicken Wings": "None declared",
     "Chilli Oil": "None declared",
     "Cider Vinegar": "None declared",
+    "Coconut Milk": "None declared",
     "Cracked Black Pepper": "None declared",
     "Curry Laksa Paste": "Crustaceans, Soya",
     "Diced Onions": "None declared",
@@ -94,8 +102,11 @@
     "Paprika Sweet": "None declared",
     "Peeled Garlic": "None declared",
     "Peeled Potatoes": "None declared",
+    "Pork Belly": "None declared",
+    "Pork Chasiu": "Gluten, Soya",
     "Pork Fat": "None declared",
     "Rajah Whole Red Chillies": "None declared",
+    "Ramen Noodles": "Gluten",
     "Red Bean Curd": "Gluten, Soya",
     "Red Chillies": "None declared",
     "Rice Vinegar": "None declared",
@@ -114,6 +125,7 @@
     "Toban Djan Chilli Bean Sauce": "Soya",
     "Tom Yum Tare": "Gluten, Crustaceans, Fish, Soya",
     "Tonkotsu Broth": "Gluten, Fish, Soya",
+    "Wakame Seaweed": "None declared",
     "White Miso": "Soya",
     "Yakisoba Sauce": "Celery, Soya",
     "Yutaka Gochujang": "None declared"
@@ -134,7 +146,8 @@
       "box": {
         "sku": "SC-BEEF-4C",
         "qty": "4 x 2 kg"
-      }
+      },
+      "category": "Sauces"
     },
     "Black Garlic Tonkotsu (Soup)": {
       "health_mark": false,
@@ -145,7 +158,8 @@
       "box": {
         "no_sku": true,
         "no_qty": true
-      }
+      },
+      "category": "Soups"
     },
     "Chicken Broth": {
       "health_mark": true,
@@ -156,7 +170,8 @@
       "box": {
         "sku": "BF-CKBR-8C",
         "qty": "8 x 1.8 Litres"
-      }
+      },
+      "category": "Broths"
     },
     "Chicken Paste": {
       "packet": {
@@ -167,7 +182,8 @@
       "box": {
         "sku": "SC-CHKP-4C",
         "qty": "4 x 2 kg"
-      }
+      },
+      "category": "Sauces"
     },
     "Chicken Ramen (Soup)": {
       "health_mark": false,
@@ -178,7 +194,8 @@
       "box": {
         "no_sku": true,
         "no_qty": true
-      }
+      },
+      "category": "Soups"
     },
     "Chilli Oil": {
       "packet": {
@@ -189,7 +206,8 @@
       "box": {
         "sku": "SA-CHLI-4C",
         "qty": "4 x 2 kg"
-      }
+      },
+      "category": "Sauces"
     },
     "Frozen Ramen : Black Garlic": {
       "health_mark": true,
@@ -200,7 +218,8 @@
       "box": {
         "sku": "MF-BGTK-5C",
         "qty": "5 x 700 g"
-      }
+      },
+      "category": "Frozen Ramen"
     },
     "Frozen Ramen : Chicken Tori Paitan": {
       "health_mark": true,
@@ -211,7 +230,8 @@
       "box": {
         "sku": "MF-CHKR-5C",
         "qty": "5 x 700 g"
-      }
+      },
+      "category": "Frozen Ramen"
     },
     "Frozen Ramen : Hell Ramen": {
       "health_mark": true,
@@ -222,7 +242,8 @@
       "box": {
         "sku": "MF-HLLR-5C",
         "qty": "5 x 700 g"
-      }
+      },
+      "category": "Frozen Ramen"
     },
     "Frozen Ramen : Laksa Ramen": {
       "health_mark": true,
@@ -233,7 +254,8 @@
       "box": {
         "sku": "MF-LKSR-5C",
         "qty": "5 x 700 g"
-      }
+      },
+      "category": "Frozen Ramen"
     },
     "Garlic Oil": {
       "packet": {
@@ -244,7 +266,8 @@
       "box": {
         "sku": "SA-GRLC-4C",
         "qty": "4 x 2 kg"
-      }
+      },
+      "category": "Sauces"
     },
     "Green Curry Sauce": {
       "packet": {
@@ -255,7 +278,8 @@
       "box": {
         "sku": "SC-GRCR-4C",
         "qty": "4 x 2 kg"
-      }
+      },
+      "category": "Sauces"
     },
     "Hell Ramen (Soup)": {
       "health_mark": false,
@@ -266,7 +290,8 @@
       "box": {
         "no_sku": true,
         "no_qty": true
-      }
+      },
+      "category": "Soups"
     },
     "Hell Sauce": {
       "packet": {
@@ -277,7 +302,8 @@
       "box": {
         "sku": "SC-HELL-4C",
         "qty": "4 x 2 kg"
-      }
+      },
+      "category": "Sauces"
     },
     "Kimchi Sauce": {
       "packet": {
@@ -288,7 +314,8 @@
       "box": {
         "sku": "SC-KIMC-4C",
         "qty": "4 x 2 kg"
-      }
+      },
+      "category": "Sauces"
     },
     "Laksa Paste": {
       "packet": {
@@ -299,7 +326,8 @@
       "box": {
         "sku": "SC-LAKS-4C",
         "qty": "4 x 2 kg"
-      }
+      },
+      "category": "Sauces"
     },
     "Laksa Ramen (Soup)": {
       "health_mark": false,
@@ -310,17 +338,20 @@
       "box": {
         "no_sku": true,
         "no_qty": true
-      }
+      },
+      "category": "Soups"
     },
     "Pork Chasiu": {
       "packet": {
-        "qty": "2 kg",
-        "no_sku": true
+        "no_sku": true,
+        "no_qty": true
       },
       "health_mark": false,
       "box": {
-        "no_sku": true
-      }
+        "no_sku": true,
+        "no_qty": true
+      },
+      "category": "Soups"
     },
     "Soba Sauce": {
       "health_mark": false,
@@ -331,7 +362,8 @@
       "box": {
         "sku": "SA-SOBA-4C",
         "qty": "4 x 2 kg"
-      }
+      },
+      "category": "Sauces"
     },
     "Spicy Miso": {
       "health_mark": false,
@@ -342,7 +374,8 @@
       "box": {
         "sku": "SC-MISO-4C",
         "qty": "4 x 2 kg"
-      }
+      },
+      "category": "Sauces"
     },
     "Spicy Teriyaki": {
       "packet": {
@@ -353,7 +386,8 @@
       "box": {
         "sku": "SA-SPCY-4C",
         "qty": "4 x 2 kg"
-      }
+      },
+      "category": "Sauces"
     },
     "Tantan Sauce": {
       "packet": {
@@ -364,7 +398,8 @@
       "box": {
         "sku": "SC-TNTN-4C",
         "qty": "4 x 2 kg"
-      }
+      },
+      "category": "Sauces"
     },
     "Teriyaki Sauce": {
       "packet": {
@@ -375,7 +410,8 @@
       "box": {
         "sku": "SA-TERI-4C",
         "qty": "4 x 2 kg"
-      }
+      },
+      "category": "Sauces"
     },
     "Tom Yum Tare": {
       "packet": {
@@ -386,7 +422,8 @@
       "box": {
         "sku": "SC-TMYM-4C",
         "qty": "4 x 2 kg"
-      }
+      },
+      "category": "Sauces"
     },
     "Tonkotsu Broth": {
       "health_mark": true,
@@ -397,7 +434,8 @@
       "box": {
         "sku": "BF-TKBR-8C",
         "qty": "8 x 1.8 Litres"
-      }
+      },
+      "category": "Broths"
     }
   },
   "may_contain": {
@@ -409,5 +447,11 @@
   },
   "not_labelled": {
     "BBQ Seasoning": "No product label printed for it (Dean, 2026-09-01)."
-  }
+  },
+  "product_categories": [
+    "Broths",
+    "Frozen Ramen",
+    "Soups",
+    "Sauces"
+  ]
 }

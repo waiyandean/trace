@@ -204,7 +204,7 @@ class Data:
             })
 
         if source == "product":
-            return [{"name": "", "sections": [{"name": "", "items": rows}]}]
+            return self._by_category(rows)
 
         groups = []
         for supplier in self.catalog["suppliers"] + [None]:
@@ -227,6 +227,32 @@ class Data:
                 "name": supplier or "No supplier recorded",
                 "sections": self._by_storage(members, type_id),
             })
+        return groups
+
+    def _by_category(self, rows):
+        """Products under the headings the kitchen thinks of them in.
+
+        The catalog has one flat kind, `product`, which covers a two-litre tub
+        of sauce and a frozen retail ramen alike. Twenty-five of those in one
+        alphabetical run is a list to search rather than a list to pick from.
+        """
+        categories = self.extra.get("product_categories", [])
+        of = {r["id"]: self.extra.get("products", {})
+              .get(self.items[r["id"]]["name"], {}).get("category")
+              for r in rows}
+        groups = []
+        for category in categories:
+            members = [r for r in rows if of[r["id"]] == category]
+            if members:
+                groups.append({"name": category,
+                               "sections": [{"name": "", "items": members}]})
+        # A product nobody has placed yet gets its own heading at the end
+        # rather than being folded into the largest category, where it would
+        # look deliberate.
+        loose = [r for r in rows if of[r["id"]] not in categories]
+        if loose:
+            groups.append({"name": "Not categorised",
+                           "sections": [{"name": "", "items": loose}]})
         return groups
 
     def _by_storage(self, rows, type_id):
@@ -264,7 +290,10 @@ class Data:
             return f"{days} days once opened" if days else "no period recorded"
         product = self.extra.get("products", {}).get(item["name"], {})
         variant = product.get("box" if type_id == "box" else "packet", {})
-        return variant.get("qty") or "pack size not recorded"
+        if variant.get("qty"):
+            return variant["qty"]
+        # A pack size nobody states is not a pack size nobody has got round to.
+        return "" if variant.get("no_qty") else "pack size not recorded"
 
     def gaps(self, item, type_id):
         """Which values this label needs that nothing has recorded yet."""

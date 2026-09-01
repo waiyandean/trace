@@ -1,7 +1,19 @@
 Allergen import from /Users/grid/Repos/forms/apps/wiki/html/1.4 Allergen Management/1.4.1 Allergen Matrix.html
 
-71 rows in the matrix, 73 matched to catalog items.
+71 rows in the matrix, 79 matched to catalog items.
 5 carry a 'may contain'.
+
+-- Stated directly, not in the matrix (5)
+   Should be added to the matrix itself; this map is the stopgap.
+     Chicken Fillet  =  None declared
+     Coconut Milk  =  None declared
+     Pork Belly  =  None declared
+     Ramen Noodles  =  Gluten
+     Wakame Seaweed  =  None declared
+
+-- Taken from another item's row (1)
+   Not in the matrix; declared the same as the item named.
+     Pork Chasiu  <-  Japanese Soy Sauce
 
 -- Retired, skipped (2)
    Still in the matrix, no longer used by the kitchen.
@@ -11,18 +23,12 @@ Allergen import from /Users/grid/Repos/forms/apps/wiki/html/1.4 Allergen Managem
 -- In the matrix, no catalog item (0)
    Add an alias in ALIASES once it is decided what each one means.
 
--- In the catalog, no matrix row (13)
+-- In the catalog, no matrix row (7)
    These print 'Not recorded' until the matrix covers them.
      BBQ Seasoning
-     Chicken Fillet
-     Coconut Milk
      Dried Bird Eye Chillies
      Memma Bamboo Shoots
      Pak Choi
-     Pork Belly
-     Pork Chasiu
-     Ramen Noodles
      Shio G
      Sichuan Toban Chilli Sauce
-     Wakame Seaweed
      White Truffle Oil
