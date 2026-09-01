@@ -201,7 +201,19 @@ function drawFields(fields) {
     input.id = `f-${field.key}`;
     input.dataset.key = field.key;
     input.disabled = !field.editable;
-    input.addEventListener("input", scheduleRender);
+    input.addEventListener("input", () => {
+      follow(field.key);
+      scheduleRender();
+    });
+    if (field.follows) {
+      /* A derived field keeps following its source until somebody types into
+         it. After that it is theirs: the batch number is the delivery date as
+         six digits most of the time, and the supplier's own code the rest of
+         the time, and the second case must not be undone by touching the date
+         afterwards. */
+      input.dataset.follows = field.follows;
+      input.addEventListener("input", () => { input.dataset.own = "yes"; });
+    }
     wrap.append(input);
 
     if (field.hint) {
@@ -212,6 +224,22 @@ function drawFields(fields) {
     }
     return wrap;
   }));
+}
+
+function follow(sourceKey) {
+  const source = el("fields").querySelector(`[data-key="${sourceKey}"]`);
+  for (const input of el("fields").querySelectorAll(
+      `[data-follows="${sourceKey}"]`)) {
+    if (input.dataset.own === "yes") continue;
+    input.value = asDDMMYY(source.value);
+  }
+}
+
+/* 2026-09-01 becomes 010926. An empty or half-typed date gives an empty
+   string rather than something that looks like a batch number and is not. */
+function asDDMMYY(iso) {
+  const parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+  return parts ? `${parts[3]}${parts[2]}${parts[1].slice(2)}` : "";
 }
 
 function values() {

@@ -113,8 +113,16 @@ def uk(iso):
         return iso
 
 
+def ddmmyy(iso):
+    """An ISO date as the six digits a goods-in batch number uses."""
+    try:
+        return datetime.strptime(iso, "%Y-%m-%d").strftime("%d%m%y")
+    except (ValueError, TypeError):
+        return ""
+
+
 def field(key, label, value="", *, kind="text", editable=True,
-          options=None, hint="", missing=False):
+          options=None, hint="", missing=False, follows=None):
     """One row of the form.
 
     `missing` marks a value the catalog should hold but does not. Those fields
@@ -124,7 +132,7 @@ def field(key, label, value="", *, kind="text", editable=True,
     """
     return {"key": key, "label": label, "value": value, "kind": kind,
             "editable": editable, "options": options or [], "hint": hint,
-            "missing": missing}
+            "missing": missing, "follows": follows}
 
 
 class Data:
@@ -269,7 +277,9 @@ class Data:
             # A variant that is sold without a SKU is a decision, not a gap.
             if not variant.get("sku") and not variant.get("no_sku"):
                 gaps.append("sku")
-            if not variant.get("qty"):
+            # A variant with no pack size stated on its label is a decision,
+            # not a gap, the same as one sold without a SKU.
+            if not variant.get("qty") and not variant.get("no_qty"):
                 gaps.append("qty")
             if product.get("health_mark") is None:
                 gaps.append("health mark")
@@ -304,8 +314,14 @@ class Data:
                 field("use_by", "Use by", "", kind="date",
                       hint="Off the supplier's own box. It always wins over "
                            "anything the catalog would work out."),
-                field("batch", "Batch number", "",
-                      hint="As printed on the delivery."),
+                # The kitchen's batch number for an intake is the delivery date
+                # as six digits, so it follows the Delivered field rather than
+                # being typed twice. Typing into it stops it following, because
+                # a supplier's own batch code sometimes has to be used instead.
+                field("batch", "Batch number", ddmmyy(today),
+                      follows="delivered",
+                      hint="The delivery date as ddmmyy. Type over it to use "
+                           "the supplier's own code instead."),
                 field("supplier", "Supplier",
                       item["suppliers"][0] if item["suppliers"] else "",
                       kind="select" if len(item["suppliers"]) > 1 else "text",
@@ -354,11 +370,12 @@ class Data:
                       hint="Also what the QR carries."),
                 field("packed", "Packed", today, kind="date"),
                 field("qty", "Quantity", variant.get("qty", ""),
-                      editable=not variant.get("qty"),
-                      missing=not variant.get("qty"),
-                      hint="What one pack holds, e.g. 1.8 Litres."
-                           if type_id == "packet" else
-                           "What one case holds, e.g. 8 x 1.8 Litres."),
+                      editable=not variant.get("qty") and not variant.get("no_qty"),
+                      missing=not variant.get("qty") and not variant.get("no_qty"),
+                      hint="Not stated on this label." if variant.get("no_qty")
+                           else "What one pack holds, e.g. 1.8 Litres."
+                           if type_id == "packet"
+                           else "What one case holds, e.g. 8 x 1.8 Litres."),
                 field("sku", "Customer SKU", variant.get("sku", ""),
                       editable=not variant.get("sku") and not variant.get("no_sku"),
                       missing=not variant.get("sku") and not variant.get("no_sku"),

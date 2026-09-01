@@ -285,10 +285,15 @@ def product(*, name, use_by, batch, packed, qty, sku, allergens, producer,
         "",
         f"^FT{MARGIN},222^A0N,22^FDPacked^FS",
         f"^FT180,222^A0N,30^FD{escape(packed)}^FS",
-        f"^FT{MARGIN},256^A0N,22^FDQty^FS",
-        f"^FT180,256^A0N,30^FD{escape(qty)}^FS",
-        "",
     ]
+    # A caption with nothing after it reads as a label that failed to print
+    # rather than as a pack size nobody states, so the whole row goes.
+    if escape(qty):
+        out += [
+            f"^FT{MARGIN},256^A0N,22^FDQty^FS",
+            f"^FT180,256^A0N,30^FD{escape(qty)}^FS",
+        ]
+    out += [""]
     if health_mark:
         out += [
             "^FO450,196^GE150,58,3^FS",
@@ -306,10 +311,11 @@ def product(*, name, use_by, batch, packed, qty, sku, allergens, producer,
     out += [""]
 
     if is_case:
+        foot = (f"CASE  -  {escape(qty).upper()}   |   {escape(producer)}"
+                if escape(qty) else f"CASE   |   {escape(producer)}")
         out += [
             f"^FO{MARGIN},338^GB{INNER},0,3^FS",
-            f"^FO{MARGIN},346^A0N,16^FB{INNER},1,0,C"
-            f"^FDCASE  -  {escape(qty).upper()}   |   {escape(producer)}\\&^FS",
+            f"^FO{MARGIN},346^A0N,16^FB{INNER},1,0,C^FD{foot}\\&^FS",
         ]
     else:
         out += [

@@ -30,6 +30,9 @@
     "               frozen ramen packs are sold without one (Dean, 2026-09-01), so",
     "               they are stated rather than left looking unfinished.",
     "",
+    "               no_qty is the same for the pack size, and takes the Qty row off",
+    "               the label rather than printing a caption with nothing after it.",
+    "",
     "health_mark is stated for every product, true or false, and never left",
     "unset. The catalog holds null for all of them, which means nobody had",
     "determined it; Dean determined it on 2026-09-01 -- the two broths and the",
@@ -136,10 +139,12 @@
     "Black Garlic Tonkotsu (Soup)": {
       "health_mark": false,
       "packet": {
-        "no_sku": true
+        "no_sku": true,
+        "no_qty": true
       },
       "box": {
-        "no_sku": true
+        "no_sku": true,
+        "no_qty": true
       }
     },
     "Chicken Broth": {
@@ -167,10 +172,12 @@
     "Chicken Ramen (Soup)": {
       "health_mark": false,
       "packet": {
-        "no_sku": true
+        "no_sku": true,
+        "no_qty": true
       },
       "box": {
-        "no_sku": true
+        "no_sku": true,
+        "no_qty": true
       }
     },
     "Chilli Oil": {
@@ -253,10 +260,12 @@
     "Hell Ramen (Soup)": {
       "health_mark": false,
       "packet": {
-        "no_sku": true
+        "no_sku": true,
+        "no_qty": true
       },
       "box": {
-        "no_sku": true
+        "no_sku": true,
+        "no_qty": true
       }
     },
     "Hell Sauce": {
@@ -295,10 +304,12 @@
     "Laksa Ramen (Soup)": {
       "health_mark": false,
       "packet": {
-        "no_sku": true
+        "no_sku": true,
+        "no_qty": true
       },
       "box": {
-        "no_sku": true
+        "no_sku": true,
+        "no_qty": true
       }
     },
     "Pork Chasiu": {
