@@ -94,6 +94,27 @@ export function getWasteReasons(db) {
   return selectAll(db, 'SELECT * FROM waste_reasons WHERE staff_selectable = 1 ORDER BY sort_order');
 }
 
+// What a product is made from. Returned as one row per recipe line with the
+// product and the ingredient both named, because every caller is showing a
+// recipe against its items rather than a set of ids.
+export function getRecipes(db, { itemId = null } = {}) {
+  const where = itemId ? ' WHERE r.item_id = ?' : '';
+  return selectAll(
+    db,
+    `SELECT r.id AS recipe_id, r.item_id, p.name AS product_name, p.base_unit AS product_unit,
+            r.yield_quantity, r.shelf_life_days, r.active,
+            l.id AS line_id, l.item_id AS ingredient_id, i.name AS ingredient_name,
+            i.base_unit AS ingredient_base_unit, i.kind AS ingredient_kind,
+            i.storage_unopened, l.quantity, l.unit, l.sort_order
+       FROM recipes r
+       JOIN items p ON p.id = r.item_id
+       JOIN recipe_lines l ON l.recipe_id = r.id
+       JOIN items i ON i.id = l.item_id${where}
+      ORDER BY p.name, l.sort_order`,
+    itemId ? [itemId] : [],
+  );
+}
+
 // Conversions are returned with the item's name attached, because every
 // caller that reads a conversion is showing it against an item.
 export function getConversions(db, { itemId = null } = {}) {
@@ -119,6 +140,7 @@ const ACTIONS = {
   item_suppliers: (db, params) => getItemSuppliers(db, params),
   temperature_limits: (db) => getTemperatureLimits(db),
   waste_reasons: (db) => getWasteReasons(db),
+  recipes: (db, params) => getRecipes(db, params),
 };
 
 export const CATALOG_ACTIONS = Object.keys(ACTIONS);
