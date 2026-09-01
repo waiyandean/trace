@@ -493,6 +493,12 @@ class Data:
             # Only shown where the matrix names a cross-contact allergen. With
             # nothing to name, the label falls back to the generic line and
             # there is no value here to show or to edit.
+            if product.get("barcode"):
+                fields.append(field(
+                    "barcode", "Barcode", product["barcode"], editable=False,
+                    hint="The product's registered EAN-13. It replaces the QR "
+                         "on this label -- two symbols on a small label "
+                         "invites scanning the wrong one."))
             may = self.extra.get("may_contain", {}).get(item["name"], "")
             if may:
                 fields.append(field("may_contain", "May contain", may,
@@ -535,6 +541,7 @@ def build(data, type_id, item_id, values, quantity):
         sku=values.get("sku", ""),
         allergens=values.get("allergens", ""),
         may_contain=values.get("may_contain", ""),
+        barcode=values.get("barcode", ""),
         producer=data.extra.get("producer", ""),
         health_mark=values.get("health_mark") == "yes",
         hm_country=data.extra.get("health_mark_country", "GB"),

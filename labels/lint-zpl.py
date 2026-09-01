@@ -24,6 +24,12 @@ CHAR_W = 0.47
 # Keep-out zone at every edge: 5 mm at 203 dpi.
 MARGIN = 40
 
+# An EAN-13 symbol is 95 modules wide, always, whatever it encodes. Its width
+# on paper is therefore the module width set by ^BY, and the human-readable
+# line beneath it adds roughly twenty dots.
+EAN13_MODULES = 95
+INTERPRETATION_LINE = 20
+
 
 def qr_side(data, ecc, mag):
     alnum = all(c in "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:" for c in data)
@@ -44,6 +50,10 @@ def parse(src):
     lhx, lhy = (int(m.group(1)), int(m.group(2))) if (
         m := re.search(r"\^LH(\d+),(\d+)", src)) else (0, 0)
 
+    # ^BY sets the module width for every linear barcode that follows, and it
+    # is persistent printer state rather than a per-field setting.
+    by = int(m.group(1)) if (m := re.search(r"\^BY(\d+)", src)) else 2
+
     elements = []
     # Split on field origins; each chunk is one element up to its ^FS.
     for chunk in re.split(r"(?=\^F[OT]\d)", src):
@@ -62,6 +72,14 @@ def parse(src):
             continue
         if ge := re.search(r"\^GE(\d*),(\d*),(\d*)", rest):
             elements.append(("oval", x, y, int(ge.group(1) or 0), int(ge.group(2) or 0)))
+            continue
+        if be := re.search(r"\^BE([NRIB])?,(\d+),(\w)", rest):
+            rot = (be.group(1) or "N").upper()
+            h = int(be.group(2)) + (INTERPRETATION_LINE
+                                    if be.group(3).upper() == "Y" else 0)
+            w = EAN13_MODULES * by
+            elements.append(("ean13", x, y, *((w, h) if rot in ("N", "I")
+                                              else (h, w))))
             continue
         if bq := re.search(r"\^BQ\w?,(\d+),(\d+)", rest):
             mag = int(bq.group(2))

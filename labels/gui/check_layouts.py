@@ -83,6 +83,23 @@ CASES = [
         allergens="Gluten, Fish, Soya, Sesame, Egg, Milk, Crustaceans",
         may_contain="Peanuts", producer=PRODUCER, health_mark=True,
         hm_code="GA 121", is_case=True, quantity=1)),
+    ("packet with an EAN-13", zpl.product, dict(
+        name="Frozen Ramen : Chicken Tori Paitan", use_by="01/03/2027",
+        batch="0109GA", packed="01/09/2026", qty="700 g", sku="",
+        allergens="Gluten, Sesame, Soya", may_contain="Peanuts",
+        barcode="5070004671228", producer=PRODUCER, health_mark=True,
+        hm_code="GA 121", quantity=1)),
+    ("case with an EAN-13", zpl.product, dict(
+        name="Frozen Ramen : Chicken Tori Paitan", use_by="01/03/2027",
+        batch="0109GA", packed="01/09/2026", qty="5 x 700 g", sku="",
+        allergens="Gluten, Sesame, Soya", barcode="5070004671228",
+        producer=PRODUCER, health_mark=True, hm_code="GA 121",
+        is_case=True, quantity=1)),
+    ("a barcode with a wrong check digit", zpl.product, dict(
+        name="Frozen Ramen : Hell Ramen", use_by="01/03/2027", batch="0109GA",
+        packed="01/09/2026", qty="700 g", sku="", allergens="Gluten, Soya",
+        barcode="5070004671219", producer=PRODUCER, health_mark=True,
+        hm_code="GA 121", quantity=1)),
     ("everything empty", zpl.goods_in, dict(
         name="", use_by="", batch="", supplier="", delivered="",
         allergens="", storage=None, quantity=1)),

@@ -36,6 +36,13 @@
     "               3108GA2 and so on. Named by category. `highest` is only how",
     "               many the picker offers -- raise it if the kitchen runs more.",
     "",
+    "               barcode is the product's registered EAN-13, printed as bars",
+    "               instead of the QR. It is what a till scans, so it is the one",
+    "               value here that must be exactly right: the importer checks",
+    "               the thirteenth digit against the other twelve and refuses a",
+    "               code that does not add up, because a barcode with a wrong",
+    "               check digit either fails to scan or scans as another product.",
+    "",
     "               no_sku on a variant means that variant is not given a SKU at",
     "               all, which is not the same as one nobody has supplied yet. The",
     "               frozen ramen packs are sold without one (Dean, 2026-09-01), so",
@@ -230,7 +237,8 @@
         "sku": "MF-BGTK-5C",
         "qty": "5 x 700 g"
       },
-      "category": "Frozen Ramen"
+      "category": "Frozen Ramen",
+      "barcode": "5070004671204"
     },
     "Frozen Ramen : Chicken Tori Paitan": {
       "health_mark": true,
@@ -242,7 +250,8 @@
         "sku": "MF-CHKR-5C",
         "qty": "5 x 700 g"
       },
-      "category": "Frozen Ramen"
+      "category": "Frozen Ramen",
+      "barcode": "5070004671228"
     },
     "Frozen Ramen : Hell Ramen": {
       "health_mark": true,
@@ -254,7 +263,8 @@
         "sku": "MF-HLLR-5C",
         "qty": "5 x 700 g"
       },
-      "category": "Frozen Ramen"
+      "category": "Frozen Ramen",
+      "barcode": "5070004671211"
     },
     "Frozen Ramen : Laksa Ramen": {
       "health_mark": true,
@@ -266,7 +276,8 @@
         "sku": "MF-LKSR-5C",
         "qty": "5 x 700 g"
       },
-      "category": "Frozen Ramen"
+      "category": "Frozen Ramen",
+      "barcode": "5070004671235"
     },
     "Garlic Oil": {
       "packet": {

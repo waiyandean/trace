@@ -158,9 +158,34 @@ pot, and how many the picker offers, is `pot_numbers` in `label-data.json`.
 The result is that a product label needs **nothing typed** on the day it is
 packed: pick the product, pick the pot if it has one, press Print.
 
+## The barcode
+
+The four frozen ramen carry their **registered EAN-13** instead of a QR. A
+till reads that, and two symbols on a four-by-two label invites scanning the
+wrong one, so it replaces the QR rather than sitting beside it. The health
+mark moves up beside the batch to make room; nothing else shifts, because the
+dates and the allergen box staying put is what lets the labels read as one
+family.
+
+ZPL is given the first twelve digits and works out the thirteenth itself, so a
+written-down code whose own check digit disagrees would print as a **different
+number**. `zpl.py` checks it and prints no barcode at all rather than one that
+scans as somebody else's product. All four codes were verified against their
+check digits when they were entered.
+
+**The symbol is 10 mm tall, and GS1 asks for 18 mm** at this width. The space
+between the batch row and the allergen box is 114 dots; a compliant symbol
+needs 166 with its digits. It does not fit on this stock alongside the dates,
+the health mark and the allergen declaration, and `check_layouts.py` says so
+every run rather than letting it pass quietly. A truncated symbol scans on
+most equipment and can be refused by a retailer, so it wants testing against
+the till it has to pass. `PLAN.md` has these retail labels on a different
+printer and different stock in any case, which is where a full-height symbol
+belongs.
+
 ## The QR
 
-It encodes the **SKU**, and nothing else for now. That is the only thing on a
+Everything else encodes the **SKU**, and nothing else for now. That is the only thing on a
 product label that resolves to something today: there is no trace endpoint for
 a batch code to point at yet, and a code that scans to nothing is worse than
 no code. A product sold without a SKU carries no QR at all rather than one

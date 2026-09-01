@@ -85,6 +85,53 @@ def qr_field(data, x, y, warnings):
     return ""
 
 
+# An EAN-13 is 95 modules wide whatever it encodes, and ^BY2 makes a module
+# two dots, so the bars are always 190 dots across. GS1 asks for a symbol at
+# least 80% of nominal, which is about 146 dots tall; there is not that much
+# room on a four-by-two label that also carries dates, a health mark and an
+# allergen declaration, so the height here is what fits and the caller is told
+# when that is short of the standard.
+EAN13_MODULES = 95
+EAN13_MIN_HEIGHT = 146
+
+
+def check_digit(twelve):
+    total = sum(int(d) * (3 if i % 2 else 1) for i, d in enumerate(twelve))
+    return (10 - total % 10) % 10
+
+
+def ean13(code, x, y, height, warnings, module=2):
+    """An EAN-13 at x,y, with the human-readable digits beneath it.
+
+    ZPL wants the first twelve digits and works out the thirteenth itself, so
+    a code whose own check digit disagrees would print as a different number
+    than the one written down. That is checked here rather than trusted: a
+    barcode with the wrong check digit either fails to scan or, worse, scans
+    as somebody else's product.
+    """
+    digits = "".join(c for c in str(code) if c.isdigit())
+    if len(digits) not in (12, 13):
+        warnings.append(
+            f"'{code}' is not an EAN-13 -- it has {len(digits)} digits, not 13 "
+            f"-- so no barcode is printed.")
+        return ""
+    if len(digits) == 13 and int(digits[12]) != check_digit(digits[:12]):
+        warnings.append(
+            f"{digits} has the wrong check digit: the first twelve digits give "
+            f"{check_digit(digits[:12])}, not {digits[12]}. No barcode is "
+            f"printed, because one that scans as another product is worse "
+            f"than none.")
+        return ""
+    if height < EAN13_MIN_HEIGHT:
+        warnings.append(
+            f"The barcode is {height} dots tall ({height / 8:.0f} mm). GS1 asks "
+            f"for at least {EAN13_MIN_HEIGHT} ({EAN13_MIN_HEIGHT / 8:.0f} mm) "
+            f"at this width. A truncated symbol reads fine on most scanners "
+            f"and can be refused by a retailer, so check it against the till "
+            f"it has to pass.")
+    return f"^FO{x},{y}^BEN,{height},Y,N^FD{digits[:12]}^FS"
+
+
 STORAGE_BANNER = {
     "ambient": "AMBIENT",
     "chill": "CHILLED",
@@ -318,8 +365,8 @@ def date_opened(*, name, opened, use_by, batch, allergens, storage_opened,
 
 
 def product(*, name, use_by, batch, packed, qty, sku, allergens, producer,
-            may_contain="", health_mark=False, hm_country="GB", hm_code="",
-            is_case=False, quantity=1):
+            may_contain="", barcode="", health_mark=False, hm_country="GB",
+            hm_code="", is_case=False, quantity=1):
     """The customer-facing product label, packet and case from one layout.
 
     The QR encodes the SKU. Once the trace endpoint exists it should carry a
@@ -362,14 +409,22 @@ def product(*, name, use_by, batch, packed, qty, sku, allergens, producer,
             f"^FT180,256^A0N,30^FD{escape(qty)}^FS",
         ]
     out += [""]
+    # A barcode needs the whole lower right of the label, so the health mark
+    # moves up beside the batch, where a product without a barcode has its QR.
+    # Nothing else shifts: the dates and the allergen box stay where they are
+    # on every label, which is what lets the four be read as one family.
+    oval_x, oval_y = (612, 112) if barcode else (450, 196)
     if health_mark:
         out += [
-            "^FO450,196^GE150,58,3^FS",
-            f"^FO450,202^A0N,19^FB150,1,0,C^FD{escape(hm_country)}\\&^FS",
-            f"^FO450,224^A0N,19^FB150,1,0,C^FD{escape(hm_code)}\\&^FS",
-            f"^FO447,262^A0N,17^FB156,1,0,C^FD{escape(sku)}\\&^FS",
+            f"^FO{oval_x},{oval_y}^GE150,58,3^FS",
+            f"^FO{oval_x},{oval_y + 6}^A0N,19^FB150,1,0,C"
+            f"^FD{escape(hm_country)}\\&^FS",
+            f"^FO{oval_x},{oval_y + 28}^A0N,19^FB150,1,0,C"
+            f"^FD{escape(hm_code)}\\&^FS",
         ]
-    else:
+        if not barcode:
+            out += [f"^FO447,262^A0N,17^FB156,1,0,C^FD{escape(sku)}\\&^FS"]
+    elif not barcode:
         # With no oval, the SKU rises into the space it would have occupied.
         out += [f"^FO450,192^A0N,20^FD{escape(sku)}^FS"]
     # The QR carries the SKU, which is the only thing on the label that
@@ -377,7 +432,13 @@ def product(*, name, use_by, batch, packed, qty, sku, allergens, producer,
     # to point at yet, and a code that scans to nothing is worse than no code.
     # A product sold without a SKU therefore carries no QR at all rather than
     # one encoding a blank.
-    field = qr_field(escape(sku), 622, 110, warnings) if escape(sku) else ""
+    # A registered retail barcode is what a till reads, so where there is one
+    # it takes the place of the QR rather than sitting beside it. Two symbols
+    # on a small label invites scanning the wrong one.
+    if barcode:
+        field = ean13(barcode, 470, 190, 76, warnings)
+    else:
+        field = qr_field(escape(sku), 622, 110, warnings) if escape(sku) else ""
     out += ["", field, ""] if field else [""]
 
     out += _allergen_block(allergens, warnings, is_case=is_case,
