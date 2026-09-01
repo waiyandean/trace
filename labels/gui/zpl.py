@@ -467,9 +467,106 @@ def product(*, name, use_by, batch, packed, qty, sku, allergens, producer,
     return "\n".join(out) + "\n", warnings
 
 
+# Sizes a free-text label is allowed to use, largest first. Below about 30
+# dots the text stops being readable across a room, which is the only reason
+# this label exists, so the smallest is a floor rather than a last resort.
+NOTICE_SIZES = (150, 130, 110, 94, 80, 68, 58, 50, 44, 38, 32)
+
+
+# How much of the line the wrap simulation is allowed to fill. The character
+# width used here is an average, and at large sizes it ran about four per cent
+# under -- enough for "DO NOT USE" to be predicted as one line, given one line
+# to draw in, and printed as two on top of each other. ^FB does not truncate.
+# Ten per cent held back costs a little size and makes that failure need a
+# much worse estimate than any yet seen.
+NOTICE_FIT = 0.90
+
+
+def wrapped_lines(words, height, width=INNER):
+    """How many lines ^FB will break this into, packing greedily as it does.
+
+    Counting from the total width alone is not enough: a block that needs one
+    more line than it is given draws the overflow on top of the line above,
+    and it is what the text does at the end of each line that decides how many
+    it needs. The character width used here is held wider than measured, so
+    this errs toward predicting an extra line rather than one too few.
+    """
+    lines, current = 1, 0
+    width = int(width * NOTICE_FIT)
+    space = text_width(" ", height)
+    for word in words.split():
+        word_width = text_width(word, height)
+        if current and current + space + word_width > width:
+            lines += 1
+            current = word_width
+        else:
+            current += (space if current else 0) + word_width
+    return lines
+
+
+def notice(*, text, quantity=1):
+    """A label that is nothing but words, set as large as they will go.
+
+    For the things that do not fit any of the other four: a warning on a
+    container, a note on a shelf, a sign on a door. There is no catalog behind
+    it and nothing derived -- somebody types what it should say.
+
+    Deliberately no border, even though a warning is the obvious case for one.
+    The border round the whole label is what tells Date Opened from Goods In
+    across a room, and spending it on a second thing takes that distinction
+    away from the pair that actually gets confused.
+    """
+    warnings = []
+    words = escape(text)
+    if not words:
+        warnings.append("There is nothing to print on this label.")
+
+    available = HEIGHT - 2 * MARGIN
+    for height in NOTICE_SIZES:
+        gap = max(2, height // 8)
+        # ^FB wraps on whole words, so a long word can leave a line short and
+        # push the count up. Estimating from the total width alone would then
+        # under-count, and a block that needs one more line than it is allowed
+        # draws the overflow on top of the line above rather than truncating.
+        longest = max((text_width(word, height) for word in words.split()),
+                      default=0)
+        if longest > INNER:
+            continue
+        # Two counts, for two different jobs. The cautious one decides how
+        # many lines ^FB is allowed, so an under-estimate cannot overprint.
+        # The likely one decides where the block is centred, because
+        # centring on a line that usually is not there leaves every notice
+        # sitting high on the label.
+        lines = wrapped_lines(words, height)
+        likely = wrapped_lines(words, height, INNER / NOTICE_FIT)
+        block = lines * height + (lines - 1) * gap
+        if block <= available:
+            break
+    else:
+        height, gap, lines, likely = NOTICE_SIZES[-1], 4, 1, 1
+        warnings.append(
+            "That does not fit on a label even at the smallest size, so it "
+            "will be cut off. Say it in fewer words.")
+        block = height
+
+    centred = likely * height + (likely - 1) * gap
+    top = MARGIN + (available - centred) // 2
+    # If it does take the cautious number of lines after all, it still has to
+    # stay above the bottom margin.
+    top = min(top, MARGIN + available - block)
+    return "\n".join(_head(quantity) + [
+        f"^FO{MARGIN},{top}^A0N,{height},0^FB{INNER},{lines},{gap},C"
+        f"^FD{words}^FS",
+        "",
+        f"^PQ{int(quantity)}",
+        "^XZ",
+    ]) + "\n", warnings
+
+
 BUILDERS = {
     "goods-in": goods_in,
     "date-opened": date_opened,
     "packet": product,
     "box": product,
+    "notice": notice,
 }

@@ -28,7 +28,7 @@
    "storage_unopened": "ambient",
    "storage_opened": "ambient",
    "opening_rule": "shortens",
-   "days_after_opening": 42,
+   "days_after_opening": 90,
    "needs_health_mark": null,
    "suppliers": [
     "Tazaki"
@@ -389,7 +389,7 @@
    "storage_unopened": "ambient",
    "storage_opened": "ambient",
    "opening_rule": "shortens",
-   "days_after_opening": 42,
+   "days_after_opening": 90,
    "needs_health_mark": null,
    "suppliers": [
     "Lynas"

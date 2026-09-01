@@ -100,6 +100,14 @@ CASES = [
         packed="01/09/2026", qty="700 g", sku="", allergens="Gluten, Soya",
         barcode="5070004671219", producer=PRODUCER, health_mark=True,
         hm_code="GA 121", quantity=1)),
+    ("notice, two words", zpl.notice, dict(text="DO NOT USE", quantity=1)),
+    ("notice, a sentence", zpl.notice, dict(
+        text="Allergen area. Clean down before and after use.", quantity=1)),
+    ("notice, far too long", zpl.notice, dict(
+        text="This equipment is out of order and must not be used until it "
+             "has been inspected, repaired and signed off by a manager, and "
+             "the record written up in the maintenance log.", quantity=1)),
+    ("notice, empty", zpl.notice, dict(text="", quantity=1)),
     ("everything empty", zpl.goods_in, dict(
         name="", use_by="", batch="", supplier="", delivered="",
         allergens="", storage=None, quantity=1)),

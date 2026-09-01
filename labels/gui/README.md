@@ -49,7 +49,8 @@ time.
 
 Three screens, one decision each.
 
-1. **Which kind of label** — Goods In, Date Opened, Product Packet, Product Box.
+1. **Which kind of label** — Goods In, Date Opened, Product Packet, Product
+   Box, Notice.
 2. **Which item** — the catalog, filtered to the items that type applies to.
    Goods In lists the sixty active ingredients; Date Opened lists only the
    fifteen that are used a bit at a time, because a pack that is never partly
@@ -115,6 +116,32 @@ use-by is being worked out from it and much less afterwards; the use-by is
 what decides whether the tub is still good, and the batch is what the
 production record points at (Dean, 2026-09-01). So those two take the big row
 and the opened date drops to the small row underneath.
+
+## Notices
+
+The fifth type is nothing but words: a warning on a container, a note on a
+shelf, a sign on a door. There is no catalog behind it, so its tile opens the
+label directly with no list in between, and nothing on it is derived —
+somebody types what it should say.
+
+The words are set as large as they will go and centred. `zpl.py` picks a size
+by simulating the wrap the printer will do, because counting from the total
+width alone is not enough: what the text does at the end of each line decides
+how many lines it needs, and a block given fewer lines than it needs draws the
+overflow on top of the line above rather than truncating. It happened while
+this was being written — "DO NOT USE" measured as one line, was given one, and
+printed as two on top of each other.
+
+So the wrap is simulated twice. The cautious count, which fills only 90% of
+the line, decides how many lines `^FB` is allowed; the likely count decides
+where the block is centred, because centring on a line that usually is not
+there leaves every notice sitting high. Ten per cent held back costs a little
+size and makes that failure need a much worse estimate than any yet seen.
+
+There is deliberately **no border**, even though a warning is the obvious case
+for one. The border round the whole label is what tells Date Opened from Goods
+In across a room, and spending it on a second thing takes that distinction
+away from the pair that actually gets confused.
 
 ## No lot codes
 

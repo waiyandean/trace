@@ -302,15 +302,18 @@
       "Hoi Sin Sauce 20kg",
       "Mirin Style Seasoning",
       "White Miso",
-      "Aji-no Moto MSG",
       "100% Rapeseed Oil",
-      "Fine Salt",
       "Blended Sesame Oil",
       "Syrup",
       "Tahini",
       "Ground White Pepper",
       "JA Yuzu Seasoning"
-    ]
+    ],
+    "decided": {
+      "_comment": "Periods the kitchen set for these items specifically, rather than the blanket six-week rule. Salt and MSG keep far longer than the rule allows for and were moved to three months (Dean, 2026-09-01). Three months is recorded as 90 days, the same way the balsamic vinegar's supplier specification is.",
+      "Fine Salt": 90,
+      "Aji-no Moto MSG": 90
+    }
   },
   "product_units": {
     "_comment": "What a finished product is counted in (Dean, 2026-09-01). The P0 rule made every product Units, which is right for a packet of frozen ramen and wrong for a broth. Broths are counted in litres, soups in grams, and sauces, pastes and oils in kilograms packed two kilograms to a tub. Anything not named here keeps Units.",
@@ -439,7 +442,7 @@
         "pack": "bag"
       }
     },
-    "_spring_onion": "Spring Onion is 12 bunches to a case and the recipes use it in grams, but nobody has weighed a bunch. It stays counted in bunches and its recipe line stays unconvertible until somebody does — a made-up bunch weight would make every yield using it wrong.",
+    "_spring_onion": "Spring Onion is 12 bunches to a case and the recipes use it in grams, but nobody has weighed a bunch. It stays counted in bunches and its recipe line stays unconvertible until somebody does \u2014 a made-up bunch weight would make every yield using it wrong.",
     "recorded_on": "2026-09-01"
   }
 }

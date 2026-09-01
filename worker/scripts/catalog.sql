@@ -25,7 +25,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuhgjfoxsvf', 'Aji-no Moto MSG', 'ingredient', 'kg', 'ambient', 'ambient', 'shortens', 42.0, NULL, 1, NULL)
+VALUES ('mpuhgjfoxsvf', 'Aji-no Moto MSG', 'ingredient', 'kg', 'ambient', 'ambient', 'shortens', 90.0, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -345,7 +345,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpuct8qvh4np', 'Fine Salt', 'ingredient', 'kg', 'ambient', 'ambient', 'shortens', 42.0, NULL, 1, NULL)
+VALUES ('mpuct8qvh4np', 'Fine Salt', 'ingredient', 'kg', 'ambient', 'ambient', 'shortens', 90.0, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,

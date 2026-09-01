@@ -68,6 +68,11 @@ TYPES = [
     {"id": "box", "name": "Product Box",
      "blurb": "The case the packets are shipped in.",
      "source": "product"},
+    # No catalog behind this one, so it has no list to pick from and the tile
+    # opens the label itself.
+    {"id": "notice", "name": "Notice",
+     "blurb": "Anything else: a warning, a note, a sign. Big words, centred.",
+     "source": "free"},
 ]
 
 DEFAULT_CONFIG = {
@@ -392,6 +397,14 @@ class Data:
         return gaps
 
     def form(self, type_id, item_id):
+        if type_id == "notice":
+            return {"type": type_id, "item": item_id, "title": "Notice",
+                    "gaps": [], "fields": [field(
+                        "text", "What it should say", "", kind="lines",
+                        hint="Set as large as it will go and centred. Keep it "
+                             "short: a label read across a room is a few "
+                             "words, not a paragraph.")]}
+
         """The editable form for one item and one label type.
 
         Batch, the dates, and the quantity are always editable, because they
@@ -541,6 +554,8 @@ class Data:
 
 def build(data, type_id, item_id, values, quantity):
     """Turn form values into ZPL."""
+    if type_id == "notice":
+        return zpl.notice(text=values.get("text", ""), quantity=quantity)
     item = data.items[item_id]
     if type_id == "goods-in":
         return zpl.goods_in(
@@ -671,7 +686,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.send_file(found)
         if match := re.fullmatch(r"/api/form/([\w-]+)/([\w:%-]+)", path):
             item_id = urllib.parse.unquote(match.group(2))
-            if item_id not in data.items:
+            if match.group(1) != "notice" and item_id not in data.items:
                 return self.send_json({"error": "unknown item"}, 404)
             return self.send_json(data.form(match.group(1), item_id))
         return self.send_json({"error": "not found"}, 404)

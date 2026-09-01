@@ -21,6 +21,7 @@ const ICONS = {
   "date-opened": '<path d="M3 9l9-5 9 5v7l-9 5-9-5z"/><path d="M3 9l9 4 9-4"/><path d="M7 6.5L12 9l5-2.5"/><path d="M12 13v8"/>',
   "packet": '<path d="M6 7h12l-1 13H7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/><path d="M9.5 12h5"/>',
   "box": '<path d="M2 7h20v12H2z"/><path d="M2 7l3-4h14l3 4"/><path d="M12 3v4"/><path d="M8 12h8"/>',
+  "notice": '<path d="M3 5h18v14H3z"/><path d="M7 10h10"/><path d="M7 14h6"/>',
 };
 
 async function api(path, options) {
@@ -48,7 +49,9 @@ function drawTypes(types) {
       `<strong></strong><span></span>`;
     tile.querySelector("strong").textContent = type.name;
     tile.querySelector("span").textContent = type.blurb;
-    tile.onclick = () => openType(type);
+    tile.onclick = () => (type.source === "free"
+      ? openLabel({ id: "-", name: type.name }, type)
+      : openType(type));
     return tile;
   }));
 }
@@ -172,10 +175,12 @@ function itemRow(item) {
 
 /* --- 3. the label ---------------------------------------------------------- */
 
-async function openLabel(item) {
+async function openLabel(item, type) {
+  if (type) state.type = type;
   state.item = item;
   location.hash = `${state.type.id}/${item.id}`;
-  el("title").textContent = `${state.type.name} — ${item.name}`;
+  el("title").textContent = state.type.source === "free"
+    ? state.type.name : `${state.type.name} — ${item.name}`;
   show("label");
   el("quantity").value = 1;
   el("messages").replaceChildren();
@@ -240,6 +245,10 @@ function drawFields(fields) {
         node.value = node.textContent = option;
         return node;
       }));
+      input.value = field.value;
+    } else if (field.kind === "lines") {
+      input = document.createElement("textarea");
+      input.rows = 3;
       input.value = field.value;
     } else {
       input = document.createElement("input");
@@ -484,7 +493,9 @@ async function saveSettings() {
 /* --- wiring ---------------------------------------------------------------- */
 
 el("back").onclick = () => {
-  if (!el("screen-label").hidden) {
+  /* A label with no list behind it goes straight back to the tiles; there is
+     no middle screen to return to. */
+  if (!el("screen-label").hidden && state.type.source !== "free") {
     el("title").textContent = state.type.name;
     location.hash = state.type.id;
     show("items");

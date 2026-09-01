@@ -218,6 +218,8 @@ def opening_for(name, base_unit, opening, report):
 
     from_spec = {k: v for k, v in (opening.get("from_supplier_spec") or {}).items()
                  if not k.startswith("_")}
+    decided = {k: v for k, v in (opening.get("decided") or {}).items()
+               if not k.startswith("_")}
     house = opening.get("house_rule") or []
     house_days = opening.get("house_rule_days")
 
@@ -233,6 +235,15 @@ def opening_for(name, base_unit, opening, report):
         report.add("Opened pack shortens the use-by, per the supplier's specification",
                    f"{name} — {from_spec[name]} days")
         return "shortens", from_spec[name]
+    # A period the kitchen set for this item specifically, which is neither
+    # what the pack states nor the blanket house rule. It wins over the house
+    # rule, and is listed separately so that "somebody decided this one" and
+    # "the default applied" stay distinguishable.
+    if name in decided:
+        report.add("Opened pack shortens the use-by, by the kitchen's own "
+                   "decision for this item",
+                   f"{name} — {decided[name]} days")
+        return "shortens", decided[name]
     if name in house:
         report.tally(f"Opened pack shortens the use-by by the kitchen's {house_days}-day rule")
         return "shortens", house_days

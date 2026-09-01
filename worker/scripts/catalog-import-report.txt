@@ -5,6 +5,10 @@ Opened pack shortens the use-by, per the supplier's specification (2)
   - Balsamic Vinegar — 90 days
   - Japanese Soy Sauce — 56 days
 
+Opened pack shortens the use-by, by the kitchen's own decision for this item (2)
+  - Aji-no Moto MSG — 90 days
+  - Fine Salt — 90 days
+
 Moves to a different area once opened (3)
   - Hoi Sin Sauce 20kg — chill
   - Hoi Sin Sauce Cans — chill
@@ -68,7 +72,7 @@ No item-to-base conversion written (15)
   - Yakisoba Sauce — the item size carries no unit the workbook recognises
   - Yutaka Gochujang — the item size carries no unit the workbook recognises
 
-Opened pack shortens the use-by by the kitchen's 42-day rule: 13 rows
+Opened pack shortens the use-by by the kitchen's 42-day rule: 11 rows
 After-opening storage taken from the kitchen's rule: same as unopened: 94 rows
 Health mark not yet determined, left null: 83 rows
 Used whole, so no Date Opened label: 54 rows
