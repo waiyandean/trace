@@ -121,8 +121,38 @@ def ddmmyy(iso):
         return ""
 
 
+# The suffix a production batch code carries after the day and month. It marks
+# which line or run the batch came off, and GA is the one this kitchen uses.
+BATCH_SUFFIX = "GA"
+
+
+def batch_code(iso):
+    """A production batch code: the day and month, then the run suffix."""
+    try:
+        return datetime.strptime(iso, "%Y-%m-%d").strftime("%d%m") + BATCH_SUFFIX
+    except (ValueError, TypeError):
+        return ""
+
+
+def months_on(iso, months):
+    """`months` after `iso`, moved to the first of that month.
+
+    Shelf life on a finished product is counted in whole months and always
+    lands on a first: a batch packed on the 23rd of January with six months on
+    it is used by the 1st of July, not the 23rd. Rounding down to the start of
+    the month is the conservative direction -- it can only shorten the life,
+    never extend it past what was intended.
+    """
+    try:
+        packed = datetime.strptime(iso, "%Y-%m-%d")
+    except (ValueError, TypeError):
+        return ""
+    total = packed.year * 12 + (packed.month - 1) + months
+    return date(total // 12, total % 12 + 1, 1).isoformat()
+
+
 def field(key, label, value="", *, kind="text", editable=True,
-          options=None, hint="", missing=False, follows=None):
+          options=None, hint="", missing=False, follows=None, derive=None):
     """One row of the form.
 
     `missing` marks a value the catalog should hold but does not. Those fields
@@ -132,7 +162,7 @@ def field(key, label, value="", *, kind="text", editable=True,
     """
     return {"key": key, "label": label, "value": value, "kind": kind,
             "editable": editable, "options": options or [], "hint": hint,
-            "missing": missing, "follows": follows}
+            "missing": missing, "follows": follows, "derive": derive}
 
 
 class Data:
@@ -348,7 +378,7 @@ class Data:
                 # being typed twice. Typing into it stops it following, because
                 # a supplier's own batch code sometimes has to be used instead.
                 field("batch", "Batch number", ddmmyy(today),
-                      follows="delivered",
+                      follows="delivered", derive="ddmmyy",
                       hint="The delivery date as ddmmyy. Type over it to use "
                            "the supplier's own code instead."),
                 field("supplier", "Supplier",
@@ -387,6 +417,11 @@ class Data:
             product = self.extra.get("products", {}).get(item["name"], {})
             variant = product.get("box" if type_id == "box" else "packet", {})
             mark = product.get("health_mark")
+            # Shelf life is counted in whole months from the day a batch is
+            # packed. Twelve for the broths, six for everything else (Dean,
+            # 2026-09-01); it is held per category rather than per product
+            # because that is the level at which it was decided.
+            months = 12 if product.get("category") == "Broths" else 6
             fields += [
                 # The label prints the catalog name. Where a product is named
                 # differently on its packaging, a label_name in
@@ -394,10 +429,16 @@ class Data:
                 field("name", "Product",
                       product.get("label_name") or item["name"],
                       editable=False),
-                field("use_by", "Use by", "", kind="date"),
-                field("batch", "Batch code", "",
-                      hint="Also what the QR carries."),
-                field("packed", "Packed", today, kind="date"),
+                field("packed", "Packed", today, kind="date",
+                      hint="The batch code and the use-by both follow this."),
+                field("use_by", "Use by", months_on(today, months), kind="date",
+                      follows="packed", derive=f"months:{months}",
+                      hint=f"{months} months from packing, on the first of that "
+                           f"month. Type over it to set a different date."),
+                field("batch", "Batch code", batch_code(today),
+                      follows="packed", derive="batch",
+                      hint="The packing date as ddmm, then the run suffix "
+                           f"{BATCH_SUFFIX}. Also what the QR carries."),
                 field("qty", "Quantity", variant.get("qty", ""),
                       editable=not variant.get("qty") and not variant.get("no_qty"),
                       missing=not variant.get("qty") and not variant.get("no_qty"),

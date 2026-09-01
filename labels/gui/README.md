@@ -95,11 +95,26 @@ real today.
 Batch, the dates and the number of copies are always editable — they change on
 every print and no catalog will ever hold them.
 
-On Goods In the **batch number follows the delivery date**, as the six digits
-`ddmmyy`, which is the kitchen's own convention: a delivery on 01/09/2026 is
-batch `010926`. Changing the date changes it. Typing into it stops it
-following, because a supplier's own batch code is sometimes used instead and
-that must not be undone by touching the date afterwards.
+Several fields fill themselves in from a date and keep following it. Typing
+into one stops it following: after that it is yours, and it must not be undone
+by touching the date afterwards.
+
+| Field | Follows | Rule |
+| --- | --- | --- |
+| Goods In, batch number | Delivered | `ddmmyy` — a delivery on 01/09/2026 is batch `010926` |
+| Product, batch code | Packed | `ddmm` then the run suffix `GA` — packed 01/09/2026 is `0109GA` |
+| Product, use by | Packed | Whole months on, landing on the **first** of that month |
+
+Shelf life is twelve months for the two broths and six for everything else
+(Dean, 2026-09-01), held per category rather than per product because that is
+the level at which it was decided. A batch packed on 23/01/2026 with six
+months on it is used by 01/07/2026, not the 23rd. Rounding to the start of the
+month can only shorten the life, never extend it past what was intended, and
+counting in whole months means there is no 31st to fall off the end of a short
+month.
+
+The result is that a product label needs **nothing typed at all** on the day
+it is packed: pick the product, press Print.
 
 Everything else is filled from the catalog and locked. Where the catalog has
 no answer, the field is unlocked and outlined, and the item is flagged

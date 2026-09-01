@@ -212,6 +212,7 @@ function drawFields(fields) {
          the time, and the second case must not be undone by touching the date
          afterwards. */
       input.dataset.follows = field.follows;
+      input.dataset.derive = field.derive || "";
       input.addEventListener("input", () => { input.dataset.own = "yes"; });
     }
     wrap.append(input);
@@ -231,15 +232,35 @@ function follow(sourceKey) {
   for (const input of el("fields").querySelectorAll(
       `[data-follows="${sourceKey}"]`)) {
     if (input.dataset.own === "yes") continue;
-    input.value = asDDMMYY(source.value);
+    input.value = derive(input.dataset.derive, source.value);
   }
 }
 
-/* 2026-09-01 becomes 010926. An empty or half-typed date gives an empty
-   string rather than something that looks like a batch number and is not. */
-function asDDMMYY(iso) {
+/* The suffix on a production batch code, matching the server's. */
+const BATCH_SUFFIX = "GA";
+
+/* An empty or half-typed date gives an empty string rather than something
+   that looks like a batch number or a use-by and is not. The rules here have
+   to agree with server.py, which computes the same values for the first
+   render; they are duplicated because the field has to update as it is typed
+   in without a round trip. */
+function derive(kind, iso) {
   const parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
-  return parts ? `${parts[3]}${parts[2]}${parts[1].slice(2)}` : "";
+  if (!parts) return "";
+  const [, year, month, day] = parts;
+
+  if (kind === "ddmmyy") return `${day}${month}${year.slice(2)}`;
+  if (kind === "batch") return `${day}${month}${BATCH_SUFFIX}`;
+
+  const months = kind && kind.startsWith("months:") ? Number(kind.slice(7)) : 0;
+  if (!months) return "";
+  /* Whole months on, landing on the first of the month. Counting in total
+     months avoids the end-of-month problem entirely: there is no 31st to fall
+     off, because the answer is always a 1st. */
+  const total = Number(year) * 12 + (Number(month) - 1) + months;
+  const onward = String(Math.floor(total / 12));
+  const at = String((total % 12) + 1).padStart(2, "0");
+  return `${onward}-${at}-01`;
 }
 
 function values() {
