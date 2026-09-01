@@ -193,7 +193,19 @@ class Data:
 
         groups = []
         for supplier in self.catalog["suppliers"]:
-            members = [i for i in out if supplier in i["suppliers"]]
+            members = []
+            for item in out:
+                if supplier not in item["suppliers"]:
+                    continue
+                member = dict(item)
+                # Inside a supplier's own group its name is on the heading, so
+                # repeating it on every row says nothing. What is worth saying
+                # is that an item can also come from the other supplier, which
+                # is why the same row appears twice on the screen.
+                if type_id == "goods-in":
+                    others = [s for s in item["suppliers"] if s != supplier]
+                    member["detail"] = f"also {', '.join(others)}" if others else ""
+                members.append(member)
             if members:
                 groups.append({"name": supplier, "items": members})
         # An ingredient with no supplier recorded would otherwise vanish from

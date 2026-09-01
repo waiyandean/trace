@@ -49,41 +49,94 @@ function drawTypes(types) {
 
 async function openType(type) {
   state.type = type;
+  /* The hash makes a type bookmarkable, so the machine at the printer can be
+     left on the Goods In list rather than starting from the tiles each time. */
+  location.hash = type.id;
   el("title").textContent = type.name;
   show("items");
   el("search").value = "";
-  const { items } = await api(`/api/items/${type.id}`);
-  state.items = items;
+  const { groups } = await api(`/api/items/${type.id}`);
+  state.groups = groups;
   drawItems("");
   el("search").focus();
 }
 
 function drawItems(query) {
   const needle = query.trim().toLowerCase();
-  const matches = state.items.filter((item) =>
-    item.name.toLowerCase().includes(needle));
-  el("items-empty").hidden = matches.length > 0;
-  el("items").replaceChildren(...matches.map((item) => {
-    const row = document.createElement("li");
-    const button = document.createElement("button");
-    const name = document.createElement("strong");
-    name.textContent = item.name;
-    button.append(name);
-    if (item.incomplete) {
-      /* Not a warning about the label, which prints fine -- a note that some
-         of what it says had to be typed rather than looked up. */
-      const flag = document.createElement("span");
-      flag.className = "flag";
-      flag.textContent = "needs filling";
-      button.append(flag);
+  const sections = [];
+  let total = 0;
+
+  for (const group of state.groups) {
+    const matches = group.items.filter((item) =>
+      item.name.toLowerCase().includes(needle));
+    if (!matches.length) continue;
+    total += matches.length;
+
+    if (group.name) {
+      const heading = document.createElement("h2");
+      heading.className = "group";
+      heading.textContent = group.name;
+      const count = document.createElement("span");
+      count.textContent = matches.length;
+      heading.append(count);
+      sections.push(heading);
     }
-    const detail = document.createElement("em");
-    detail.textContent = item.detail;
-    button.append(detail);
-    button.onclick = () => openLabel(item);
-    row.append(button);
-    return row;
-  }));
+
+    const list = document.createElement("ul");
+    list.className = "items";
+    list.append(...matches.map(itemRow));
+    sections.push(list);
+  }
+
+  el("items-empty").hidden = total > 0;
+  el("items").replaceChildren(...sections);
+}
+
+function itemRow(item) {
+  const row = document.createElement("li");
+  const button = document.createElement("button");
+
+  /* The photograph is how the kitchen already recognises an ingredient: the
+     catalog names differ from what is written on the box, and a jar is
+     quicker to match by sight than by reading "Toban Djan Chilli Bean
+     Sauce". Ten ingredients have no photograph and get an initial instead,
+     which keeps the rows the same height and the grid aligned. */
+  if (item.photo) {
+    const image = document.createElement("img");
+    image.className = "thumb";
+    image.loading = "lazy";
+    image.src = `/photos/${encodeURIComponent(item.id)}.jpg`;
+    image.alt = "";
+    button.append(image);
+  } else {
+    const stand = document.createElement("span");
+    stand.className = "thumb none";
+    stand.textContent = item.name.trim()[0] || "?";
+    button.append(stand);
+  }
+
+  const text = document.createElement("span");
+  text.className = "text";
+  const name = document.createElement("strong");
+  name.textContent = item.name;
+  text.append(name);
+  const detail = document.createElement("em");
+  detail.textContent = item.detail;
+  text.append(detail);
+  button.append(text);
+
+  if (item.incomplete) {
+    /* Not a warning about the label, which prints fine -- a note that some of
+       what it says had to be typed rather than looked up. */
+    const flag = document.createElement("span");
+    flag.className = "flag";
+    flag.textContent = "needs filling";
+    button.append(flag);
+  }
+
+  button.onclick = () => openLabel(item);
+  row.append(button);
+  return row;
 }
 
 /* --- 3. the label ---------------------------------------------------------- */
@@ -286,13 +339,14 @@ el("back").onclick = () => {
     show("items");
   } else {
     el("title").textContent = "Labels";
+    location.hash = "";
     show("types");
   }
 };
 el("search").addEventListener("input", (event) => drawItems(event.target.value));
 el("search").addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
-    const first = el("items").querySelector("button");
+    const first = el("items").querySelector(".items button");
     if (first) first.click();
   }
 });
@@ -309,4 +363,6 @@ el("settings").addEventListener("close", () => {
   drawTypes(boot.types);
   drawSettings(boot);
   show("types");
+  const wanted = boot.types.find((t) => t.id === location.hash.slice(1));
+  if (wanted) await openType(wanted);
 })();

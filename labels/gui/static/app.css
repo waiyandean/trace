@@ -87,16 +87,42 @@ button.back { padding: 6px 12px; font-size: 18px; line-height: 1; }
   border: 1px solid var(--line); border-radius: 10px;
   background: var(--surface); color: var(--text);
 }
+/* Supplier headings. A delivery is one van from one supplier, so the list is
+   grouped the way the goods arrive rather than as one alphabetical run of
+   sixty. An ingredient bought from both appears under both. */
+h2.group {
+  font-size: 12px; text-transform: uppercase; letter-spacing: 0.7px;
+  color: var(--muted); margin: 26px 0 10px; display: flex; gap: 8px;
+  align-items: center;
+}
+h2.group:first-child { margin-top: 0; }
+h2.group span {
+  font-size: 11px; letter-spacing: 0; padding: 1px 7px; border-radius: 999px;
+  background: var(--sunk);
+}
+
 .items { list-style: none; margin: 0; padding: 0;
          display: grid; gap: 8px;
-         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
 .items button {
-  width: 100%; text-align: left; padding: 12px 14px;
-  display: flex; align-items: baseline; gap: 10px;
+  width: 100%; text-align: left; padding: 8px 12px;
+  display: flex; align-items: center; gap: 12px;
 }
+.items .text { display: flex; flex-direction: column; min-width: 0; }
 .items strong { font-weight: 600; }
-.items em { font-style: normal; color: var(--muted); font-size: 13px;
-            margin-left: auto; text-align: right; }
+.items em { font-style: normal; color: var(--muted); font-size: 13px; }
+.items .flag { margin-left: auto; }
+
+/* Fixed size so a missing photograph does not shorten its row and break the
+   grid. Photographs are 320px squares from the kitchen's own catalog. */
+.thumb {
+  width: 44px; height: 44px; flex: none; border-radius: 7px;
+  object-fit: cover; background: var(--sunk);
+}
+.thumb.none {
+  display: grid; place-items: center; color: var(--muted);
+  font-weight: 700; font-size: 17px;
+}
 .flag {
   font-size: 11px; font-weight: 700; text-transform: uppercase;
   letter-spacing: 0.4px; padding: 2px 7px; border-radius: 999px;

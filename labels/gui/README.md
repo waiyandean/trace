@@ -15,6 +15,10 @@ python server.py          # then http://localhost:8642
 
 or double-click `start.bat` on Windows.
 
+A label type can be linked to directly — `http://localhost:8642/#goods-in` —
+so the machine at the printer can sit on the list it uses rather than starting
+from the tiles every time.
+
 ## What it does
 
 Three screens, one decision each.
@@ -23,8 +27,24 @@ Three screens, one decision each.
 2. **Which item** — the catalog, filtered to the items that type applies to.
    Goods In lists the sixty active ingredients; Date Opened lists only the
    fifteen that are used a bit at a time, because a pack that is never partly
-   used has nothing to record; the two product types list the twenty-six
-   finished products.
+   used has nothing to record; the two product types list twenty-five finished
+   products.
+
+   Ingredients are **grouped by supplier**, because that is how a delivery
+   arrives: one van from one supplier, and the twenty-odd things it might be
+   carrying rather than sixty in one alphabetical run. Seven ingredients are
+   bought from both and appear under both, marked "also Tazaki" — at the door
+   it genuinely could be either.
+
+   Each row carries the ingredient's **photograph** from the kitchen's own
+   catalog. Catalog names are not what is written on the box, and a jar is
+   quicker to match by sight than by reading "Toban Djan Chilli Bean Sauce".
+   Ten ingredients have no photograph and show an initial instead, which keeps
+   the rows the same height. Photographs are served from
+   `worker/public/photos`, not copied in here: two copies of the same two
+   megabytes would drift apart the first time one was re-imported. Drop a
+   `static/photos` directory in and it wins, for a machine that has this tool
+   without the rest of the repository.
 3. **The label** — a live render of what will print, the fields, how many
    copies, and a Print button.
 
