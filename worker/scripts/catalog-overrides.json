@@ -311,5 +311,38 @@
       "Ground White Pepper",
       "JA Yuzu Seasoning"
     ]
+  },
+  "product_units": {
+    "_comment": "What a finished product is counted in (Dean, 2026-09-01). The P0 rule made every product Units, which is right for a packet of frozen ramen and wrong for a broth. Broths are counted in litres, soups in grams, and sauces, pastes and oils in kilograms packed two kilograms to a tub. Anything not named here keeps Units.",
+    "litres": [
+      "Chicken Broth",
+      "Tonkotsu Broth",
+      "Ikigai Chicken Broth"
+    ],
+    "grams": [
+      "Black Garlic Tonkotsu (Soup)",
+      "Chicken Ramen (Soup)",
+      "Hell Ramen (Soup)",
+      "Laksa Ramen (Soup)"
+    ],
+    "kilograms": {
+      "items": [
+        "Chilli Oil",
+        "Garlic Oil",
+        "Green Oil",
+        "Hell Sauce",
+        "Laksa Paste",
+        "Kimchi Sauce",
+        "Soba Sauce",
+        "Spicy Miso",
+        "Spicy Teriyaki",
+        "Tantan Sauce",
+        "Teriyaki Sauce",
+        "Green Curry Sauce",
+        "Chicken Paste",
+        "Tom Yum Tare"
+      ],
+      "kg_per_unit": 2
+    }
   }
 }

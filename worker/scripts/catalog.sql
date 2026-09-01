@@ -1145,7 +1145,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('msx19517161apq', 'Black Garlic Tonkotsu (Soup)', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
+VALUES ('msx19517161apq', 'Black Garlic Tonkotsu (Soup)', 'product', 'kg', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1161,7 +1161,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwqoafdxpka', 'Chicken Broth', 'product', 'Units', 'freezer', 'freezer', NULL, NULL, NULL, 1, NULL)
+VALUES ('mpwqoafdxpka', 'Chicken Broth', 'product', 'L', 'freezer', 'freezer', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1177,7 +1177,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwokfhqje42', 'Chicken Paste', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
+VALUES ('mpwokfhqje42', 'Chicken Paste', 'product', 'kg', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1193,7 +1193,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('msx197b0svuci1', 'Chicken Ramen (Soup)', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
+VALUES ('msx197b0svuci1', 'Chicken Ramen (Soup)', 'product', 'kg', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1209,7 +1209,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwqcudx7vkq', 'Chilli Oil', 'product', 'Units', 'ambient', 'ambient', NULL, NULL, NULL, 1, NULL)
+VALUES ('mpwqcudx7vkq', 'Chilli Oil', 'product', 'kg', 'ambient', 'ambient', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1289,7 +1289,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwqjdw1mzjc', 'Garlic Oil', 'product', 'Units', 'ambient', 'ambient', NULL, NULL, NULL, 1, NULL)
+VALUES ('mpwqjdw1mzjc', 'Garlic Oil', 'product', 'kg', 'ambient', 'ambient', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1305,7 +1305,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwqlw405avb', 'Green Curry Sauce', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
+VALUES ('mpwqlw405avb', 'Green Curry Sauce', 'product', 'kg', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1321,7 +1321,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwqnkqbuyiw', 'Green Oil', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 0, 'Excluded: not made or held at Glasgow')
+VALUES ('mpwqnkqbuyiw', 'Green Oil', 'product', 'kg', 'chill', 'chill', NULL, NULL, NULL, 0, 'Excluded: not made or held at Glasgow')
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1337,7 +1337,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('msx196i5t9lvzj', 'Hell Ramen (Soup)', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
+VALUES ('msx196i5t9lvzj', 'Hell Ramen (Soup)', 'product', 'kg', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1353,7 +1353,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwoga5uqxpp', 'Hell Sauce', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
+VALUES ('mpwoga5uqxpp', 'Hell Sauce', 'product', 'kg', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1369,7 +1369,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpybhcrx14qt', 'Ikigai Chicken Broth', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 0, 'Excluded: not made or held at Glasgow')
+VALUES ('mpybhcrx14qt', 'Ikigai Chicken Broth', 'product', 'L', 'chill', 'chill', NULL, NULL, NULL, 0, 'Excluded: not made or held at Glasgow')
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1385,7 +1385,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwo883223am', 'Kimchi Sauce', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
+VALUES ('mpwo883223am', 'Kimchi Sauce', 'product', 'kg', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1401,7 +1401,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwp47uz9ugz', 'Laksa Paste', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
+VALUES ('mpwp47uz9ugz', 'Laksa Paste', 'product', 'kg', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1417,7 +1417,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('msx197xjx312in', 'Laksa Ramen (Soup)', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
+VALUES ('msx197xjx312in', 'Laksa Ramen (Soup)', 'product', 'kg', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1449,7 +1449,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwqa03mcg0g', 'Soba Sauce', 'product', 'Units', 'ambient', 'ambient', NULL, NULL, NULL, 1, NULL)
+VALUES ('mpwqa03mcg0g', 'Soba Sauce', 'product', 'kg', 'ambient', 'ambient', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1465,7 +1465,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpvbwhnirxon', 'Spicy Miso', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
+VALUES ('mpvbwhnirxon', 'Spicy Miso', 'product', 'kg', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1481,7 +1481,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwqh1089j2e', 'Spicy Teriyaki', 'product', 'Units', 'ambient', 'ambient', NULL, NULL, NULL, 1, NULL)
+VALUES ('mpwqh1089j2e', 'Spicy Teriyaki', 'product', 'kg', 'ambient', 'ambient', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1497,7 +1497,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwp3fcg6zvj', 'Tantan Sauce', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
+VALUES ('mpwp3fcg6zvj', 'Tantan Sauce', 'product', 'kg', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1513,7 +1513,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwq61oizabz', 'Teriyaki Sauce', 'product', 'Units', 'ambient', 'ambient', NULL, NULL, NULL, 1, NULL)
+VALUES ('mpwq61oizabz', 'Teriyaki Sauce', 'product', 'kg', 'ambient', 'ambient', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1529,7 +1529,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwqlj8blcjs', 'Tom Yum Tare', 'product', 'Units', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
+VALUES ('mpwqlj8blcjs', 'Tom Yum Tare', 'product', 'kg', 'chill', 'chill', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1545,7 +1545,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwqpwl8j1px', 'Tonkotsu Broth', 'product', 'Units', 'freezer', 'freezer', NULL, NULL, NULL, 1, NULL)
+VALUES ('mpwqpwl8j1px', 'Tonkotsu Broth', 'product', 'L', 'freezer', 'freezer', NULL, NULL, NULL, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -2240,6 +2240,90 @@ ON CONFLICT (id) DO UPDATE SET
   updated_at = datetime('now');
 INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
 VALUES ('mpv081l4itu1:item:Units', 'mpv081l4itu1', 'item', 'Units', 1.0, NULL)
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpvbwhnirxon:item:kg', 'mpvbwhnirxon', 'item', 'kg', 2.0, 'one tub is 2 kg (Dean, 2026-08-31)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpwo883223am:item:kg', 'mpwo883223am', 'item', 'kg', 2.0, 'one tub is 2 kg (Dean, 2026-08-31)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpwoga5uqxpp:item:kg', 'mpwoga5uqxpp', 'item', 'kg', 2.0, 'one tub is 2 kg (Dean, 2026-08-31)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpwokfhqje42:item:kg', 'mpwokfhqje42', 'item', 'kg', 2.0, 'one tub is 2 kg (Dean, 2026-08-31)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpwp3fcg6zvj:item:kg', 'mpwp3fcg6zvj', 'item', 'kg', 2.0, 'one tub is 2 kg (Dean, 2026-08-31)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpwp47uz9ugz:item:kg', 'mpwp47uz9ugz', 'item', 'kg', 2.0, 'one tub is 2 kg (Dean, 2026-08-31)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpwq61oizabz:item:kg', 'mpwq61oizabz', 'item', 'kg', 2.0, 'one tub is 2 kg (Dean, 2026-08-31)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpwqa03mcg0g:item:kg', 'mpwqa03mcg0g', 'item', 'kg', 2.0, 'one tub is 2 kg (Dean, 2026-08-31)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpwqcudx7vkq:item:kg', 'mpwqcudx7vkq', 'item', 'kg', 2.0, 'one tub is 2 kg (Dean, 2026-08-31)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpwqh1089j2e:item:kg', 'mpwqh1089j2e', 'item', 'kg', 2.0, 'one tub is 2 kg (Dean, 2026-08-31)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpwqjdw1mzjc:item:kg', 'mpwqjdw1mzjc', 'item', 'kg', 2.0, 'one tub is 2 kg (Dean, 2026-08-31)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpwqlj8blcjs:item:kg', 'mpwqlj8blcjs', 'item', 'kg', 2.0, 'one tub is 2 kg (Dean, 2026-08-31)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpwqlw405avb:item:kg', 'mpwqlw405avb', 'item', 'kg', 2.0, 'one tub is 2 kg (Dean, 2026-08-31)')
+ON CONFLICT (id) DO UPDATE SET
+  factor = excluded.factor,
+  note = excluded.note,
+  updated_at = datetime('now');
+INSERT INTO unit_conversions (id, item_id, from_unit, to_unit, factor, note)
+VALUES ('mpwqnkqbuyiw:item:kg', 'mpwqnkqbuyiw', 'item', 'kg', 2.0, 'one tub is 2 kg (Dean, 2026-08-31)')
 ON CONFLICT (id) DO UPDATE SET
   factor = excluded.factor,
   note = excluded.note,

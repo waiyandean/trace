@@ -1,5 +1,5 @@
 overrides: catalog-overrides.json (Dean, 2026-08-31)
-97 items (69 ingredients, 28 products), 114 conversions, 4 locations, 2 suppliers, 10 staff -> /Users/grid/Repos/trace/worker/scripts/catalog.sql
+97 items (69 ingredients, 28 products), 128 conversions, 4 locations, 2 suppliers, 10 staff -> /Users/grid/Repos/trace/worker/scripts/catalog.sql
 
 Opened pack shortens the use-by, per the supplier's specification (2)
   - Balsamic Vinegar — 90 days
@@ -56,5 +56,6 @@ After-opening storage taken from the kitchen's rule: same as unopened: 94 rows
 Health mark not yet determined, left null: 83 rows
 Used whole, so no Date Opened label: 54 rows
 Product storage from the kitchen's default: chill: 16 rows
+Product counted in Units, not named in the overrides: 6 rows
 Case count taken from Items per Case over the workbook's Kobas `1 x` form: 9 rows
 Products have no case size, so no conversion: 19 rows

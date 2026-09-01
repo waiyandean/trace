@@ -241,7 +241,34 @@ def opening_for(name, base_unit, opening, report):
     return "whole_pack", None
 
 
-def build_items(ingredients, products, overrides, rule, policy, excluded, opening, report):
+def product_unit(name, units, report):
+    """What a finished product is counted in.
+
+    The P0 rule made every product Units, which is right for a packet of
+    frozen ramen and wrong for a broth: a batch of broth yields litres, and
+    counting it in units means the yield cannot be stated at all. Named groups
+    override that; anything unnamed keeps Units and is reported, since an
+    unnamed product is one nobody has looked at rather than one decided.
+    """
+    if not units:
+        return "Units", None
+
+    if name in (units.get("litres") or []):
+        return "L", None
+    if name in (units.get("grams") or []):
+        # Grams reach kilograms by metric, so the base unit is kg and the
+        # recipe may still be written in grams.
+        return "kg", None
+
+    kilograms = units.get("kilograms") or {}
+    if name in (kilograms.get("items") or []):
+        return "kg", kilograms.get("kg_per_unit")
+
+    report.tally("Product counted in Units, not named in the overrides")
+    return "Units", None
+
+
+def build_items(ingredients, products, overrides, rule, policy, excluded, opening, units, report):
     """One items row per ingredient and per finished product.
 
     Rows the kitchen has excluded are still imported, but inactive. Skipping
@@ -250,6 +277,7 @@ def build_items(ingredients, products, overrides, rule, policy, excluded, openin
     invisible to a picker.
     """
     items = {}
+    product_packs = {}
 
     for row in ingredients:
         name = clean(row.get("Name"))
@@ -310,14 +338,15 @@ def build_items(ingredients, products, overrides, rule, policy, excluded, openin
             report.add("Rows skipped: no id or no name", f"FinishedProducts tab: {row!r}")
             continue
         override = overrides.get(name, {})
+        product_base, kg_per_unit = product_unit(name, units, report)
+        if kg_per_unit:
+            product_packs[item_id] = kg_per_unit
         storage = override.get("storage_unopened") or product_storage(name, policy, report)
         items[item_id] = {
             "id": item_id,
             "name": name,
             "kind": "product",
-            # Products are counted in packets, tubs, bowls or boxes — all whole
-            # things, so the base unit is Units whichever label the tab uses.
-            "base_unit": "Units",
+            "base_unit": product_base,
             "storage_unopened": storage,
             "storage_opened": after_opening(name, storage, rule, report),
             # Left undetermined for products. The fifteen Dean named are all
@@ -372,7 +401,7 @@ def build_items(ingredients, products, overrides, rule, policy, excluded, openin
         if not override.get("storage_unopened"):
             report.add("Added item has no storage, left null", name)
 
-    return items
+    return items, product_packs
 
 
 def conversion_rows(item, per_case, item_size, item_unit, source):
@@ -617,10 +646,19 @@ def main():
     decisions, provenance = load_overrides(args.overrides)
     overrides = decisions.get("items", {})
     report = Report(provenance or "unrecorded")
-    items = build_items(ingredients, products, overrides, decisions.get("after_opening"),
+    items, product_packs = build_items(ingredients, products, overrides, decisions.get("after_opening"),
                         decisions.get("product_storage"), decisions.get("excluded"),
-                        decisions.get("opening"), report)
+                        decisions.get("opening"), decisions.get("product_units"), report)
     conversions = build_conversions(mapping, ingredients, items, overrides, report)
+
+    # A tub of sauce is two kilograms, so a batch counted in tubs reaches the
+    # base unit in one hop. Stated by the kitchen rather than read off a pack,
+    # which is why it comes from the overrides and not the workbook.
+    for item_id, kg_per_unit in sorted(product_packs.items()):
+        conversions.append((
+            f"{item_id}:item:kg", item_id, "item", "kg", float(kg_per_unit),
+            f"one tub is {kg_per_unit} kg (Dean, {decisions.get('recorded_on')})",
+        ))
     for name in decisions.get("excluded", {}):
         if name not in {item["name"] for item in items.values()}:
             report.add("Excluded name matches no catalog item", name)
