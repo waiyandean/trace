@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Labels — trace</title>
+<link rel="stylesheet" href="/static/app.css" />
+</head>
+<body>
+
+<header>
+  <button class="back" id="back" hidden aria-label="Back">&#8592;</button>
+  <h1 id="title">Labels</h1>
+  <span class="pill" id="printer-pill">printer —</span>
+  <button class="ghost" id="open-settings">Settings</button>
+</header>
+
+<main>
+
+  <!-- 1. which kind of label -->
+  <section id="screen-types">
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <!-- 2. which item -->
+  <section id="screen-items" hidden>
+    <input id="search" class="search" type="search" autocomplete="off"
+           placeholder="Type to narrow the list" />
+    <ul class="items" id="items"></ul>
+    <p class="empty" id="items-empty" hidden>Nothing matches that.</p>
+  </section>
+
+  <!-- 3. the label itself -->
+  <section id="screen-label" hidden>
+    <div class="label-layout">
+      <div class="pane">
+        <h2>Label</h2>
+        <div class="preview" id="preview">
+          <p class="muted">Rendering…</p>
+        </div>
+        <div id="messages"></div>
+        <div class="print-row">
+          <label class="qty">
+            <span>Copies</span>
+            <input id="quantity" type="number" min="1" max="200" value="1" />
+          </label>
+          <button id="print" class="primary">Print</button>
+        </div>
+        <p class="note" id="print-note">
+          One label per physical box. Ten cases of the same delivery line take
+          ten labels.
+        </p>
+        <details class="raw">
+          <summary>ZPL sent to the printer</summary>
+          <pre id="zpl"></pre>
+        </details>
+      </div>
+      <div class="pane">
+        <h2>Details</h2>
+        <form id="fields" autocomplete="off"></form>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<dialog id="settings">
+  <form method="dialog">
+    <h2>Where labels are printed</h2>
+    <div class="field">
+      <label for="backend">Route</label>
+      <select id="backend">
+        <option value="auto">Automatic</option>
+        <option value="winspool">Windows spooler, raw (recommended)</option>
+        <option value="share">Shared printer, copy /b</option>
+        <option value="tcp">Network, port 9100</option>
+        <option value="folder">Write the file to a folder</option>
+      </select>
+      <p class="hint">The spooler route needs no sharing and no
+        <code>\\localhost</code>, so it survives the Windows networking
+        services being turned off.</p>
+    </div>
+    <div class="field" data-for="winspool">
+      <label for="printer">Printer</label>
+      <select id="printer"></select>
+    </div>
+    <div class="field" data-for="share">
+      <label for="share">Share name</label>
+      <input id="share" placeholder="ZEBRA" />
+    </div>
+    <div class="field" data-for="tcp">
+      <label for="host">Printer address</label>
+      <input id="host" placeholder="192.168.1.50" />
+    </div>
+    <div class="field" data-for="folder">
+      <label for="folder">Folder</label>
+      <input id="folder" />
+    </div>
+    <div class="field">
+      <label class="check">
+        <input type="checkbox" id="preview-on" />
+        <span>Render a preview before printing (needs the internet)</span>
+      </label>
+    </div>
+    <div class="actions">
+      <button value="cancel" class="ghost">Cancel</button>
+      <button value="save" class="primary" id="save-settings">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

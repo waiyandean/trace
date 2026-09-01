@@ -1,0 +1,175 @@
+/* The tool runs on the kitchen's Windows laptop, at a desk, with a mouse. It
+   is not the iPad form, so targets are sized for a cursor rather than a wet
+   thumb -- but the person using it is standing up between other jobs, so the
+   type stays large and the three screens stay one decision each. */
+:root {
+  --bg: #f4f4f6;
+  --surface: #ffffff;
+  --sunk: #eeeef1;
+  --line: #d9d9e0;
+  --text: #1b1b1f;
+  --muted: #6a6a73;
+  --tint: #0a6b3d;
+  --tint-soft: #e6f2ea;
+  --bad: #b3261e;
+  --bad-soft: #fdeceb;
+  --warn: #8a5a00;
+  --warn-soft: #fff4e0;
+  --radius: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #131316; --surface: #1d1d21; --sunk: #26262b; --line: #3a3a41;
+    --text: #f2f2f5; --muted: #9a9aa3; --tint: #34c77b; --tint-soft: #11301f;
+    --bad: #ff6961; --bad-soft: #3a1614; --warn: #ffd60a; --warn-soft: #3a3000;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.45 -apple-system, "Segoe UI", system-ui, sans-serif;
+}
+
+header {
+  position: sticky; top: 0; z-index: 10; background: var(--surface);
+  border-bottom: 1px solid var(--line); padding: 10px 20px;
+  display: flex; align-items: center; gap: 12px;
+}
+header h1 { font-size: 19px; margin: 0; flex: 1; letter-spacing: -0.2px; }
+.pill {
+  font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px;
+  background: var(--sunk); color: var(--muted); white-space: nowrap;
+}
+.pill.ok { background: var(--tint-soft); color: var(--tint); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+
+main { padding: 24px 20px 60px; max-width: 1120px; margin: 0 auto; }
+
+button {
+  font: inherit; border-radius: 9px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--text); padding: 9px 16px;
+  cursor: pointer;
+}
+button:hover { background: var(--sunk); }
+button.primary {
+  background: var(--tint); border-color: var(--tint); color: #fff;
+  font-weight: 600;
+}
+button.primary:hover { filter: brightness(1.08); }
+button.primary:disabled { opacity: 0.45; cursor: default; filter: none; }
+button.ghost { background: none; }
+button.back { padding: 6px 12px; font-size: 18px; line-height: 1; }
+:focus-visible { outline: 2px solid var(--tint); outline-offset: 2px; }
+
+/* --- 1. the four types ---------------------------------------------------- */
+
+.tiles {
+  display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+.tile {
+  display: flex; flex-direction: column; gap: 10px; align-items: flex-start;
+  text-align: left; padding: 22px; background: var(--surface);
+  border: 1px solid var(--line); border-radius: var(--radius);
+}
+.tile:hover { border-color: var(--tint); background: var(--surface); }
+.tile svg { width: 46px; height: 46px; stroke: var(--tint); fill: none;
+            stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.tile strong { font-size: 18px; }
+.tile span { color: var(--muted); font-size: 14px; }
+
+/* --- 2. the item list ----------------------------------------------------- */
+
+.search {
+  font: inherit; width: 100%; padding: 12px 14px; margin-bottom: 16px;
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--surface); color: var(--text);
+}
+.items { list-style: none; margin: 0; padding: 0;
+         display: grid; gap: 8px;
+         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.items button {
+  width: 100%; text-align: left; padding: 12px 14px;
+  display: flex; align-items: baseline; gap: 10px;
+}
+.items strong { font-weight: 600; }
+.items em { font-style: normal; color: var(--muted); font-size: 13px;
+            margin-left: auto; text-align: right; }
+.flag {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.4px; padding: 2px 7px; border-radius: 999px;
+  background: var(--warn-soft); color: var(--warn); white-space: nowrap;
+}
+.empty { color: var(--muted); }
+
+/* --- 3. the label --------------------------------------------------------- */
+
+.label-layout { display: grid; gap: 20px; grid-template-columns: 1fr 380px; }
+@media (max-width: 900px) { .label-layout { grid-template-columns: 1fr; } }
+.pane {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 18px;
+}
+.pane h2 {
+  font-size: 12px; text-transform: uppercase; letter-spacing: 0.7px;
+  color: var(--muted); margin: 0 0 14px;
+}
+/* The preview is always shown on white: the label is printed on white stock,
+   and putting it on a dark surface in dark mode would misrepresent it. */
+.preview {
+  background: #fff; border: 1px solid var(--line); border-radius: 8px;
+  min-height: 210px; display: grid; place-items: center; padding: 10px;
+}
+.preview img { width: 100%; max-width: 620px; display: block; }
+.muted { color: var(--muted); }
+
+.print-row { display: flex; align-items: flex-end; gap: 14px; margin-top: 16px; }
+.qty { display: flex; flex-direction: column; gap: 5px; font-size: 13px;
+       color: var(--muted); }
+.qty input { font: inherit; font-size: 20px; font-weight: 600; width: 96px;
+             padding: 8px 10px; border: 1px solid var(--line);
+             border-radius: 9px; background: var(--surface); color: var(--text); }
+.print-row button { padding: 13px 30px; font-size: 17px; }
+.note { color: var(--muted); font-size: 13px; margin: 10px 0 0; }
+
+.raw { margin-top: 16px; }
+.raw summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+.raw pre {
+  background: var(--sunk); border-radius: 8px; padding: 12px; overflow-x: auto;
+  font-size: 12px; line-height: 1.5;
+}
+
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 13px; color: var(--muted);
+               margin-bottom: 5px; }
+.field input, .field select {
+  font: inherit; width: 100%; padding: 10px 12px; border: 1px solid var(--line);
+  border-radius: 9px; background: var(--surface); color: var(--text);
+}
+.field input:disabled, .field select:disabled {
+  background: var(--sunk); color: var(--text); opacity: 1;
+}
+.field.gap input, .field.gap select { border-color: var(--warn); }
+.hint { font-size: 12px; color: var(--muted); margin: 5px 0 0; }
+.check { display: flex; align-items: center; gap: 9px; font-size: 14px;
+         color: var(--text); }
+.check input { width: auto; }
+
+.msg { border-radius: 9px; padding: 10px 13px; font-size: 14px;
+       margin-top: 14px; }
+.msg.ok { background: var(--tint-soft); color: var(--tint); }
+.msg.bad { background: var(--bad-soft); color: var(--bad); }
+.msg.warn { background: var(--warn-soft); color: var(--warn); }
+
+dialog {
+  border: 1px solid var(--line); border-radius: var(--radius); padding: 22px;
+  background: var(--surface); color: var(--text); max-width: 460px; width: 92%;
+}
+dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
+dialog h2 { margin: 0 0 16px; font-size: 18px; }
+dialog .actions { display: flex; justify-content: flex-end; gap: 10px;
+                  margin-top: 20px; }
+code { background: var(--sunk); padding: 1px 5px; border-radius: 4px;
+       font-size: 0.9em; }
