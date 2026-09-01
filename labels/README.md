@@ -19,6 +19,19 @@ questions around it.
 | `stress-test.zpl` | The same label with worst-case content, for checking layout changes. |
 | `sync-to-drive.sh` | Copies the `.zpl` files to the shared Drive folder. |
 | `print-copies.sh` | Writes a copy with a given print quantity into that folder. |
+| `gui/` | A local web app that fills these templates in from a form and prints them. |
+
+## Filling them in from a form
+
+`gui/` is a small web app that runs on the machine the printer is attached to.
+It reads the catalog, builds the same four formats from a form, renders a
+preview and sends the result to the printer directly, which removes the
+hand-editing, the Drive round trip and the `copy /b` by hand. Its Goods In and
+Date Opened labels carry no lot code or QR, because lots do not exist yet.
+See `gui/README.md`.
+
+Everything below still describes the labels themselves, which is what the app
+generates and what has to be got right either way.
 
 ## Where the files live
 
