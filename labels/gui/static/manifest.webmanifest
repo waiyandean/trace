@@ -1,0 +1,14 @@
+{
+  "name": "trace Labels",
+  "short_name": "Labels",
+  "description": "Prints the kitchen's labels on the Zebra at the goods-in door.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f4f6",
+  "theme_color": "#0a6b3d",
+  "icons": [
+    { "src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

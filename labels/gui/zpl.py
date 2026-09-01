@@ -240,7 +240,18 @@ def goods_in(*, name, use_by, batch, supplier, delivered, allergens,
         f"^FO{MARGIN},126^GB{INNER},0,4^FS",
         "",
         f"^FO{MARGIN},142^A0N,20^FDUSE BY^FS",
-        f"^FO{MARGIN},166^A0N,42^FD{escape(use_by)}^FS",
+    ]
+    # The use-by on a delivery belongs to the supplier's own box, and most
+    # arrive with one printed on them. Where nobody has typed a date in, the
+    # label says where to look rather than leaving a blank that reads as a
+    # date somebody forgot. The words are set smaller than a date would be:
+    # they are an instruction, not the answer, and at 42 dots they would run
+    # into the batch beside them.
+    if escape(use_by):
+        out += [f"^FO{MARGIN},166^A0N,42^FD{escape(use_by)}^FS"]
+    else:
+        out += [f"^FO{MARGIN},174^A0N,28^FDSee product packaging^FS"]
+    out += [
         "",
         "^FO420,142^A0N,20^FDBATCH^FS",
         f"^FO420,166^A0N,42^FD{escape(batch)}^FS",

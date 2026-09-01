@@ -42,6 +42,10 @@ CASES = [
         name="Chicken Feet", use_by="04/09/2026", batch="270826",
         supplier="Lynas", delivered="27/08/2026", allergens="None declared",
         storage="chill", quantity=10)),
+    ("goods-in, no use-by printed", zpl.goods_in, dict(
+        name="Toban Djan Chilli Bean Sauce", use_by="", batch="010926",
+        supplier="Tazaki", delivered="01/09/2026",
+        allergens="Gluten, Soya", storage="ambient", quantity=1)),
     ("goods-in worst", zpl.goods_in, dict(
         name="Sichuan Toban Chilli Bean Sauce", use_by="04/09/2026",
         batch="LOT-270826-A", supplier="Tazaki", delivered="27/08/2026",

@@ -15,6 +15,31 @@ python server.py          # then http://localhost:8642
 
 or double-click `start.bat` on Windows.
 
+## Leaving it running
+
+The machine at the printer can be left on it. The server binds to
+`127.0.0.1`, so nothing on the network can reach it, and it holds no state
+that grows: the catalog is reloaded only when the file changes, and the print
+log gains a line per print.
+
+Two things about a machine that never restarts:
+
+- **The date rolls over.** A label screen left open across midnight was
+  filled in with yesterday's date. The page moves any date field still
+  holding the old date on to the new one, and lets the derived batch code and
+  use-by follow; anything typed by hand is left alone. Printing yesterday's
+  delivery date onto today's delivery is exactly the quiet wrong answer this
+  system exists to prevent.
+- **Windows sleeping stops the server.** Set the power plan so the machine
+  never sleeps, or the first print after a nap fails until somebody notices
+  the window.
+
+Install it from Chrome's menu — **Cast, save and share → Install page as app**
+— and it gets its own window with no address bar, its own icon on the taskbar,
+and can be set to start with Windows. There is deliberately no service worker:
+the page is served from the same machine it runs on, so a cache buys nothing
+and a stale one would go on serving the previous version after an update.
+
 A view can be linked to directly — `#goods-in` for the list, `#box/<item id>`
 for one label — so the machine at the printer can sit on the list it uses, or
 on the one label it prints all day, rather than starting from the tiles every
@@ -96,6 +121,14 @@ real today.
 Batch, the dates and the number of copies are always editable — they change on
 every print and no catalog will ever hold them.
 
+On Goods In the use-by is **left empty by default** and the label prints
+"See product packaging" in its place. Most deliveries arrive with a date
+printed on the box, that date always wins over anything the catalog would work
+out, and a blank line where a date should be reads as one somebody forgot
+rather than one that lives elsewhere. Type a date in and it prints instead, at
+full size — the words are set smaller because they are an instruction, not the
+answer.
+
 Several fields fill themselves in from a date and keep following it. Typing
 into one stops it following: after that it is yours, and it must not be undone
 by touching the date afterwards.
@@ -103,6 +136,7 @@ by touching the date afterwards.
 | Field | Follows | Rule |
 | --- | --- | --- |
 | Goods In, batch number | Delivered | `ddmmyy` — a delivery on 01/09/2026 is batch `010926` |
+
 | Product, batch code | Packed, Pot | `ddmm`, the run suffix `GA`, then the pot — `0109GA3` |
 | Product, use by | Packed | Whole months on, landing on the **first** of that month |
 

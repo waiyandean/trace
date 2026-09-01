@@ -4,6 +4,15 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Labels — trace</title>
+<!-- Installed as an app from Chrome's menu, so it gets its own window with no
+     address bar and its own icon on the taskbar. There is deliberately no
+     service worker: the tool is served from the same machine it runs on, so
+     it has nothing to gain from a cache, and a stale one would quietly go on
+     serving the previous version after an update. -->
+<link rel="manifest" href="/static/manifest.webmanifest" />
+<meta name="theme-color" content="#0a6b3d" />
+<link rel="icon" href="/static/icon-192.png" />
+<link rel="apple-touch-icon" href="/static/icon-192.png" />
 <link rel="stylesheet" href="/static/app.css" />
 </head>
 <body>

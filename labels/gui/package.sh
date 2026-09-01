@@ -29,7 +29,10 @@ for f in server.py zpl.py printers.py check_layouts.py catalog.json \
          label-data.json README.md start.bat; do
   cp "$HERE/$f" "$DEST/$f"
 done
-cp "$HERE"/static/index.html "$HERE"/static/app.css "$HERE"/static/app.js "$DEST/static/"
+# Everything in static/ except the photographs, which are selected below.
+for f in "$HERE"/static/*; do
+  [ -d "$f" ] || cp "$f" "$DEST/static/"
+done
 
 # The linter lives one directory up and check_layouts.py imports it by path,
 # so it travels with the bundle and sits where that import expects it.

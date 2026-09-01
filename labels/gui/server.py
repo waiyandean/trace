@@ -385,8 +385,9 @@ class Data:
                       missing=not item["storage_unopened"],
                       hint="Prints as the banner in the top right."),
                 field("use_by", "Use by", "", kind="date",
-                      hint="Off the supplier's own box. It always wins over "
-                           "anything the catalog would work out."),
+                      hint="Off the supplier's own box, where there is one. "
+                           "Left empty, the label says \"See product "
+                           "packaging\" rather than printing a blank."),
                 # The kitchen's batch number for an intake is the delivery date
                 # as six digits, so it follows the Delivered field rather than
                 # being typed twice. Typing into it stops it following, because
@@ -586,7 +587,8 @@ class Handler(BaseHTTPRequestHandler):
     def send_file(self, path):
         types = {".html": "text/html; charset=utf-8", ".css": "text/css",
                  ".js": "text/javascript", ".svg": "image/svg+xml",
-                 ".jpg": "image/jpeg", ".png": "image/png"}
+                 ".jpg": "image/jpeg", ".png": "image/png",
+                 ".webmanifest": "application/manifest+json"}
         body = path.read_bytes()
         self.send_response(200)
         self.send_header("Content-Type", types.get(path.suffix, "application/octet-stream"))
