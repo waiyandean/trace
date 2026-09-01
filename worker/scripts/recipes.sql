@@ -129,6 +129,12 @@ DELETE FROM recipe_lines WHERE recipe_id = 'recipe:msx197xjx312in';
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:msx197xjx312in:mpwqoafdxpka', 'recipe:msx197xjx312in', 'mpwqoafdxpka', 18.0, 'Litres', 1);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:msx197xjx312in:mpwp47uz9ugz', 'recipe:msx197xjx312in', 'mpwp47uz9ugz', 4.5, 'kg', 2);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:msx197xjx312in:trace:coconut-milk', 'recipe:msx197xjx312in', 'trace:coconut-milk', 2.4, 'Litres', 3);
+INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:trace:pork-chasiu', 'trace:pork-chasiu', NULL, 'cooked here from pork belly; the batching system carries no recipe for it (stated by Dean, 2026-09-01)')
+  ON CONFLICT (item_id) DO UPDATE SET shelf_life_days = excluded.shelf_life_days, note = excluded.note, updated_at = datetime('now');
+DELETE FROM recipe_lines WHERE recipe_id = 'recipe:trace:pork-chasiu';
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:trace:pork-chasiu:trace:pork-belly', 'recipe:trace:pork-chasiu', 'trace:pork-belly', 8.0, 'kg', 1);
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:trace:pork-chasiu:mpv41h7l50xw', 'recipe:trace:pork-chasiu', 'mpv41h7l50xw', 800.0, 'g', 2);
+INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES ('recipe:trace:pork-chasiu:mpv3t4jmh10w', 'recipe:trace:pork-chasiu', 'mpv3t4jmh10w', 800.0, 'g', 3);
 INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:mpwqa03mcg0g', 'mpwqa03mcg0g', 180, '6 months, as the kitchen states it')
   ON CONFLICT (item_id) DO UPDATE SET shelf_life_days = excluded.shelf_life_days, note = excluded.note, updated_at = datetime('now');
 DELETE FROM recipe_lines WHERE recipe_id = 'recipe:mpwqa03mcg0g';

@@ -1,4 +1,4 @@
-22 of 24 recipes imported -> scripts/recipes.sql
+23 of 25 recipes imported -> scripts/recipes.sql
 
 Products with no recipe in the batching system (2)
   Nothing to import. They cannot be batched through a recipe until somebody
@@ -8,25 +8,26 @@ Products with no recipe in the batching system (2)
   - Tom Yum Tare
 
 Imported
-  - Beef Tataki — 4 ingredients, 6 months
-  - Black Garlic Tonkotsu (Soup) — 3 ingredients, 6 months
-  - Chicken Broth — 10 ingredients, 12 months
-  - Chicken Paste — 4 ingredients, 6 months
-  - Chicken Ramen (Soup) — 3 ingredients, 6 months
-  - Chilli Oil — 4 ingredients, 6 months
-  - Frozen Ramen : Black Garlic — 6 ingredients, 6 months
-  - Frozen Ramen : Chicken Tori Paitan — 5 ingredients, 6 months
-  - Frozen Ramen : Hell Ramen — 6 ingredients, 6 months
-  - Frozen Ramen : Laksa Ramen — 5 ingredients, 6 months
-  - Garlic Oil — 2 ingredients, 6 months
-  - Hell Ramen (Soup) — 3 ingredients, 6 months
-  - Hell Sauce — 8 ingredients, 6 months
-  - Kimchi Sauce — 11 ingredients, 6 months
-  - Laksa Paste — 2 ingredients, 6 months
-  - Laksa Ramen (Soup) — 3 ingredients, 6 months
-  - Soba Sauce — 4 ingredients, 6 months
-  - Spicy Miso — 5 ingredients, 6 months
-  - Spicy Teriyaki — 8 ingredients, 6 months
-  - Tantan Sauce — 13 ingredients, 6 months
-  - Teriyaki Sauce — 4 ingredients, 6 months
-  - Tonkotsu Broth — 9 ingredients, 12 months
+  - Beef Tataki — 4 ingredients, 180 days
+  - Black Garlic Tonkotsu (Soup) — 3 ingredients, 180 days
+  - Chicken Broth — 10 ingredients, 360 days
+  - Chicken Paste — 4 ingredients, 180 days
+  - Chicken Ramen (Soup) — 3 ingredients, 180 days
+  - Chilli Oil — 4 ingredients, 180 days
+  - Frozen Ramen : Black Garlic — 6 ingredients, 180 days
+  - Frozen Ramen : Chicken Tori Paitan — 5 ingredients, 180 days
+  - Frozen Ramen : Hell Ramen — 6 ingredients, 180 days
+  - Frozen Ramen : Laksa Ramen — 5 ingredients, 180 days
+  - Garlic Oil — 2 ingredients, 180 days
+  - Hell Ramen (Soup) — 3 ingredients, 180 days
+  - Hell Sauce — 8 ingredients, 180 days
+  - Kimchi Sauce — 11 ingredients, 180 days
+  - Laksa Paste — 2 ingredients, 180 days
+  - Laksa Ramen (Soup) — 3 ingredients, 180 days
+  - Pork Chasiu — 3 ingredients, no shelf life stated
+  - Soba Sauce — 4 ingredients, 180 days
+  - Spicy Miso — 5 ingredients, 180 days
+  - Spicy Teriyaki — 8 ingredients, 180 days
+  - Tantan Sauce — 13 ingredients, 180 days
+  - Teriyaki Sauce — 4 ingredients, 180 days
+  - Tonkotsu Broth — 9 ingredients, 360 days

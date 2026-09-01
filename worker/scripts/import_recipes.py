@@ -69,6 +69,7 @@ def main():
     parser.add_argument("--api", default="http://localhost:8799")
     parser.add_argument("--out", default="scripts/recipes.sql")
     parser.add_argument("--report", default="scripts/recipe-import-report.txt")
+    parser.add_argument("--overrides", default="scripts/recipe-overrides.json")
     args = parser.parse_args()
 
     try:
@@ -82,6 +83,26 @@ def main():
         return by_name.get(normalise(ALIASES.get(normalise(name), name)))
 
     products = fetch(SOURCE)["products"]
+
+    # Recipes the batching system does not carry, stated by the kitchen
+    # directly. Applied as though they had come from upstream, so a recipe is
+    # imported whole or not at all whichever source it came from.
+    overrides_path = pathlib.Path(args.overrides)
+    stated = json.loads(overrides_path.read_text()) if overrides_path.exists() else {}
+    provenance = f"{stated.get('recorded_by')}, {stated.get('recorded_on')}"
+    for name, recipe in (stated.get("recipes") or {}).items():
+        if name.startswith("_"):
+            continue
+        products.append({
+            "name": name,
+            "shelfLifeMonths": None,
+            "shelf_life_days": recipe.get("shelf_life_days"),
+            "note": f"{recipe.get('note')} (stated by {provenance})",
+            "ingredientTargets": [
+                {"name": line["item"], "qty": line["quantity"], "unit": line["unit"]}
+                for line in recipe["lines"]
+            ],
+        })
 
     imported, skipped, no_recipe, missing_items = [], [], [], {}
 
@@ -117,12 +138,12 @@ def main():
             continue
 
         months = product.get("shelfLifeMonths")
+        days = product.get("shelf_life_days") or (months * DAYS_PER_MONTH if months else None)
+        note = product.get("note") or (f"{months} months, as the kitchen states it" if months else None)
         recipe_id = f"recipe:{item['id']}"
         lines.append(
             f"INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES "
-            f"({sql_str(recipe_id)}, {sql_str(item['id'])}, "
-            f"{sql_num(months * DAYS_PER_MONTH if months else None)}, "
-            f"{sql_str(f'{months} months, as the kitchen states it' if months else None)})\n"
+            f"({sql_str(recipe_id)}, {sql_str(item['id'])}, {sql_num(days)}, {sql_str(note)})\n"
             "  ON CONFLICT (item_id) DO UPDATE SET "
             "shelf_life_days = excluded.shelf_life_days, note = excluded.note, "
             "updated_at = datetime('now');"
@@ -138,7 +159,10 @@ def main():
                 f"({sql_str(line_id)}, {sql_str(recipe_id)}, {sql_str(line_item['id'])}, "
                 f"{sql_num(float(target['qty']))}, {sql_str(target['unit'])}, {order});"
             )
-        imported.append(f"{product['name']} — {len(resolved)} ingredients, {months} months")
+        imported.append(
+            f"{product['name']} — {len(resolved)} ingredients, "
+            + (f"{days} days" if days else "no shelf life stated")
+        )
 
     pathlib.Path(args.out).write_text("\n".join(lines) + "\n")
 

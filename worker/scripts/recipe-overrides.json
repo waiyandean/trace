@@ -1,0 +1,17 @@
+{
+  "_comment": "Recipes the kitchen's batching system does not carry. Same shape as an imported one, applied on top by scripts/import_recipes.py. Anything in here is a recipe somebody stated directly rather than one copied from an existing system, so each records who said so and when.",
+  "recorded_by": "Dean",
+  "recorded_on": "2026-09-01",
+  "recipes": {
+    "Pork Chasiu": {
+      "shelf_life_days": null,
+      "note": "cooked here from pork belly; the batching system carries no recipe for it",
+      "lines": [
+        { "item": "Pork Belly", "quantity": 8, "unit": "kg" },
+        { "item": "Ginger Root", "quantity": 800, "unit": "g" },
+        { "item": "Peeled Garlic", "quantity": 800, "unit": "g" }
+      ],
+      "_pending": "Kikkoman 480 g and Water 80 g are not yet loaded: see the report."
+    }
+  }
+}
