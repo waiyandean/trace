@@ -21,9 +21,12 @@ DEST="${1:-$HOME/Library/CloudStorage/GoogleDrive-dean.8.waiyan@gmail.com/.short
 [ -d "$(dirname "$DEST")" ] || { echo "Drive folder not found: $(dirname "$DEST")" >&2; exit 1; }
 mkdir -p "$DEST/static/photos"
 
-for f in server.py zpl.py printers.py build_catalog.py import_allergens.py \
-         check_layouts.py catalog.json label-data.json README.md start.bat \
-         allergen-import-report.txt; do
+# build_catalog.py and import_allergens.py are deliberately left out: they
+# read worker/scripts/ and the forms repository, neither of which is on the
+# machine at the printer. Shipping a script that can only fail there is worse
+# than not shipping it.
+for f in server.py zpl.py printers.py check_layouts.py catalog.json \
+         label-data.json README.md start.bat; do
   cp "$HERE/$f" "$DEST/$f"
 done
 cp "$HERE"/static/index.html "$HERE"/static/app.css "$HERE"/static/app.js "$DEST/static/"
@@ -46,6 +49,17 @@ for item in json.load(open('$HERE/catalog.json'))['items']:
     cp "$HERE/../../worker/public/photos/$id.jpg" "$DEST/static/photos/$id.jpg"
     count=$((count + 1))
   fi
+done
+
+# Anything left behind by an older bundle. A file that is no longer shipped
+# should not keep running at the printer, and a stale script that fails is
+# harder to explain than a missing one.
+for stale in "$DEST"/*.py "$DEST"/*.txt; do
+  [ -e "$stale" ] || continue
+  case " server.py zpl.py printers.py check_layouts.py lint-zpl.py " in
+    *" $(basename "$stale") "*) ;;
+    *) rm "$stale"; echo "  removed stale $(basename "$stale")" ;;
+  esac
 done
 
 echo "packaged into $DEST"

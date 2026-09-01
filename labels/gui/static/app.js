@@ -4,7 +4,15 @@
    typed -- so this file only draws what it is handed. */
 
 const el = (id) => document.getElementById(id);
-const state = { type: null, item: null, form: null, config: {}, timer: null };
+const state = { type: null, item: null, form: null, config: {}, timer: null,
+                today: null };
+
+/* Today, as the value a date input holds. */
+function todayISO() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-` +
+         `${String(now.getDate()).padStart(2, "0")}`;
+}
 
 const ICONS = {
   /* Four marks that differ in silhouette rather than in detail, because the
@@ -172,6 +180,7 @@ async function openLabel(item) {
   el("quantity").value = 1;
   el("messages").replaceChildren();
   state.form = await api(`/api/form/${state.type.id}/${encodeURIComponent(item.id)}`);
+  state.today = todayISO();
   drawFields(state.form.fields);
   render();
 }
@@ -303,6 +312,32 @@ function derive(kind, current) {
   const onward = String(Math.floor(total / 12));
   const at = String((total % 12) + 1).padStart(2, "0");
   return `${onward}-${at}-01`;
+}
+
+/* The machine at the printer is left switched on, so a label screen can sit
+   open across midnight. The dates on it were worked out when it was opened,
+   and printing yesterday's delivery date onto today's delivery is the kind of
+   quiet wrong answer this whole system exists to prevent.
+
+   Only fields still holding the old date are moved on, so anything typed by
+   hand is left exactly as it was, and the derived fields follow. */
+function rollOver() {
+  if (!state.today || el("screen-label").hidden) return;
+  const today = todayISO();
+  if (today === state.today) return;
+
+  let moved = false;
+  for (const input of el("fields").querySelectorAll('input[type="date"]')) {
+    if (input.value === state.today && input.dataset.own !== "yes") {
+      input.value = today;
+      moved = true;
+    }
+  }
+  state.today = today;
+  if (moved) {
+    recompute();
+    render();
+  }
 }
 
 function values() {
@@ -466,6 +501,11 @@ el("search").addEventListener("keydown", (event) => {
 });
 el("quantity").addEventListener("input", scheduleRender);
 el("print").onclick = print;
+/* Checked when the window is looked at again and once a minute regardless,
+   since a machine left running all night is never "focused" at midnight. */
+window.addEventListener("focus", rollOver);
+document.addEventListener("visibilitychange", rollOver);
+setInterval(rollOver, 60000);
 el("open-settings").onclick = () => el("settings").showModal();
 el("backend").onchange = showRelevant;
 el("settings").addEventListener("close", () => {

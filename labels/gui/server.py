@@ -36,12 +36,19 @@ import zpl
 HERE = Path(__file__).resolve().parent
 STATIC = HERE / "static"
 CONFIG_PATH = HERE / "config.json"
-# The kitchen's catalog photographs, 320px, named by item id. They live with
-# the Worker's assets rather than being copied in here: two copies of two
-# megabytes of the same JPEGs would drift apart the first time one is
-# re-imported. A local `static/photos` wins if it exists, so the tool can be
-# carried to a machine without the rest of the repository.
-PHOTO_DIRS = [STATIC / "photos", HERE.parents[1] / "worker" / "public" / "photos"]
+# The kitchen's catalog photographs, 320px, named by item id. In the
+# repository they live with the Worker's assets rather than being copied here:
+# two copies of two megabytes of the same JPEGs would drift apart the first
+# time one is re-imported. A local `static/photos` wins if it exists, which is
+# what the packaged copy at the printer carries.
+#
+# That packaged copy sits wherever somebody put it -- C:\label-gui, with one
+# parent -- so the repository path is worked out only when there is enough
+# path to work it out from. Reaching two levels up unconditionally is an
+# IndexError on a shallow path, and the tool would not start at all.
+PHOTO_DIRS = [STATIC / "photos"]
+if len(HERE.parents) >= 2:
+    PHOTO_DIRS.append(HERE.parents[1] / "worker" / "public" / "photos")
 LOG_PATH = HERE / "print-log.jsonl"
 PORT = int(os.environ.get("TRACE_LABELS_PORT", "8642"))
 
