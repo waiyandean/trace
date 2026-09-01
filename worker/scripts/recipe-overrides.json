@@ -5,13 +5,30 @@
   "recipes": {
     "Pork Chasiu": {
       "shelf_life_days": null,
-      "note": "cooked here from pork belly; the batching system carries no recipe for it",
+      "note": "cooked here from pork belly; the batching system carries no recipe for it. Water is not a line: it is mains water with no lot to trace, and none of the kitchen's own twenty-four recipes lists it either, including the broths that are mostly water.",
       "lines": [
-        { "item": "Pork Belly", "quantity": 8, "unit": "kg" },
-        { "item": "Ginger Root", "quantity": 800, "unit": "g" },
-        { "item": "Peeled Garlic", "quantity": 800, "unit": "g" }
-      ],
-      "_pending": "Kikkoman 480 g and Water 80 g are not yet loaded: see the report."
+        {
+          "item": "Pork Belly",
+          "quantity": 8,
+          "unit": "kg"
+        },
+        {
+          "item": "Ginger Root",
+          "quantity": 800,
+          "unit": "g"
+        },
+        {
+          "item": "Peeled Garlic",
+          "quantity": 800,
+          "unit": "g"
+        },
+        {
+          "item": "Japanese Soy Sauce",
+          "quantity": 480,
+          "unit": "g",
+          "note": "stated as Kikkoman, which is japanese soy sauce (Dean, 2026-09-01)"
+        }
+      ]
     }
   }
 }

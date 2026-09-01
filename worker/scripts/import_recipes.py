@@ -31,12 +31,32 @@ SOURCE = "https://forms.deanops.uk/api/batching?action=getProducts"
 # a recipe that will not import.
 ALIASES = {
     "spring onions": "Spring Onion",
+    # A brand, not a different product (Dean, 2026-09-01).
+    "kikkoman": "Japanese Soy Sauce",
 }
 
 # The kitchen states shelf life in months. Thirty days a month is the kitchen's
 # own arithmetic rather than a calendar month, and it is stated here so a
 # use-by can be checked rather than trusted.
 DAYS_PER_MONTH = 30
+
+# The same two conversions the Worker applies without evidence, kept in step
+# with src/ledger/units.js: one unit spelled two ways, and the metric
+# prefixes. Anything else is a fact about the item and belongs in the
+# conversions master.
+SPELLINGS = {
+    "l": "L", "litre": "L", "litres": "L", "liter": "L", "liters": "L",
+    "kg": "kg", "kgs": "kg", "kilo": "kg", "kilos": "kg",
+    "g": "g", "gram": "g", "grams": "g",
+    "ml": "ml", "millilitre": "ml", "millilitres": "ml",
+    "unit": "Units", "units": "Units",
+    "case": "case", "cases": "case", "item": "item", "items": "item",
+}
+METRIC = {("g", "kg"), ("kg", "g"), ("ml", "L"), ("L", "ml")}
+
+
+def canonical_unit(unit):
+    return SPELLINGS.get(str(unit).strip().lower(), str(unit).strip())
 
 
 def normalise(name):
@@ -105,6 +125,7 @@ def main():
         })
 
     imported, skipped, no_recipe, missing_items = [], [], [], {}
+    unconvertible = {}
 
     lines = [
         "-- What each product is made from.",
@@ -155,10 +176,24 @@ def main():
         for order, (line_item, target) in enumerate(resolved, 1):
             line_id = f"{recipe_id}:{line_item['id']}"
             lines.append(
-                "INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order) VALUES "
-                f"({sql_str(line_id)}, {sql_str(recipe_id)}, {sql_str(line_item['id'])}, "
-                f"{sql_num(float(target['qty']))}, {sql_str(target['unit'])}, {order});"
+                "INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) "
+                f"VALUES ({sql_str(line_id)}, {sql_str(recipe_id)}, {sql_str(line_item['id'])}, "
+                f"{sql_num(float(target['qty']))}, {sql_str(target['unit'])}, {order}, "
+                f"{sql_str(target.get('note'))});"
             )
+
+            # A line stated in a unit the conversions master cannot reach from
+            # the item's base unit cannot be checked against what was actually
+            # used. Reported rather than converted by assumption: turning
+            # grams of soy sauce into litres needs a density, and inventing
+            # one is how a recipe quietly stops adding up.
+            stated = canonical_unit(target["unit"])
+            base = canonical_unit(line_item["base_unit"])
+            if stated != base and (stated, base) not in METRIC and stated not in {"case", "item"}:
+                unconvertible.setdefault(
+                    f"{line_item['name']} — recipe says {target['unit']}, catalog counts {line_item['base_unit']}",
+                    [],
+                ).append(product["name"])
         imported.append(
             f"{product['name']} — {len(resolved)} ingredients, "
             + (f"{days} days" if days else "no shelf life stated")
@@ -175,6 +210,14 @@ def main():
             "  recorded went into the pot.",
             "",
         ] + [f"  - {name}  (in {', '.join(where)})" for name, where in sorted(missing_items.items())] + [""]
+    if unconvertible:
+        report += [
+            f"Recipe lines stated in a unit the catalog cannot convert ({len(unconvertible)})",
+            "  Imported as stated, because the recipe on the wall is what staff follow. But",
+            "  until the conversions master can reach the item's base unit, what was used",
+            "  cannot be checked against what the recipe asked for.",
+            "",
+        ] + [f"  - {name}  (in {', '.join(sorted(set(where)))})" for name, where in sorted(unconvertible.items())] + [""]
     if skipped:
         report += [f"Recipes not imported ({len(skipped)})"] + [f"  - {entry}" for entry in skipped] + [""]
     if no_recipe:
