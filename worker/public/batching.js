@@ -269,8 +269,10 @@ function openLots(line) {
   $('lot-title').textContent = line.ingredient_name;
   $('lot-note').textContent = target.base === null
     ? `The recipe asks for ${target.stated}, which cannot be converted to ${line.ingredient_base_unit}. Enter what was used.`
-    : `The recipe asks for ${target.base} ${line.ingredient_base_unit}. Earliest use-by first.`;
+    : `The recipe asks for ${target.base} ${line.ingredient_base_unit}. Enter what was actually used from each case.`;
   $('lot-error').replaceChildren();
+  $('lot-code').value = '';
+  $('lot-code-note').textContent = 'Earliest use-by first below, or find a case by its code.';
 
   const list = $('lot-list');
   list.replaceChildren();
@@ -283,7 +285,6 @@ function openLots(line) {
   }
 
   const existing = new Map((state.picks.get(line.ingredient_id)?.allocations || []).map((a) => [a.lot_id, a.quantity]));
-  let remaining = target.base ?? 0;
 
   for (const lot of available) {
     const row = document.createElement('div');
@@ -310,20 +311,55 @@ function openLots(line) {
     input.dataset.lot = lot.lot_id;
     input.dataset.location = lot.location_id;
     input.dataset.available = String(lot.quantity);
-    // Filled in first-expiring first up to what the recipe asks for, which is
-    // what somebody would do by hand. Every figure stays editable.
+    // Deliberately not pre-filled, even though the arithmetic is obvious
+    // (Dean, 2026-09-02). A figure the form put there records that the form
+    // was submitted, not that anybody checked the label — and a wrong one
+    // gets left alone precisely because it looks already done. The only
+    // values here are ones somebody keyed after reading the case.
     if (existing.has(lot.lot_id)) input.value = String(existing.get(lot.lot_id));
-    else if (remaining > 0) {
-      const take = Math.min(remaining, lot.quantity);
-      input.value = String(+take.toFixed(3));
-      remaining -= take;
-    }
 
     row.append(grow, have, input);
     list.append(row);
   }
 
   $('lot-dialog').showModal();
+}
+
+// The code on the label is the way in. Typing or scanning it is the act of
+// having looked at the case, which is the thing a pre-filled quantity
+// quietly removed.
+//
+// Crockford's alphabet excludes I, L, O and U precisely so a mistyped
+// character is decodable rather than ambiguous, so those are folded rather
+// than rejected.
+function normaliseCode(text) {
+  return text.trim().toUpperCase().replace(/[IL]/g, '1').replace(/O/g, '0');
+}
+
+function findByCode() {
+  const line = state.editing;
+  const code = normaliseCode($('lot-code').value);
+  const note = $('lot-code-note');
+  if (!code) {
+    note.textContent = 'Earliest use-by first below, or find a case by its code.';
+    return;
+  }
+
+  const available = state.stock[line.ingredient_id] || [];
+  const match = available.find((lot) => (lot.short_code || '') === code);
+  if (match) {
+    note.textContent = `${match.short_code} — ${match.location_name}, ${match.quantity} ${line.ingredient_base_unit} left`;
+    const input = [...$('lot-list').querySelectorAll('input')].find((row) => row.dataset.lot === match.lot_id);
+    if (input) input.focus();
+    return;
+  }
+
+  // Said precisely rather than "not found": which of the three it is decides
+  // what the person does next.
+  const elsewhere = Object.values(state.stock).flat().find((lot) => (lot.short_code || '') === code);
+  note.textContent = elsewhere
+    ? `${code} is ${elsewhere.item_name}, not ${line.ingredient_name}.`
+    : `${code} is not open stock. If the case has no code, use "No labelled lot" and say why.`;
 }
 
 function saveLots() {
@@ -631,6 +667,7 @@ $('pick-product').addEventListener('click', () => {
 $('product-search').addEventListener('input', (event) => renderProducts(event.target.value));
 $('product-cancel').addEventListener('click', () => $('product-dialog').close());
 
+$('lot-code').addEventListener('input', findByCode);
 $('lot-done').addEventListener('click', saveLots);
 $('lot-cancel').addEventListener('click', () => $('lot-dialog').close());
 $('lot-unproven').addEventListener('click', () => {

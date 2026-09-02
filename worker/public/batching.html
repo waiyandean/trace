@@ -128,6 +128,12 @@
 <dialog id="lot-dialog">
   <header><h1 id="lot-title">Pick lots</h1></header>
   <p class="note" id="lot-note"></p>
+  <div class="picker-search">
+    <label for="lot-code">Scan or type the code on the label</label>
+    <input id="lot-code" autocomplete="off" autocapitalize="characters" spellcheck="false"
+           inputmode="text" placeholder="0CFMG7" />
+    <p class="note" id="lot-code-note"></p>
+  </div>
   <div class="picker-groups" id="lot-list"></div>
   <div id="lot-error"></div>
   <div class="actions">

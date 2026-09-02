@@ -544,6 +544,30 @@ a from-location and a to-location.
   failing submissions, and an archive as well as a queue, since the payload as
   sent is the evidence of what was printed.
 
+### Nothing the form can work out is filled in for anybody
+
+Recorded 2026-09-02 (Dean), after the batching form's lot picker was built
+pre-filling quantities first-expiring-first up to what the recipe asked for.
+It was wrong, and wrong in a way worth stating as a rule rather than a fix.
+
+**Staff leave an autofilled value alone, including when it is wrong, precisely
+because it looks already done.** A figure the form put there records that the
+form was submitted, not that anybody checked the case. The same reasoning
+already applies to the goods-in attestations, which start unticked: a box that
+starts ticked records a submission, not a check.
+
+So an observation is always keyed by the person observing it. What the form
+may do is the opposite of filling in — show what the recipe asks for, show
+what the lot holds, and refuse to proceed when the two do not add up. It may
+also fill in something that is not an observation at all: a delivery's batch
+number is the delivery's date, and the app version is the app's.
+
+The way in for a lot is now **the code on the label**, typed or scanned.
+Entering it is the act of having looked at the case, which is the thing the
+pre-filled quantity quietly removed. Because the short-code alphabet excludes
+I, L, O and U, a mistyped character is decodable rather than ambiguous, and
+the field folds them rather than rejecting them.
+
 ## Delivery phases
 
 Each phase should end in something a person can actually use, and each ends

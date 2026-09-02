@@ -195,3 +195,24 @@ test('the service worker caches every page', () => {
     assert.ok(shellPaths().includes(path), `${path} is not precached`);
   }
 });
+
+test('the batching form does not fill in a quantity for anybody', () => {
+  // A figure the form put there records that the form was submitted, not that
+  // anybody checked the label — and a wrong one gets left alone precisely
+  // because it looks already done (Dean, 2026-09-02). The only assignment
+  // left restores what the person themselves entered earlier.
+  const assignments = [...batchingScript.matchAll(/input\.value = ([^;]+);/g)].map((m) => m[1].trim());
+  assert.deepEqual(assignments, ['String(existing.get(lot.lot_id))']);
+});
+
+test('the lot picker asks for the code on the label', () => {
+  assert.match(batchingHtml, /id="lot-code"/);
+  assert.match(batchingScript, /normaliseCode/);
+});
+
+test('a mistyped code is decoded rather than rejected', () => {
+  // Crockford's alphabet excludes I, L, O and U so that those characters can
+  // only be a mistyping of 1 and 0.
+  assert.match(batchingScript, /replace\(\/\[IL\]\/g, '1'\)/);
+  assert.match(batchingScript, /replace\(\/O\/g, '0'\)/);
+});
