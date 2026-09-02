@@ -272,7 +272,8 @@ function openLots(line) {
     : `The recipe asks for ${target.base} ${line.ingredient_base_unit}. Enter what was actually used from each case.`;
   $('lot-error').replaceChildren();
   $('lot-code').value = '';
-  $('lot-code-note').textContent = 'Earliest use-by first below, or find a case by its code.';
+  $('lot-code-note').textContent =
+    'Earliest use-by first below. Or type the short code, or the batch number.';
 
   const list = $('lot-list');
   list.replaceChildren();
@@ -289,6 +290,7 @@ function openLots(line) {
   for (const lot of available) {
     const row = document.createElement('div');
     row.className = 'lotpick';
+    row.dataset.lot = lot.lot_id;
 
     const grow = document.createElement('div');
     grow.className = 'grow';
@@ -296,7 +298,11 @@ function openLots(line) {
     title.textContent = `${lot.short_code || 'no code'} · ${lot.location_name}`;
     const when = document.createElement('div');
     when.className = 'target';
-    when.textContent = lot.use_by ? `use by ${lot.use_by}` : 'no use-by recorded';
+    // The batch number is shown because it is what staff read off the label,
+    // and the use-by because it is what tells two cases of one batch apart.
+    when.textContent =
+      [lot.batch_code ? `batch ${lot.batch_code}` : null,
+       lot.use_by ? `use by ${lot.use_by}` : 'no use-by recorded'].filter(Boolean).join(' · ');
     grow.append(title, when);
 
     const have = document.createElement('div');
@@ -336,30 +342,75 @@ function normaliseCode(text) {
   return text.trim().toUpperCase().replace(/[IL]/g, '1').replace(/O/g, '0');
 }
 
+// Show only the rows a search matched, so the disambiguation is the list
+// itself rather than a sentence somebody has to act on.
+function showOnly(lotIds) {
+  for (const row of $('lot-list').children) {
+    if (!row.dataset || !row.dataset.lot) continue;
+    row.hidden = lotIds !== null && !lotIds.includes(row.dataset.lot);
+  }
+}
+
 function findByCode() {
   const line = state.editing;
-  const code = normaliseCode($('lot-code').value);
+  const typed = $('lot-code').value.trim();
+  const code = normaliseCode(typed);
   const note = $('lot-code-note');
-  if (!code) {
-    note.textContent = 'Earliest use-by first below, or find a case by its code.';
-    return;
-  }
-
   const available = state.stock[line.ingredient_id] || [];
-  const match = available.find((lot) => (lot.short_code || '') === code);
-  if (match) {
-    note.textContent = `${match.short_code} — ${match.location_name}, ${match.quantity} ${line.ingredient_base_unit} left`;
-    const input = [...$('lot-list').querySelectorAll('input')].find((row) => row.dataset.lot === match.lot_id);
-    if (input) input.focus();
+
+  if (!typed) {
+    showOnly(null);
+    note.textContent = 'Earliest use-by first below. Or type the short code, or the batch number.';
     return;
   }
 
-  // Said precisely rather than "not found": which of the three it is decides
-  // what the person does next.
-  const elsewhere = Object.values(state.stock).flat().find((lot) => (lot.short_code || '') === code);
+  // The short code identifies exactly one case, so it wins.
+  const byShortCode = available.find((lot) => (lot.short_code || '') === code);
+  if (byShortCode) {
+    showOnly([byShortCode.lot_id]);
+    note.textContent =
+      `${byShortCode.short_code} — ${byShortCode.location_name}, ` +
+      `${byShortCode.quantity} ${line.ingredient_base_unit} left`;
+    return;
+  }
+
+  // Then the batch number, which staff read off the label today and which is
+  // the delivery's date. It does not identify a case on its own — every case
+  // of one ingredient delivered on a day carries the same one — but inside
+  // this ingredient's own stock it usually names one, and where it names
+  // several the list narrows to them and the use-by tells them apart. That is
+  // asking rather than guessing, which is the whole reason the system stopped
+  // joining on this number.
+  const byBatch = available.filter((lot) => (lot.batch_code || '').toUpperCase() === typed.toUpperCase());
+  if (byBatch.length === 1) {
+    showOnly([byBatch[0].lot_id]);
+    note.textContent =
+      `Batch ${byBatch[0].batch_code} — ${byBatch[0].location_name}, ` +
+      `${byBatch[0].quantity} ${line.ingredient_base_unit} left` +
+      `${byBatch[0].use_by ? `, use by ${byBatch[0].use_by}` : ''}`;
+    return;
+  }
+  if (byBatch.length > 1) {
+    showOnly(byBatch.map((lot) => lot.lot_id));
+    const dates = [...new Set(byBatch.map((lot) => lot.use_by || 'no use-by'))];
+    note.textContent =
+      `${byBatch.length} cases of ${line.ingredient_name} carry batch ${typed}. ` +
+      (dates.length > 1
+        ? 'They are shown below — the use-by tells them apart.'
+        : 'They are shown below and share a use-by, so pick by where each one is.');
+    return;
+  }
+
+  showOnly(null);
+  // Said precisely rather than "not found": which of these it is decides what
+  // the person does next.
+  const elsewhere = Object.values(state.stock)
+    .flat()
+    .find((lot) => (lot.short_code || '') === code || (lot.batch_code || '').toUpperCase() === typed.toUpperCase());
   note.textContent = elsewhere
-    ? `${code} is ${elsewhere.item_name}, not ${line.ingredient_name}.`
-    : `${code} is not open stock. If the case has no code, use "No labelled lot" and say why.`;
+    ? `${typed} is ${elsewhere.item_name}, not ${line.ingredient_name}.`
+    : `${typed} matches no open case of ${line.ingredient_name}. ` +
+      'If the case has no label, use "No labelled lot" and say why.';
 }
 
 function saveLots() {
