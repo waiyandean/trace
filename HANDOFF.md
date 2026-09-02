@@ -1,120 +1,192 @@
-# trace — handoff
+# Handoff: the label GUI (2026-09-02)
 
-Where the project is, what to pick up, and the things that will bite you if
-nobody says them. Read `PLAN.md` for the model and the reasoning; this is the
-shorter, staler-faster document about state.
+Context for a new session picking this up. Dean runs a small ramen kitchen and
+production unit; `trace` is the traceability system being built for it, and
+`PLAN.md` is the plan of record for that. This session did not work on the
+ledger. It built the thing sitting beside it: **`labels/gui`, a local web app
+that fills the kitchen's label templates in from the catalog and prints them**,
+because labels were still being hand-edited as ZPL and copied to a Windows
+machine by hand.
 
-Last updated 2026-09-02.
+It is explicitly an interim tool. When the Worker generates labels from lot
+records, it goes away.
 
-## State
+---
 
-| Phase | State |
-| --- | --- |
-| P0 Foundations | Complete. Catalog imported, deployed. |
-| P1 Receive | Complete, not deployed. Goods-in form, compliance checks, offline. |
-| P2 Store, move, waste | Complete, not deployed. Stock screen. |
-| P3 Produce | Ledger and forms built, not deployed. Two gaps below. |
-| P4 Dispatch | Not started. |
-| P5 Count | Not started. Blocked on count granularity. |
-| P6 Reports | Partial: one-step-back and mass balance exist as API reads. |
-| P7 Parallel run | Not started. |
+## Where things stand
 
-184 tests pass (`npm test` in `worker/`). Eleven migrations.
+Working and in daily reach: the app runs on the Windows laptop the Zebra ZT231
+is plugged into, prints over the Windows spooler, and covers five label types.
+Nothing on a label has to be typed except the batch on Date Opened — every
+other value is either in the catalog or worked out from a date.
 
-**Nothing is deployed past P0.** The live Worker at
-`https://trace.waiyandean.workers.dev` is still the read-only catalog build
-from 2026-08-31, and the remote database has only migration 0001 applied.
-Everything since runs locally. That is deliberate: the endpoints write, and
-authentication is deferred to the end of the build (Dean, 2026-08-31).
+| Label type | Rows | Anything missing |
+| --- | --- | --- |
+| Goods In | 67 (60 ingredients, dual-supplier ones twice) | none |
+| Date Opened | 17 (15 ingredients, dual-supplier ones twice) | none |
+| Product Packet | 26 | SKU for Tonkotsu Broth Diluted |
+| Product Box | 26 | SKU for Tonkotsu Broth Diluted |
+| Notice | free text, no catalog | — |
 
 ## Running it
 
-    cd worker
-    npm install
-    npm run migrate:local
-    npx wrangler d1 execute trace --local --file scripts/catalog.sql
-    npx wrangler d1 execute trace --local --file scripts/item-suppliers.sql
-    npx wrangler d1 execute trace --local --file scripts/recipes.sql
-    npx wrangler d1 execute trace --local --command \
-      "INSERT INTO devices (id, name) VALUES ('trace:goods-in-ipad', 'Goods In iPad')"
-    npm run dev
+```
+cd labels/gui
+python3 server.py                 # http://localhost:8642
+python3 check_layouts.py          # 19 cases, lints every format at its worst
+./package.sh                      # rebuild the bundle in the shared Drive folder
+```
 
-Four screens: `/` goods in, `/stock`, `/batching`, `/batches`.
+On the Windows machine, `update.bat` pulls the latest from Drive and starts it.
+`start.bat` just starts what is already there. Both keep their window open on
+an error, which an earlier version did not, and that cost a debugging round.
 
-A device row is needed or the goods-in form has nothing to be — short codes
-are issued per device.
+Standard library only, deliberately: the machine this runs on is a kitchen
+laptop somebody has to be able to set up again from nothing.
 
-## What to pick up next
+## How it is put together
 
-1. **Finish P3.** Two things are built but unproven end to end in a browser:
-   the open-batches screen and packing. Both were driven through a DOM shim,
-   not Safari. Layout on the iPad has never been checked on any screen.
-2. **P4 Dispatch.** Consumes product lots and inherits their recorded use-by
-   rather than calculating a new one.
-3. **Authentication, then deploy.** Cloudflare Access on the workers.dev
-   hostname, hostname-based rather than Worker-level — a Worker-level policy
-   breaks WebSockets, which the printer path will need.
+| File | What |
+| --- | --- |
+| `server.py` | Routes, the form definitions, and what each field defaults to. |
+| `zpl.py` | Builds all five formats from field values. The layout lives here. |
+| `printers.py` | Four ways of getting ZPL to a printer. |
+| `catalog.json` | The catalog, baked in so the tool needs no network. Generated. |
+| `label-data.json` | Everything the catalog cannot answer. Partly generated. |
+| `build_catalog.py` | Regenerates `catalog.json` from `worker/scripts/`. |
+| `import_allergens.py` | Fills the allergen declarations from the Allergen Matrix. |
+| `check_layouts.py` | Builds every format at its worst case and lints them. |
+| `package.sh` | Assembles a self-contained copy in the shared Drive folder. |
+| `../lint-zpl.py` | Bounding box per element; fails overlaps and margin breaks. |
 
-## Things that will bite you
+`labels/gui/README.md` is the detailed version of all of this and explains why
+each layout decision is what it is. Read it before changing a coordinate.
 
-**Nothing the form can work out is filled in for anybody.** This is a rule,
-not a preference, and it is in PLAN.md. A pre-filled figure records that the
-form was submitted, not that anybody checked. It has already been violated
-once (the lot picker) and caught once (the attestations start unticked).
+## Where the data comes from
 
-**Three CSS bugs of one family have already happened**: `display: flex` on a
-dialog defeating its closed state, `appearance: none` stripping a checkbox's
-tick, and a class with `display` beating the `hidden` attribute. There are
-tests for all three. If a control is inexplicably visible or invisible, look
-at `app.css` before the JavaScript.
+Nothing in `labels/gui` is a source of truth except `label-data.json`, and even
+that is half generated.
 
-**Workers' static assets answer `/x.html` with a 307 to `/x`.** A cached
-redirect cannot satisfy a navigation, so the service worker precaches the
-extensionless path. This only fails offline, which is the one time nobody can
-debug it.
+- **The catalog** — `worker/scripts/catalog.sql`, generated by
+  `import_catalog.py` from `~/Downloads/Weekly Stock Check Records.xlsx` plus
+  `catalog-overrides.json`. Kitchen decisions go in the overrides file, then
+  the importer is re-run, then `build_catalog.py`. Never edit `catalog.json`.
+- **Allergens** — the kitchen's own Allergen Matrix in the `forms` repo, at
+  `apps/wiki/html/1.4 Allergen Management/1.4.1 Allergen Matrix.html`. Read by
+  `import_allergens.py`. An allergen line is a compliance statement, so it
+  comes from the document maintained as one and is never derived from an
+  ingredient's name.
+- **Photographs** — `worker/public/photos`, put there by
+  `worker/scripts/import_photos.py`, which takes ingredients from the old
+  batching API and products from the forms Worker's catalog. Matched by item
+  id, because both catalogs came from the same workbook.
 
-**Bump `VERSION` in `public/sw.js` on every deploy.** The running version is
-shown on the goods-in screen so an iPad can be asked what it has, rather than
-guessed at.
+## Decisions taken this session (all Dean unless noted)
 
-**The importers delete what they no longer produce.** `import_catalog.py`
-removes conversions it stops generating; `import_recipes.py` replaces a
-recipe's lines wholesale. Upserting alone left a corrected factor sitting in
-the database with nothing to say it was stale.
+- **No lot codes or QR on Goods In and Date Opened.** Lots do not exist yet, and
+  a printed code that resolves to nothing is worse than none. The space went to
+  the batch and the dates. They come back when the ledger mints lots.
+- **The QR on product labels carries the SKU**, being the only thing on the
+  label that resolves to anything today. It should become a URL to the batch
+  record once the trace endpoint is live, and not before.
+- **`GLU` prints as "Gluten", not "Wheat"** — the hand-written artwork said
+  Wheat, which is narrower than the matrix states.
+- **Where the matrix names a cross-contact allergen the label names it**, and
+  still ends "and other allergens".
+- **The `M&R` prefix was dropped** from every product name and from the artwork.
+- **Health mark is decided for every product**: the two broths and the four
+  frozen ramen carry it, nothing else does. Written out as `false` rather than
+  left null, so a considered absence stays distinguishable from an unasked
+  question.
+- **Shelf life** is 12 months for the broths and 6 for everything else, counted
+  in whole months onto the first of that month.
+- **Batch codes** — Goods In is the delivery date as `ddmmyy`; products are the
+  packing date as `ddmm`, the run suffix `GA`, then the pot number for the
+  broths, which are cooked several batches a day. This matches what the `forms`
+  repo's `HANDOFF.md` already recorded independently.
+- **Salt and MSG keep for three months once opened**, not the kitchen's blanket
+  six weeks. Recorded in a new `decided` bucket in the overrides, so "somebody
+  decided this one" stays distinguishable from "the default applied".
+- **Goods In prints "See product packaging"** when no use-by is typed, rather
+  than a blank that reads as one somebody forgot.
+- **Date Opened leads with use-by and batch**, in the same positions Goods In
+  uses. This inverts the handwritten form it replaces, which led with the
+  opened date.
+- **Tonkotsu Broth Diluted is a separate product** carrying a reversed
+  `DILUTED` chip beside the name. The two are identical in the pouch and a word
+  in the name does not survive being glanced at across a room. The chip is
+  under 3% black, against the 41-48% that got reversed bands rejected earlier.
 
-**Test data lives in the local D1 only.** The append-only trigger refuses a
-plain `DELETE FROM movements`, which is it working. To wipe, delete
-`.wrangler/state/v3/d1` and re-run the load above.
+## Two places a label layout could be edited
 
-## Open questions, and who they block
+`labels/gui/zpl.py` is the one that prints. The loose `.zpl` files in `labels/`
+are the hand-built originals the design came from, kept as readable specimens,
+and they have already drifted — they still carry the `M&R` prefix that was
+dropped everywhere else. `labels/README.md` now says so at the top, but it is
+worth knowing before opening either.
 
-Numbered as in PLAN.md. Renumbering breaks nothing now — references are by
-name.
+`sync-to-drive.sh` and `print-copies.sh` belong to that older route, where a
+`.zpl` file was copied to Drive and sent with `copy /b`. The app replaced it.
+They still work for putting a one-off specimen in front of the printer.
 
-- **Label printing path.** Separate workstream. ZPL proven over USB; the
-  network path to the printer is not chosen.
-- **Count granularity.** Blocks P5.
-- **Density.** Five recipe lines cannot be checked against what was used.
-  Dean will verify by weighing. Nothing else is blocked.
-- **Decant and merge discipline.** Partly answered — yakisoba is decanted
-  whole, which is the harmless kind.
-- **Authentication.** Deferred to the end of the build. Blocks every
-  deployment.
-- **Packaging.** Still out of scope.
+## Traps that have already bitten
 
-Resolved and worth not relitigating: lot identity and short codes, shelf-life
-ownership, opening a pack, the supervised exception workflow (proceed and
-record as unproven).
+- **`^FB` overprints, it does not truncate.** A block given fewer lines than it
+  needs draws the overflow on top of the line above. It happened live while the
+  Notice label was being written. `zpl.py` simulates the wrap and holds back
+  10% of the line width.
+- **`^BY` is persistent printer state** and silently displaces a later QR. Every
+  format sets it. This is in the labels README and cost a morning before this
+  session.
+- **The QR grew past the margin** when its payload changed from a 7-character
+  batch to a 14-character SKU. It is now sized to fit, from magnification 6 down
+  to 4, and warns below 5.
+- **`HERE.parents[1]`** threw `IndexError` on the Windows machine, where the
+  folder sits at `C:\label-gui` with one parent. Python 3.11 underlines the
+  expression in red, which reads like a syntax error and is not.
+- **A minted product could not read `product_storage`**, so any product added
+  through the overrides came out with no storage at all. Fixed in
+  `import_catalog.py`.
+- **`\\localhost\ZEBRA` stopped working** on the Windows machine with the share,
+  spooler and Server service all apparently fine. Never diagnosed. The tool
+  prints through the Windows spooler by name instead, which needs none of that.
 
-## Known gaps in what is built
+## Open items
 
-- **Two products have no recipe** in the batching system: Green Curry Sauce
-  and Tom Yum Tare. They are shown greyed in the picker with the reason.
-- **BBQ Seasoning and Beef Tataki** are still counted in `Units` because they
-  fit none of the three groups Dean named.
-- **Five recipe lines** cannot be converted — the density question.
-- **Spring onion** has no bunch weight, so its recipe line stays unconvertible.
-- **The QR scanning path does not exist.** The lot picker takes a typed short
-  code or batch number, and a scanner would feed the same field.
-- **No form is a real PWA test yet.** Everything has been driven through a DOM
-  shim in Node, which catches wiring and logic but not layout.
+1. **The EAN-13 is 10 mm tall; GS1 asks for 18 mm.** It does not fit on 4x2
+   stock alongside the dates, health mark and allergen box — there is no
+   arrangement that makes it. `check_layouts.py` says so every run. It needs
+   testing against a real till, and `PLAN.md` already has the retail frozen
+   labels on a Brother printer and different stock, which is where a
+   full-height symbol belongs.
+2. **Eleven allergen declarations live in `import_allergens.py`'s `DECIDED`
+   map**, not in the Allergen Matrix. The matrix is the document an auditor
+   reads. Each should disappear from that map as it is added there; the import
+   report lists them under their own heading so they are not forgotten.
+3. **Allergens and the health mark belong in the trace catalog**, beside
+   storage and shelf life, where the goods-in form and the recipe explosion can
+   see them too. `label-data.json` is a holding pen.
+4. **Tonkotsu Broth Diluted needs a SKU**, and its pack sizes were assumed from
+   the concentrate rather than given.
+5. **The frozen ramen print the catalog's internal name**, `Frozen Ramen :
+   Hell Ramen`, which reads oddly on a retail box. A `label_name` fixes it.
+6. **An Ethernet cable is on order for the printer.** Once it has an address,
+   Settings to Network on port 9100 takes Windows out of the printing path
+   entirely, and any machine can run the tool. Give it a DHCP reservation: a
+   printer whose address moves is a printer that silently stops working.
+7. **Three ingredient photographs still fail to import** — Apple Juice, Ground
+   White Pepper, Japanese Soy Sauce — because their sources are Google Drive
+   links that are not publicly readable. Re-uploading them in stockcheck fixes
+   it.
+
+## What was deliberately not done
+
+- **No service worker** on the page. It is served from the same machine it runs
+  on, so a cache buys nothing and a stale one would go on serving the previous
+  version after an update.
+- **No border on the Notice label**, even though a warning is the obvious case
+  for one. The border round the whole label is what tells Date Opened from
+  Goods In across a room, and spending it twice takes that distinction away
+  from the pair that actually gets confused.
+- **No automatic Drive sync.** `update.bat` copies down on launch instead, so a
+  running server never has its files swapped underneath it.

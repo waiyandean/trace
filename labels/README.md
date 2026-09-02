@@ -6,20 +6,27 @@ questions around it.
 
 ## Files
 
+**The layout lives in `gui/zpl.py`, not in the `.zpl` files here.** Those were
+the hand-built originals and are kept only as readable specimens of the design
+they established. They have already drifted — they still print the `M&R` prefix
+that was dropped from every product name — so do not edit them expecting a
+printed label to change, and do not read them for current content.
+
 | File | What |
 | --- | --- |
-| `tonkotsu-packet.zpl` | Product packet label, MR015 Tonkotsu Broth. |
-| `tonkotsu-box.zpl` | The case version of the same label. |
-| `sauce-packet.zpl` | Product label without the health mark, for items that do not need one. |
-| `goods-in.zpl` | Intake label. Replaces the handwritten Goods In form. |
-| `date-opened.zpl` | Applied when a container is opened or decanted. |
+| `gui/` | The label app. Generates every format; this is what prints. |
+| `gui/zpl.py` | **Where the layout actually lives.** Change coordinates here. |
+| `gui/package.sh` | Copies that app to the Drive folder for the Windows machine. |
+| `tonkotsu-packet.zpl` | Superseded specimen: product packet, with health mark. |
+| `tonkotsu-box.zpl` | Superseded specimen: the case version. |
+| `sauce-packet.zpl` | Superseded specimen: product without the health mark. |
+| `goods-in.zpl` | Superseded specimen: intake label. |
+| `date-opened.zpl` | Superseded specimen: opened or decanted container. |
 | `png-to-zpl.py` | Converts an image into a ZPL `^GF` graphic field. |
 | `lint-zpl.py` | Reports overlapping or off-label elements in a label. |
-| `preview.sh` | Renders a label to PNG through Labelary's ZPL engine. |
-| `sync-to-drive.sh` | Copies the `.zpl` files to the shared Drive folder. |
-| `print-copies.sh` | Writes a copy with a given print quantity into that folder. |
-| `gui/` | A local web app that fills these templates in from a form and prints them. |
-| `gui/package.sh` | Copies that app to the Drive folder, ready to run on the Windows machine. |
+| `preview.sh` | Renders any ZPL to PNG through Labelary's engine. Still useful. |
+| `sync-to-drive.sh` | Copies the `.zpl` specimens to Drive. Obsolete since the app. |
+| `print-copies.sh` | Sets a print quantity on a specimen. Obsolete since the app. |
 
 ## Filling them in from a form
 
@@ -35,10 +42,10 @@ generates and what has to be got right either way.
 
 ## Where the files live
 
-This directory is the source of truth. `sync-to-drive.sh` copies them into
-the shared Drive folder (`Main/test labels`), which syncs to the Windows
-machine the printer is attached to, so the label can be printed there without
-transferring anything by hand.
+`gui/` is the source of truth and reaches the printer through `gui/package.sh`
+and the Windows machine's `update.bat`. The `sync-to-drive.sh` and
+`print-copies.sh` route predates the app and is kept only for sending a
+one-off specimen at the printer by hand.
 
 ## Print quantity
 
