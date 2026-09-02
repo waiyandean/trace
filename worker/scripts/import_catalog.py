@@ -298,10 +298,14 @@ def pack_conversions(item_id, pack, provenance):
         f"{item_id}:item:{base}", item_id, "item", base, float(size),
         f"one {pack['pack']} is {pack['size']} {pack['unit']} ({provenance})",
     )]
-    if pack["per_case"] and pack["per_case"] > 1:
+    # Emitted even when a case holds one pack. Skipping it there left chicken
+    # wings — one ten-kilogram bag to a case — with no path from a case to
+    # kilograms at all, so a delivery keyed the way it arrives was refused.
+    if pack["per_case"]:
         rows.append((
             f"{item_id}:case:item", item_id, "case", "item", float(pack["per_case"]),
-            f"{pack['per_case']} {pack['pack']}s to a case ({provenance})",
+            f"{pack['per_case']} {pack['pack']}{'' if pack['per_case'] == 1 else 's'} to a case"
+            f" ({provenance})",
         ))
     return rows
 

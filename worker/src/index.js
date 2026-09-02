@@ -5,6 +5,7 @@ import { issueCodes, poolFor } from './ledger/codes.js';
 import { receive } from './ledger/receive.js';
 import { openDeviations, closeDeviation } from './ledger/deviations.js';
 import { move, waste, hold, releaseHold, openHolds } from './ledger/stock.js';
+import { produce } from './ledger/produce.js';
 
 // The `trace` Worker.
 //
@@ -27,6 +28,7 @@ import { move, waste, hold, releaseHold, openHolds } from './ledger/stock.js';
 //   POST /api/move                move stock between storage areas
 //   POST /api/waste               throw stock away, with a reason
 //   POST /api/hold                hold a lot; ?release to let it go
+//   POST /api/produce             make a batch: consumes lots, opens a product lot
 //
 // The old `forms` system stays authoritative until Dean cuts over, so nothing
 // here is yet the kitchen's record of anything.
@@ -58,6 +60,7 @@ const ROUTES = {
   '/api/move': ['POST'],
   '/api/waste': ['POST'],
   '/api/hold': ['POST'],
+  '/api/produce': ['POST'],
 };
 
 async function readBody(request) {
@@ -104,6 +107,7 @@ async function route(request, env, url) {
         ? json(await releaseHold(db, body))
         : json(await hold(db, body), { status: 201 });
     }
+    if (url.pathname === '/api/produce') return json(await produce(db, await readBody(request)), { status: 201 });
     if (url.pathname === '/api/receive') {
       const result = await receive(db, await readBody(request));
       // 200 for a replay, 201 for a submission that wrote something. A device

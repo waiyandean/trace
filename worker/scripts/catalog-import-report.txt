@@ -1,5 +1,5 @@
 overrides: catalog-overrides.json (Dean, 2026-08-31)
-97 items (69 ingredients, 28 products), 127 conversions, 4 locations, 2 suppliers, 10 staff -> /Users/grid/Repos/trace/worker/scripts/catalog.sql
+97 items (69 ingredients, 28 products), 128 conversions, 4 locations, 2 suppliers, 10 staff -> /Users/grid/Repos/trace/worker/scripts/catalog.sql
 
 Opened pack shortens the use-by, per the supplier's specification (2)
   - Balsamic Vinegar — 90 days
