@@ -166,3 +166,32 @@ test('the stock screen does not pretend to work offline', () => {
   // numbers as though they were current.
   assert.match(stockScript, /this screen needs a connection/);
 });
+
+// The batching form, checked the same way as the other two.
+
+const batchingHtml = readFileSync(new URL('../public/batching.html', import.meta.url), 'utf8');
+const batchingScript = readFileSync(new URL('../public/batching.js', import.meta.url), 'utf8');
+
+test('every element the batching form reaches for exists in its page', () => {
+  const declared = new Set([...batchingHtml.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+  const used = new Set([...batchingScript.matchAll(/\$\('([^']+)'\)/g)].map((m) => m[1]));
+  assert.deepEqual([...used].filter((id) => !declared.has(id)), []);
+});
+
+test('all three pages share the one stylesheet', () => {
+  for (const page of [html, stockHtml, batchingHtml]) {
+    assert.match(page, /<link rel="stylesheet" href="\/app\.css" \/>/);
+  }
+});
+
+test('the batching form does not walk the DOM to find a label', () => {
+  // A label found by climbing from its input breaks the day somebody wraps
+  // the field in a div, and it breaks silently.
+  assert.doesNotMatch(batchingScript, /parentElement/);
+});
+
+test('the service worker caches every page', () => {
+  for (const path of ['/', '/stock', '/batching']) {
+    assert.ok(shellPaths().includes(path), `${path} is not precached`);
+  }
+});

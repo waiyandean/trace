@@ -178,7 +178,9 @@ async function chooseProduct(item) {
 
   await loadStock();
   $('product-name').textContent = item.name;
-  $('yield').parentElement.querySelector('label').textContent = `How much it made, in ${item.base_unit}`;
+  // Addressed by id rather than walked to from the input: a label found by
+  // climbing the tree breaks the day somebody wraps the field in a div.
+  $('yield-label').textContent = `How much it made, in ${item.base_unit}`;
   render();
 }
 

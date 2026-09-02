@@ -26,6 +26,7 @@ is the structural change the whole rebuild rests on.
 - `src/ledger/packing.js` — packing a batch out, and its mass balance.
 - `public/index.html` — the goods intake form, served from the same origin.
 - `public/stock.html`, `public/stock.js` — the stock screen: move, waste, hold.
+- `public/batching.html`, `public/batching.js` — the batching form.
 - `public/app.css` — the styling both pages share.
 - `public/goods-in.js` — the form's wiring to the DOM.
 - `public/lib/offline.js` — id minting, the queue, the pool. No DOM, so it is
@@ -65,7 +66,8 @@ is the structural change the whole rebuild rests on.
     GET  /api/packing                  batches made but not yet packed out
     POST /api/packing                  packets produced and the label check
     GET  /api/balance?lot=<lot id>     what went in against what came out
-    GET  /api/catalog?action=recipes    &item=<product id>
+    GET  /api/catalog?action=recipes     &item=<product id>
+    GET  /api/catalog?action=checkpoints &item=<product id>
 
 Every catalog action takes `&active=all` to include retired rows; the default
 is active rows only. Items out of scope at Glasgow are held as inactive rows
@@ -76,6 +78,7 @@ from the record.
 
     /            the goods intake form
     /stock       what is in each area, and what can be done to it
+    /batching    make a batch: pick the product, name the lots, record the checks
 
 Served as static assets from the same origin as the API, so there is no CORS
 and no second thing to keep deployed in step. `run_worker_first` in
@@ -388,6 +391,30 @@ than no balance.
 The use-by is derived once from the recipe's shelf life rather than typed per
 batch. A product whose recipe states none gets no use-by at all rather than a
 guessed one, and the lot records which of the two happened.
+
+## The batching form
+
+    /batching
+
+Follows the shape of the form the kitchen already uses — pick the product from
+a grid of photographs, work down its ingredients, record the checks — and adds
+the one thing that form cannot do: say which lot each ingredient came from.
+
+- **Lots are offered first-expiring first** and pre-filled up to what the
+  recipe asks for, which is what somebody would do by hand. Every figure stays
+  editable, and an ingredient can be split across as many lots as it takes.
+- **Held stock is not offered at all**, so a hold cannot be worked around by
+  quietly using the stock in a batch.
+- **"No labelled lot" is a button**, not a dead end. It asks how much and why,
+  and the batch is recorded with that ingredient marked unproven.
+- **Checkpoints come from the recipe**, so a broth asks its eight and an oil
+  its four. The ones with a clock are not asked for at all: the form says they
+  will be waiting on the checks screen afterwards.
+- A product with no recipe is **shown and greyed with the reason**, rather than
+  hidden — hiding it leaves somebody hunting for a product they can see on the
+  shelf.
+
+Like the stock screen, it reads live and does not pretend to work offline.
 
 ## Devices
 
