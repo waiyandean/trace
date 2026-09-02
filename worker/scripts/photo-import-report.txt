@@ -1,6 +1,6 @@
-68 of 86 items have a photograph, copied from the kitchen's existing catalog and resized to 320px.
+77 of 97 items have a photograph, copied from the kitchen's existing catalog and resized to 320px.
 
-No photograph in the source catalog (15)
+No photograph in the source catalog (17)
   - ingredient Chicken Fillet
   - ingredient Coconut Milk
   - ingredient Memma Bamboo Shoots
@@ -12,7 +12,9 @@ No photograph in the source catalog (15)
   - product    Black Garlic Tonkotsu (Soup)
   - product    Chicken Ramen (Soup)
   - product    Green Curry Sauce
+  - product    Green Oil
   - product    Hell Ramen (Soup)
+  - product    Ikigai Chicken Broth
   - product    Laksa Ramen (Soup)
   - product    Pork Chasiu
   - product    Tom Yum Tare
@@ -31,12 +33,16 @@ Copied
   - ingredient Ariake Tonkotsu Paste — 20 kB
   - ingredient Balsamic Vinegar — 23 kB
   - ingredient Blended Sesame Oil — 61 kB
+  - ingredient Carrots — 34 kB
   - ingredient Chicken Carcass — 16 kB
   - ingredient Chicken Feet — 26 kB
+  - ingredient Chicken Powder — 21 kB
   - ingredient Chicken Wings — 20 kB
+  - ingredient Chinese Leaves — 32 kB
   - ingredient Cider Vinegar — 21 kB
   - ingredient Cracked Black Pepper — 32 kB
   - ingredient Curry Laksa Paste — 55 kB
+  - ingredient Dark Soy Sauce — 17 kB
   - ingredient Diced Onions — 31 kB
   - ingredient Dried Bird Eye Chillies — 29 kB
   - ingredient Femur Bones — 12 kB
@@ -47,12 +53,14 @@ Copied
   - ingredient Haepyo Gochujang — 22 kB
   - ingredient Hind Feet — 14 kB
   - ingredient Hoi Sin Sauce 20kg — 113 kB
+  - ingredient Hoi Sin Sauce Cans — 16 kB
   - ingredient JA Yuzu Seasoning — 11 kB
   - ingredient Korean Hot Pepper Powder — 34 kB
   - ingredient Mae Ploy Green Curry Paste — 26 kB
   - ingredient Mae Ploy Red Curry Paste — 26 kB
   - ingredient Mae Ploy Tom Yum Paste — 27 kB
   - ingredient Maggi Seasoning — 27 kB
+  - ingredient Medium Eggs — 14 kB
   - ingredient Mirin Style Seasoning — 17 kB
   - ingredient Paprika Sweet — 29 kB
   - ingredient Peeled Garlic — 35 kB
@@ -69,9 +77,12 @@ Copied
   - ingredient Spicy Bean Sauce (Mapo) — 23 kB
   - ingredient Spinach — 33 kB
   - ingredient Spring Onion — 40 kB
+  - ingredient Sriracha Chilli Sauce — 15 kB
   - ingredient Syrup — 27 kB
   - ingredient Tahini — 23 kB
   - ingredient Toban Djan Chilli Bean Sauce — 144 kB
+  - ingredient Tomato Ketchup — 14 kB
+  - ingredient Tomato Puree Paste — 17 kB
   - ingredient White Miso — 16 kB
   - ingredient White Truffle Oil — 29 kB
   - ingredient Yakisoba Sauce — 15 kB

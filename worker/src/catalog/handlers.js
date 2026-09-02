@@ -7,7 +7,7 @@ import { BadRequest } from '../http.js';
 // `active=all` is accepted everywhere so an admin screen can see retired rows;
 // the default is active rows only, because that is what a form needs.
 
-const BOOLEAN_COLUMNS = ['active', 'needs_health_mark'];
+const BOOLEAN_COLUMNS = ['active', 'needs_health_mark', 'is_ccp', 'required', 'staff_selectable'];
 
 function toRow(row) {
   const out = { ...row };
@@ -115,6 +115,21 @@ export function getRecipes(db, { itemId = null } = {}) {
   );
 }
 
+// The checks a product's batches are made under, so the batching form can ask
+// for exactly what the recipe defines rather than a fixed set of fields.
+export function getCheckpoints(db, { itemId = null } = {}) {
+  const where = itemId ? ' WHERE r.item_id = ?' : '';
+  return selectAll(
+    db,
+    `SELECT c.*, r.item_id, i.name AS product_name
+       FROM checkpoints c
+       JOIN recipes r ON r.id = c.recipe_id
+       JOIN items i ON i.id = r.item_id${where}
+      ORDER BY i.name, c.sort_order`,
+    itemId ? [itemId] : [],
+  );
+}
+
 // Conversions are returned with the item's name attached, because every
 // caller that reads a conversion is showing it against an item.
 export function getConversions(db, { itemId = null } = {}) {
@@ -141,6 +156,7 @@ const ACTIONS = {
   temperature_limits: (db) => getTemperatureLimits(db),
   waste_reasons: (db) => getWasteReasons(db),
   recipes: (db, params) => getRecipes(db, params),
+  checkpoints: (db, params) => getCheckpoints(db, params),
 };
 
 export const CATALOG_ACTIONS = Object.keys(ACTIONS);

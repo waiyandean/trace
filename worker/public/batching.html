@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Batching — trace</title>
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Batching" />
+<meta name="theme-color" content="#f2f2f7" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="stylesheet" href="/app.css" />
+<style>
+/* Batching is done inside on wifi, so this reads live lot balances rather
+   than caching them (PLAN.md, "Where the iPad actually is"). */
+.ing { border-top: 1px solid var(--line); padding: 12px 16px; }
+.ing .head { display: flex; align-items: center; gap: 12px; }
+.ing img, .ing .noimg { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; background: var(--sunk); flex: none; }
+.ing .grow { flex: 1; min-width: 0; }
+.ing .name { font-weight: 600; }
+.ing .target { font-size: 14px; color: var(--muted); }
+.ing .picked { font-size: 14px; margin-top: 6px; }
+.ing .picked div { padding: 2px 0; }
+.ing .short { color: var(--warn); font-weight: 600; }
+.ing .done { color: var(--tint); font-weight: 600; }
+.ing .unproven { color: var(--bad); font-weight: 600; }
+.ing .actions { padding: 8px 0 0; }
+.ing .actions button { min-height: 38px; font-size: 15px; padding: 6px 14px; }
+
+.cp { border-top: 1px solid var(--line); padding: 12px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.cp .grow { flex: 1 1 220px; min-width: 0; }
+.cp .label { font-weight: 600; }
+.cp .limit { font-size: 13px; color: var(--muted); }
+.cp .ccp { font-size: 11px; font-weight: 700; color: var(--bad); letter-spacing: 0.5px; }
+.cp input, .cp select { max-width: 180px; }
+.cp .later { font-size: 13px; color: var(--muted); flex: 1 1 100%; }
+
+.lotpick { border-top: 1px solid var(--line); padding: 12px 16px; display: flex; gap: 12px; align-items: center; }
+.lotpick .grow { flex: 1; min-width: 0; }
+.lotpick .qty { font: 600 16px/1 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; }
+.lotpick input { max-width: 110px; }
+.lotpick .soon { color: var(--bad); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Batching</h1>
+  <span class="pill" id="net">checking</span>
+  <a href="/" class="pill" style="text-decoration:none">Goods In</a>
+  <a href="/stock" class="pill" style="text-decoration:none">Stock</a>
+</header>
+
+<main>
+  <div id="alerts"></div>
+
+  <section>
+    <h2>The batch</h2>
+    <div class="row">
+      <div class="field">
+        <label for="staff">Who is making it</label>
+        <select id="staff"></select>
+      </div>
+      <div class="field">
+        <label for="made">Started</label>
+        <input id="made" type="datetime-local" />
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Product</label>
+        <output class="derived" id="product-name">none chosen</output>
+      </div>
+      <div class="field">
+        <label for="multiplier">How many times the recipe</label>
+        <input id="multiplier" type="number" min="0.25" step="0.25" value="1" inputmode="decimal" />
+      </div>
+    </div>
+    <div class="actions">
+      <button id="pick-product">Choose the product</button>
+    </div>
+  </section>
+
+  <section id="ingredients-section" hidden>
+    <h2>What went in</h2>
+    <ul class="lines" id="ingredients"></ul>
+  </section>
+
+  <section id="checks-section" hidden>
+    <h2>Checks</h2>
+    <div id="checkpoints"></div>
+  </section>
+
+  <section id="finish-section" hidden>
+    <h2>Finish</h2>
+    <div class="row">
+      <div class="field">
+        <label for="yield">How much it made</label>
+        <input id="yield" type="number" min="0" step="any" inputmode="decimal" />
+      </div>
+      <div class="field">
+        <label for="where">Where it is going</label>
+        <select id="where"></select>
+      </div>
+    </div>
+    <ul class="attest" id="attest">
+      <li><label><input type="checkbox" id="equipment" /> Equipment checked before starting</label></li>
+    </ul>
+    <p class="note" id="finish-note"></p>
+    <div class="actions">
+      <button id="save" disabled>Save batch record</button>
+      <button class="secondary" id="discard">Clear this batch</button>
+    </div>
+  </section>
+</main>
+
+<dialog id="product-dialog">
+  <header><h1>Choose a product</h1></header>
+  <div class="picker-search">
+    <input id="product-search" type="search" placeholder="Search by name" autocomplete="off" />
+    <p class="note" id="product-scope"></p>
+  </div>
+  <div class="picker-groups" id="product-groups"></div>
+  <div class="actions">
+    <button class="secondary" id="product-cancel">Cancel</button>
+  </div>
+</dialog>
+
+<dialog id="lot-dialog">
+  <header><h1 id="lot-title">Pick lots</h1></header>
+  <p class="note" id="lot-note"></p>
+  <div class="picker-groups" id="lot-list"></div>
+  <div id="lot-error"></div>
+  <div class="actions">
+    <button id="lot-done">Use these</button>
+    <button class="secondary" id="lot-unproven">No labelled lot</button>
+    <button class="secondary" id="lot-cancel">Cancel</button>
+  </div>
+</dialog>
+
+<dialog id="unproven-dialog">
+  <header><h1>No identified lot</h1></header>
+  <p class="note">
+    The batch will still be recorded. This ingredient is marked as having no identified
+    lot, and it shows that way on a trace rather than being left out.
+  </p>
+  <div class="row">
+    <div class="field">
+      <label for="unproven-qty">How much was used</label>
+      <input id="unproven-qty" type="number" min="0" step="any" inputmode="decimal" />
+    </div>
+  </div>
+  <div class="row">
+    <div class="field">
+      <label for="unproven-why">Why there is no lot</label>
+      <input id="unproven-why" autocomplete="off" placeholder="case had no label, stock predates the rollout…" />
+    </div>
+  </div>
+  <div id="unproven-error"></div>
+  <div class="actions">
+    <button id="unproven-save">Record it as unproven</button>
+    <button class="secondary" id="unproven-cancel">Back</button>
+  </div>
+</dialog>
+
+<script type="module" src="/batching.js"></script>
+</body>
+</html>
