@@ -76,6 +76,7 @@ const batch = (changes = {}) => ({
   location_id: 'loc:freezer',
   yield_quantity: 200,
   yield_unit: 'L',
+  equipment_checked: true,
   lines: [
     {
       item_id: 'item:carcass',
@@ -217,4 +218,36 @@ test('an ingredient cannot be produced as though it were a product', async () =>
 test('the shelf life counts whole days from the day it was made', () => {
   assert.equal(deriveUseBy('2026-09-02T23:50:00Z', 180), '2027-03-01');
   assert.equal(deriveUseBy('2026-09-02T08:00:00Z', 360), '2027-08-28');
+});
+
+// The batch's own facts, and the balance they make possible.
+
+test('the equipment check is an attestation, not an optional tick', async () => {
+  const db = batchDb();
+  const payload = batch();
+  delete payload.equipment_checked;
+  await assert.rejects(() => produce(db, payload), /equipment_checked must be true or false/);
+});
+
+test('a batch records how many times over the recipe it was', async () => {
+  const db = batchDb();
+  await produce(db, batch({ equipment_checked: true, multiplier: 2 }));
+  const record = sqlOf(db, 'INSERT INTO batch_records')[0].params;
+  assert.equal(record[3], 2, 'a double batch');
+  assert.equal(record[4], 1, 'equipment checked');
+  assert.equal(record[5], 200, 'the yield, in the base unit');
+});
+
+test('a multiplier of zero or less is refused', async () => {
+  const db = batchDb();
+  await assert.rejects(
+    () => produce(db, batch({ equipment_checked: true, multiplier: 0 })),
+    /multiplier must be a positive number/,
+  );
+});
+
+test('a batch defaults to one times the recipe rather than guessing', async () => {
+  const db = batchDb();
+  await produce(db, batch({ equipment_checked: true }));
+  assert.equal(sqlOf(db, 'INSERT INTO batch_records')[0].params[3], 1);
 });

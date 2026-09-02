@@ -23,6 +23,7 @@ is the structural change the whole rebuild rests on.
 - `src/ledger/stock.js` — moving stock, throwing it away, holding it.
 - `src/ledger/produce.js` — batching: consumes lots, opens a product lot.
 - `src/ledger/checkpoints.js` — the checks a batch is made under.
+- `src/ledger/packing.js` — packing a batch out, and its mass balance.
 - `public/index.html` — the goods intake form, served from the same origin.
 - `public/stock.html`, `public/stock.js` — the stock screen: move, waste, hold.
 - `public/app.css` — the styling both pages share.
@@ -61,6 +62,9 @@ is the structural change the whole rebuild rests on.
     POST /api/produce                  make a batch: consumes lots, opens one
     GET  /api/checks                   checkpoint readings due and unanswered
     POST /api/checks                   answer one
+    GET  /api/packing                  batches made but not yet packed out
+    POST /api/packing                  packets produced and the label check
+    GET  /api/balance?lot=<lot id>     what went in against what came out
     GET  /api/catalog?action=recipes    &item=<product id>
 
 Every catalog action takes `&active=all` to include retired rows; the default
@@ -360,6 +364,26 @@ field somebody fills in at the end: the batch creates that row unanswered,
 carrying the moment it falls due, and `GET /api/checks` lists what is
 outstanding. A checkpoint nobody created a row for is invisible, and invisible
 is how a cooling check gets forgotten.
+
+**Packets produced is the output side of a mass balance**, not bookkeeping: it
+is how the kitchen sees that every ingredient is accounted for. Packing
+happens after the batch and sometimes by somebody else, so it is its own
+submission — `GET /api/packing` lists what is waiting.
+
+`GET /api/balance?lot=` states what went in against what came out:
+
+    in   16.000 kg  Haepyo Gochujang
+    in    8.000 kg  White Miso
+    in    1.600 L   Blended Sesame Oil   (not added: different unit)
+    total in  36.396 kg
+    out       36.000 kg
+    difference -0.396 kg
+
+Two things it will not do. It does not add an input measured in a different
+unit from the output — litres and kilograms need a density — and it does not
+quietly drop the inputs that had no identified lot. Both are listed instead. A
+balance that looks clean because it ignored what it could not add is worse
+than no balance.
 
 The use-by is derived once from the recipe's shelf life rather than typed per
 batch. A product whose recipe states none gets no use-by at all rather than a
