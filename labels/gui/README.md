@@ -369,6 +369,22 @@ either direction. They belong to the machine they were made on, and
 overwriting the kitchen's printer settings from a development machine is a
 good way to stop it printing.
 
+On the Windows machine, `update.bat` copies the latest version down from Drive
+and then starts it. That is the one to double-click; `start.bat` just runs
+whatever is already there.
+
+The app is deliberately run from a local folder rather than from inside Google
+Drive. Drive rewrites files as it syncs and the app writes its settings and
+print log beside itself, so running in there means the two take turns
+overwriting each other. `update.bat` only ever copies **down**, and never
+touches `config.json`, `print-log.jsonl` or `printed/` — those belong to the
+machine at the printer and must not be replaced by a copy made elsewhere.
+
+For that to work, Google Drive for desktop has to be installed on the Windows
+machine and the folder actually synced. A folder that is only *shared with*
+that account does not sync; it needs a shortcut added to My Drive, which is
+how this one is already set up.
+
 Cloning the repository on that machine works too and makes updates a `git
 pull`. The Drive route exists because it needs nothing installed but Python.
 

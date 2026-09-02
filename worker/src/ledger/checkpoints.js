@@ -54,7 +54,18 @@ function reading(checkpoint, given, where) {
   return { confirmed: null, celsius, observedAt: null, withinLimit: judge(checkpoint, celsius) };
 }
 
-// The rows a batch creates, answered and unanswered alike.
+// The rows a batch creates. All of them unanswered.
+//
+// A batch records what went into it at the moment the ingredients go in
+// (Dean, 2026-09-02). The cooking temperature is taken while it cooks and the
+// cooling ones hours later, so none of them can be asked for on the form that
+// records the ingredients — they would have to be typed before they had
+// happened, which is how a checkpoint becomes a number somebody invented.
+//
+// So every checkpoint becomes a row with the moment it falls due: now, for
+// the ones taken during the batch, and later for the twelve with a clock.
+// Something has to come back to all of them, and the list of what is
+// outstanding is what makes that happen.
 export function planReadings(checkpoints, given, lotId, eventId, envelope, where = 'checkpoints') {
   const byCode = new Map(checkpoints.map((checkpoint) => [checkpoint.code, checkpoint]));
   const answers = new Map(Object.entries(given || {}));
@@ -69,21 +80,18 @@ export function planReadings(checkpoints, given, lotId, eventId, envelope, where
     let dueAt = null;
     if (checkpoint.due_minutes) {
       const anchor = answers.get(checkpoint.anchor_code);
-      const anchorAt = anchor?.observed_at || (byCode.has(checkpoint.anchor_code) ? envelope.occurred_at : null);
-      if (!anchorAt) {
-        throw new BadRequest(
-          `${where}: ${checkpoint.label} is timed from ${checkpoint.anchor_code}, which this batch does not record`,
-        );
-      }
+      // The clock runs from the anchor's own reading where one has been
+      // taken. At the moment the ingredients go in it has not been, so it
+      // runs from the batch — and it is reset when the anchor is answered.
+      const anchorAt = anchor?.observed_at || envelope.occurred_at;
       dueAt = new Date(new Date(anchorAt).getTime() + checkpoint.due_minutes * 60_000).toISOString();
     }
 
     if (answer === undefined) {
-      if (checkpoint.required && !checkpoint.due_minutes) {
-        throw new BadRequest(`${where}: ${checkpoint.label} is required`);
-      }
-      // Unanswered on purpose: it is not due yet.
-      rows.push({ checkpoint, dueAt, answered: null });
+      // Unanswered on purpose. A checkpoint without a clock falls due
+      // straight away — it is taken during the batch — and one with a clock
+      // when its anchor says.
+      rows.push({ checkpoint, dueAt: dueAt || envelope.occurred_at, answered: null });
       continue;
     }
 
@@ -131,7 +139,7 @@ export async function pendingReadings(db) {
          JOIN checkpoints c ON c.id = r.checkpoint_id
          JOIN lots l ON l.id = r.lot_id
          JOIN items i ON i.id = l.item_id
-        WHERE r.recorded_at IS NULL AND r.due_at IS NOT NULL
+        WHERE r.recorded_at IS NULL
         ORDER BY r.due_at`,
     )
     .all();
@@ -148,7 +156,7 @@ export async function recordReading(db, payload) {
 
   const row = await db
     .prepare(
-      `SELECT r.id, r.lot_id, r.recorded_at, c.id AS checkpoint_id, c.label, c.kind,
+      `SELECT r.id, r.lot_id, r.recorded_at, r.checkpoint_id, c.label, c.kind,
               c.min_celsius, c.max_celsius, c.is_ccp
          FROM checkpoint_readings r JOIN checkpoints c ON c.id = r.checkpoint_id
         WHERE r.id = ?`,
@@ -181,6 +189,27 @@ export async function recordReading(db, payload) {
         row.id,
       ),
   ];
+
+  // Anything timed from this one now has a real anchor, so its due time is
+  // recomputed from the reading rather than from the batch. Cooling that
+  // started at two o'clock is due at three, whenever the batch began.
+  statements.push(
+    db
+      .prepare(
+        `UPDATE checkpoint_readings
+            SET due_at = datetime(?, '+' || (
+                  SELECT due_minutes FROM checkpoints WHERE id = checkpoint_readings.checkpoint_id
+                ) || ' minutes')
+          WHERE lot_id = ? AND recorded_at IS NULL
+            AND checkpoint_id IN (
+              SELECT c.id FROM checkpoints c
+               WHERE c.recipe_id = (SELECT recipe_id FROM checkpoints WHERE id = ?)
+                 AND c.anchor_code = (SELECT code FROM checkpoints WHERE id = ?)
+                 AND c.due_minutes IS NOT NULL
+            )`,
+      )
+      .bind(envelope.occurred_at, row.lot_id, row.checkpoint_id, row.checkpoint_id),
+  );
 
   if (value.withinLimit === false) {
     statements.push(holdFor(db, envelope, row.lot_id, row.label, value.celsius, row));

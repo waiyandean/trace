@@ -36,11 +36,14 @@ test('both bounds apply when both are stated', () => {
   assert.equal(judge(both, 6), false);
 });
 
-test('a required checkpoint that is not due must be answered', () => {
-  assert.throws(
-    () => planReadings([cp()], {}, 'lot1', 'ev1', envelope),
-    /Cooking end temp is required/,
-  );
+test('every checkpoint becomes an unanswered row, due now or later', () => {
+  // The batch records what went in. The cooking temperature is taken while it
+  // cooks, so asking for it on that form would be asking somebody to type a
+  // number before it existed.
+  const { rows } = planReadings([cp()], {}, 'lot1', 'ev1', envelope);
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].answered, null);
+  assert.equal(rows[0].dueAt, envelope.occurred_at, 'taken during the batch, so due now');
 });
 
 test('a timed checkpoint is left unanswered with the moment it falls due', () => {
@@ -71,9 +74,12 @@ test('the clock runs from the anchor reading when one was observed', () => {
   assert.equal(rows[1].dueAt, '2026-09-02T15:00:00.000Z', 'an hour after cooling actually started');
 });
 
-test('a timed checkpoint anchored to something the batch does not record is refused', () => {
-  const after = cp({ kind: 'temp-after', anchor_code: 'nowhere', due_minutes: 60 });
-  assert.throws(() => planReadings([after], {}, 'lot1', 'ev1', envelope), /which this batch does not record/);
+test('a timed checkpoint runs from the batch until its anchor is answered', () => {
+  // At the moment the ingredients go in, the anchor has not been read. The
+  // clock starts from the batch and is reset when the anchor is answered.
+  const after = cp({ kind: 'temp-after', anchor_code: 'cooling-start', due_minutes: 60 });
+  const { rows } = planReadings([after], {}, 'lot1', 'ev1', envelope);
+  assert.equal(rows[0].dueAt, '2026-09-02T10:00:00.000Z', 'an hour after the batch began');
 });
 
 test('a reading outside its limit is reported as a breach', () => {

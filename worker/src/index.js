@@ -7,7 +7,7 @@ import { openDeviations, closeDeviation } from './ledger/deviations.js';
 import { move, waste, hold, releaseHold, openHolds } from './ledger/stock.js';
 import { produce } from './ledger/produce.js';
 import { pendingReadings, recordReading } from './ledger/checkpoints.js';
-import { unpackedBatches, recordPacking, massBalance } from './ledger/packing.js';
+import { openBatches, batchDetail, recordPacking, massBalance } from './ledger/packing.js';
 
 // The `trace` Worker.
 //
@@ -33,7 +33,8 @@ import { unpackedBatches, recordPacking, massBalance } from './ledger/packing.js
 //   POST /api/produce             make a batch: consumes lots, opens a product lot
 //   GET  /api/checks              checkpoint readings that are due and unanswered
 //   POST /api/checks              answer one
-//   GET  /api/packing             batches made but not yet packed out
+//   GET  /api/batches             batches still to finish, and what each needs
+//   GET  /api/batches?lot=…       one batch: its inputs, its checks, its state
 //   POST /api/packing             record packets produced and the label check
 //   GET  /api/balance?lot=…       what went in against what came out
 //
@@ -69,7 +70,8 @@ const ROUTES = {
   '/api/hold': ['POST'],
   '/api/produce': ['POST'],
   '/api/checks': ['GET', 'POST'],
-  '/api/packing': ['GET', 'POST'],
+  '/api/packing': ['POST'],
+  '/api/batches': ['GET'],
   '/api/balance': ['GET'],
 };
 
@@ -94,8 +96,10 @@ async function route(request, env, url) {
       const rows = await openDeviations(db);
       return json({ count: rows.length, rows });
     }
-    if (url.pathname === '/api/packing') {
-      const rows = await unpackedBatches(db);
+    if (url.pathname === '/api/batches') {
+      const lot = url.searchParams.get('lot');
+      if (lot) return json(await batchDetail(db, lot));
+      const rows = await openBatches(db);
       return json({ count: rows.length, rows });
     }
     if (url.pathname === '/api/balance') {

@@ -73,9 +73,6 @@ const batch = (changes = {}) => ({
   occurred_at: '2026-09-02T08:00:00Z',
   lot_id: LOT,
   item_id: 'item:broth',
-  location_id: 'loc:freezer',
-  yield_quantity: 200,
-  yield_unit: 'L',
   equipment_checked: true,
   lines: [
     {
@@ -111,9 +108,10 @@ test('a batch opens a lot of the product and consumes from the lots named', asyn
 
   assert.equal(sqlOf(db, 'INSERT INTO lots').length, 1);
   const movements = sqlOf(db, 'INSERT INTO movements');
-  assert.equal(movements.length, 3, 'one produce and two consumes');
-  assert.equal(movements[0].params[2], 200, 'the yield is positive');
-  assert.deepEqual(movements.slice(1).map((row) => row.params[2]), [-16, -14], 'the inputs are negative');
+  // Two consumes and no produce. During cooking the ingredients have gone and
+  // the product does not exist yet, which is what the ledger should say.
+  assert.equal(movements.length, 2);
+  assert.deepEqual(movements.map((row) => row.params[2]), [-16, -14]);
 });
 
 test('an ingredient may be drawn from more than one lot', async () => {
@@ -235,7 +233,6 @@ test('a batch records how many times over the recipe it was', async () => {
   const record = sqlOf(db, 'INSERT INTO batch_records')[0].params;
   assert.equal(record[3], 2, 'a double batch');
   assert.equal(record[4], 1, 'equipment checked');
-  assert.equal(record[5], 200, 'the yield, in the base unit');
 });
 
 test('a multiplier of zero or less is refused', async () => {

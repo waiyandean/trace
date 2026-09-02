@@ -5,14 +5,23 @@ import {
 import { toBaseUnit } from './units.js';
 import { isCode } from './codes.js';
 import { balanceAt, holdsOn } from './stock.js';
-import { checkpointsFor, planReadings, readingRow, holdFor } from './checkpoints.js';
+import { checkpointsFor, planReadings, readingRow } from './checkpoints.js';
 
-// Making a batch.
+// Starting a batch: what went into it.
 //
-// One event consumes from identified lots and opens a lot of the product, so
-// stock on hand and genealogy both fall out of the movements with no special
-// case. The `CONSUME` rows carry the new lot as their counterpart, which is
-// the genealogy edge: one step back from a product is the lots its consuming
+// This records the ingredients as they go in, and nothing that has not
+// happened yet (Dean, 2026-09-02). The cooking temperature is taken while it
+// cooks, the cooling temperatures hours later, and how much it made is not
+// known until it is packed — so none of them are asked for here. A form that
+// asked would be asking somebody to type a number before it existed.
+//
+// So the batch consumes from the identified lots and opens the product's lot
+// holding nothing. That is not a gap in the record, it is the record: during
+// cooking the ingredients have genuinely gone and the product does not yet
+// exist. The `PRODUCE` movement is written when it is packed out.
+//
+// The `CONSUME` rows carry the new lot as their counterpart, which is the
+// genealogy edge: one step back from a product is the lots its consuming
 // movements name.
 //
 // Two things about it are decisions rather than mechanics.
@@ -106,10 +115,6 @@ export async function produce(db, payload) {
 
   const { item, recipe } = await productAndRecipe(db, payload.item_id);
 
-  const location = await lookupRow(db, 'SELECT id, name, active FROM locations WHERE id = ?', payload.location_id);
-  if (!location) throw new BadRequest(`unknown location ${JSON.stringify(payload.location_id)}`);
-  if (location.active !== 1) throw new BadRequest(`${location.name} is not an active location`);
-
   // Confirmed before starting, as the current form asks. Required rather than
   // defaulted: a tick nobody made is not a check anybody did.
   if (typeof payload.equipment_checked !== 'boolean') {
@@ -123,10 +128,6 @@ export async function produce(db, payload) {
   if (typeof multiplier !== 'number' || !(multiplier > 0)) {
     throw new BadRequest(`multiplier must be a positive number, got ${JSON.stringify(payload.multiplier)}`);
   }
-
-  const yielded = requireQuantity(payload.yield_quantity, 'yield_quantity');
-  const yieldUnit = payload.yield_unit || item.base_unit;
-  const converted = await toBaseUnit(db, item, yielded, yieldUnit);
 
   if (!Array.isArray(payload.lines) || payload.lines.length === 0) {
     throw new BadRequest('lines must be a non-empty array: a batch made from nothing is not a batch');
@@ -196,9 +197,7 @@ export async function produce(db, payload) {
   // so a missing required reading refuses the batch rather than leaving one
   // recorded with a hole in its safety record.
   const defined = recipe ? await checkpointsFor(db, recipe.id) : [];
-  const { rows: readings, breaches } = planReadings(
-    defined, payload.checkpoints, lotId, envelope.event_id, envelope,
-  );
+  const { rows: readings } = planReadings(defined, {}, lotId, envelope.event_id, envelope);
 
   const statements = [
     eventRow(db, envelope, 'produce', hash, payload),
@@ -218,23 +217,6 @@ export async function produce(db, payload) {
         useBy ? 'shelf_life_rule' : null,
         envelope.event_id,
         payload.note ?? null,
-      ),
-    db
-      .prepare(
-        `INSERT INTO movements (id, lot_id, type, quantity, entered_quantity, entered_unit,
-                                to_location_id, occurred_at, staff_id, event_id)
-         VALUES (?, ?, 'PRODUCE', ?, ?, ?, ?, ?, ?, ?)`,
-      )
-      .bind(
-        `${envelope.event_id}-PRODUCE`,
-        lotId,
-        converted.quantity,
-        yielded,
-        yieldUnit,
-        location.id,
-        envelope.occurred_at,
-        envelope.staff_id,
-        envelope.event_id,
       ),
   ];
 
@@ -295,8 +277,8 @@ export async function produce(db, payload) {
     db
       .prepare(
         `INSERT INTO batch_records (lot_id, event_id, recipe_id, multiplier,
-                                    equipment_checked, yield_quantity, note)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                                    equipment_checked, note)
+         VALUES (?, ?, ?, ?, ?, ?)`,
       )
       .bind(
         lotId,
@@ -304,24 +286,12 @@ export async function produce(db, payload) {
         recipe?.id ?? null,
         multiplier,
         payload.equipment_checked ? 1 : 0,
-        converted.quantity,
         payload.note ?? null,
       ),
   );
 
   for (const row of readings) {
     statements.push(readingRow(db, row, lotId, envelope.event_id, envelope));
-  }
-
-  // A failed check holds the batch, using the same hold as everything else
-  // rather than a second kind nobody would think to look at.
-  for (const breach of breaches) {
-    statements.push(holdFor(db, envelope, lotId, breach.checkpoint.label, breach.celsius, breach.checkpoint));
-  }
-  if (breaches.length) {
-    statements.push(
-      db.prepare("UPDATE lots SET status = 'held', updated_at = datetime('now') WHERE id = ?").bind(lotId),
-    );
   }
 
   await db.batch(statements);

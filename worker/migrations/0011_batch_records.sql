@@ -23,8 +23,11 @@ CREATE TABLE batch_records (
   -- Confirmed before starting, as the current form asks.
   equipment_checked INTEGER NOT NULL CHECK (equipment_checked IN (0, 1)),
 
-  -- What came out, in the product's base unit.
-  yield_quantity    REAL NOT NULL CHECK (yield_quantity > 0),
+  -- What came out, in the product's base unit. Empty until it is packed:
+  -- how much a batch made is not known while it is cooking, and a form that
+  -- asked for it then would be asking somebody to type a number before it
+  -- existed.
+  yield_quantity    REAL CHECK (yield_quantity > 0),
 
   -- Packing happens after the batch, sometimes by somebody else, so these
   -- start empty and are filled in then. Null means not packed yet, which is
