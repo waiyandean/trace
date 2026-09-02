@@ -37,7 +37,9 @@ still has no authentication.
 Label artwork and ZPL live in `labels/` and print correctly over USB; the
 network path to the printer is still open.
 
-**Read `PLAN.md` first** — it carries the model, the decisions and their
+**Read `HANDOFF.md`** for where the work stands and what to pick up.
+
+**Read `PLAN.md`** — it carries the model, the decisions and their
 reasoning, the delivery phases, and the open questions still blocking
 specific phases.
 
