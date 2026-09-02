@@ -7,6 +7,7 @@ import { openDeviations, closeDeviation } from './ledger/deviations.js';
 import { move, waste, hold, releaseHold, openHolds } from './ledger/stock.js';
 import { produce } from './ledger/produce.js';
 import { pendingReadings, recordReading } from './ledger/checkpoints.js';
+import { unpackedBatches, recordPacking, massBalance } from './ledger/packing.js';
 
 // The `trace` Worker.
 //
@@ -32,6 +33,9 @@ import { pendingReadings, recordReading } from './ledger/checkpoints.js';
 //   POST /api/produce             make a batch: consumes lots, opens a product lot
 //   GET  /api/checks              checkpoint readings that are due and unanswered
 //   POST /api/checks              answer one
+//   GET  /api/packing             batches made but not yet packed out
+//   POST /api/packing             record packets produced and the label check
+//   GET  /api/balance?lot=…       what went in against what came out
 //
 // The old `forms` system stays authoritative until Dean cuts over, so nothing
 // here is yet the kitchen's record of anything.
@@ -65,6 +69,8 @@ const ROUTES = {
   '/api/hold': ['POST'],
   '/api/produce': ['POST'],
   '/api/checks': ['GET', 'POST'],
+  '/api/packing': ['GET', 'POST'],
+  '/api/balance': ['GET'],
 };
 
 async function readBody(request) {
@@ -87,6 +93,15 @@ async function route(request, env, url) {
     if (url.pathname === '/api/deviations') {
       const rows = await openDeviations(db);
       return json({ count: rows.length, rows });
+    }
+    if (url.pathname === '/api/packing') {
+      const rows = await unpackedBatches(db);
+      return json({ count: rows.length, rows });
+    }
+    if (url.pathname === '/api/balance') {
+      const lot = url.searchParams.get('lot');
+      if (!lot) throw new BadRequest('lot is required');
+      return json(await massBalance(db, lot));
     }
     if (url.pathname === '/api/checks') {
       const rows = await pendingReadings(db);
@@ -116,6 +131,7 @@ async function route(request, env, url) {
         : json(await hold(db, body), { status: 201 });
     }
     if (url.pathname === '/api/checks') return json(await recordReading(db, await readBody(request)));
+    if (url.pathname === '/api/packing') return json(await recordPacking(db, await readBody(request)));
     if (url.pathname === '/api/produce') return json(await produce(db, await readBody(request)), { status: 201 });
     if (url.pathname === '/api/receive') {
       const result = await receive(db, await readBody(request));

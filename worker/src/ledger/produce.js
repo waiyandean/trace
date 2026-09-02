@@ -110,6 +110,20 @@ export async function produce(db, payload) {
   if (!location) throw new BadRequest(`unknown location ${JSON.stringify(payload.location_id)}`);
   if (location.active !== 1) throw new BadRequest(`${location.name} is not an active location`);
 
+  // Confirmed before starting, as the current form asks. Required rather than
+  // defaulted: a tick nobody made is not a check anybody did.
+  if (typeof payload.equipment_checked !== 'boolean') {
+    throw new BadRequest('equipment_checked must be true or false — it is an attestation, not an optional tick');
+  }
+
+  // A double batch is the recipe twice over. Recorded rather than worked out
+  // from what was used, because inferring it would make every yield
+  // comparison circular.
+  const multiplier = payload.multiplier === undefined ? 1 : payload.multiplier;
+  if (typeof multiplier !== 'number' || !(multiplier > 0)) {
+    throw new BadRequest(`multiplier must be a positive number, got ${JSON.stringify(payload.multiplier)}`);
+  }
+
   const yielded = requireQuantity(payload.yield_quantity, 'yield_quantity');
   const yieldUnit = payload.yield_unit || item.base_unit;
   const converted = await toBaseUnit(db, item, yielded, yieldUnit);
@@ -276,6 +290,24 @@ export async function produce(db, payload) {
         ),
     );
   }
+
+  statements.push(
+    db
+      .prepare(
+        `INSERT INTO batch_records (lot_id, event_id, recipe_id, multiplier,
+                                    equipment_checked, yield_quantity, note)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .bind(
+        lotId,
+        envelope.event_id,
+        recipe?.id ?? null,
+        multiplier,
+        payload.equipment_checked ? 1 : 0,
+        converted.quantity,
+        payload.note ?? null,
+      ),
+  );
 
   for (const row of readings) {
     statements.push(readingRow(db, row, lotId, envelope.event_id, envelope));
