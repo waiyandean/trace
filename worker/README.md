@@ -22,6 +22,7 @@ is the structural change the whole rebuild rests on.
   the idempotency key and its payload fingerprint.
 - `src/ledger/stock.js` — moving stock, throwing it away, holding it.
 - `src/ledger/produce.js` — batching: consumes lots, opens a product lot.
+- `src/ledger/checkpoints.js` — the checks a batch is made under.
 - `public/index.html` — the goods intake form, served from the same origin.
 - `public/stock.html`, `public/stock.js` — the stock screen: move, waste, hold.
 - `public/app.css` — the styling both pages share.
@@ -58,6 +59,8 @@ is the structural change the whole rebuild rests on.
     POST /api/waste                    throw stock away, with a reason
     POST /api/hold                     hold a lot; add ?release to let it go
     POST /api/produce                  make a batch: consumes lots, opens one
+    GET  /api/checks                   checkpoint readings due and unanswered
+    POST /api/checks                   answer one
     GET  /api/catalog?action=recipes    &item=<product id>
 
 Every catalog action takes `&active=all` to include retired rows; the default
@@ -339,6 +342,24 @@ recorded in `unproven_inputs` with a required reason and the batch proceeds
 and the way around it is a plausible wrong lot — worse than an honest hole,
 because it cannot be seen afterwards. A one-step-back report has to show these
 as unproven rather than absent.
+
+**A batch records the checks it was made under.** Sixty checkpoints across the
+kitchen's products, twenty-one of them critical control points, imported with
+the recipes. A required one that is not answered refuses the batch, rather
+than recording a batch with a hole in its safety record.
+
+Three outcomes, and the third is the common one. A reading inside a stated
+limit passes; outside it, the batch is **held** using the same hold as
+everything else, so releasing it needs a name and a reason like any other. A
+reading whose checkpoint states no limit — forty-four of the sixty — is kept
+as **unjudged**, not as a pass. It is evidence; calling it a pass would be a
+claim nobody made.
+
+**Twelve checkpoints have a clock.** "Cooling temp after 12 hours" is not a
+field somebody fills in at the end: the batch creates that row unanswered,
+carrying the moment it falls due, and `GET /api/checks` lists what is
+outstanding. A checkpoint nobody created a row for is invisible, and invisible
+is how a cooling check gets forgotten.
 
 The use-by is derived once from the recipe's shelf life rather than typed per
 batch. A product whose recipe states none gets no use-by at all rather than a
