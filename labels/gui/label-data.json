@@ -471,14 +471,10 @@
       "category": "Broths",
       "health_mark": true,
       "packet": {
-        "sku": "",
-        "qty": "1.8 Litres",
-        "no_sku": true
+        "qty": "1.8 Litres"
       },
       "box": {
-        "sku": "",
-        "qty": "8 x 1.8 Litres",
-        "no_sku": true
+        "qty": "8 x 1.8 Litres"
       }
     }
   },

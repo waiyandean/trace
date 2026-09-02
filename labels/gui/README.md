@@ -117,6 +117,26 @@ what decides whether the tub is still good, and the batch is what the
 production record points at (Dean, 2026-09-01). So those two take the big row
 and the opened date drops to the small row underneath.
 
+## Two products that look alike
+
+Tonkotsu Broth and Tonkotsu Broth Diluted are the same colour in the same
+pouch, and serving one for the other is a mistake nobody catches by reading
+carefully. A word in the product name does not survive being glanced at from
+across a room, so the diluted one carries a **reversed chip** beside the name.
+
+Reversed type in solid bands was tried for the four label types and dropped at
+41-48% black, four times the ribbon and head wear of the current design. This
+is one chip of about 240 by 40 dots — under three per cent of the label — so
+it buys the loudest device available for almost none of the ink that made the
+earlier attempt untenable.
+
+The chip is `tag` in `label-data.json`. The label itself prints
+"Tonkotsu Broth", the same as the concentrate, with the chip doing the work;
+the **picker** always shows the catalog name, so the two rows read "Tonkotsu
+Broth" and "Tonkotsu Broth Diluted". Using the label name in both would put
+two identical rows on the screen and move the confusion from the shelf to the
+list.
+
 ## Notices
 
 The fifth type is nothing but words: a warning on a container, a note on a

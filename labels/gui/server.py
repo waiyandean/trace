@@ -355,9 +355,15 @@ class Data:
         return sections
 
     def label_name(self, item, type_id):
-        if type_id in ("packet", "box"):
-            product = self.extra.get("products", {}).get(item["name"], {})
-            return product.get("label_name") or item["name"]
+        """What the picker calls this item.
+
+        Always the catalog name, never the name printed on the label. The
+        diluted tonkotsu prints as "Tonkotsu Broth" with a DILUTED chip beside
+        it, and if the picker used that too there would be two rows reading
+        "Tonkotsu Broth" and no way to tell which was which -- the exact
+        confusion the variant exists to prevent, moved from the shelf to the
+        screen.
+        """
         return item["name"]
 
     def detail(self, item, type_id):

@@ -26,7 +26,7 @@ mkdir -p "$DEST/static/photos"
 # machine at the printer. Shipping a script that can only fail there is worse
 # than not shipping it.
 for f in server.py zpl.py printers.py check_layouts.py catalog.json \
-         label-data.json README.md start.bat; do
+         label-data.json README.md start.bat update.bat; do
   cp "$HERE/$f" "$DEST/$f"
 done
 # Everything in static/ except the photographs, which are selected below.
