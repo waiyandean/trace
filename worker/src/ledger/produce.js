@@ -5,6 +5,7 @@ import {
 import { toBaseUnit } from './units.js';
 import { isCode } from './codes.js';
 import { balanceAt, holdsOn } from './stock.js';
+import { checkpointsFor, planReadings, readingRow, holdFor } from './checkpoints.js';
 
 // Making a batch.
 //
@@ -177,6 +178,14 @@ export async function produce(db, payload) {
 
   const useBy = recipe?.shelf_life_days ? deriveUseBy(envelope.occurred_at, recipe.shelf_life_days) : null;
 
+  // The checks the batch was made under. Planned before anything is written,
+  // so a missing required reading refuses the batch rather than leaving one
+  // recorded with a hole in its safety record.
+  const defined = recipe ? await checkpointsFor(db, recipe.id) : [];
+  const { rows: readings, breaches } = planReadings(
+    defined, payload.checkpoints, lotId, envelope.event_id, envelope,
+  );
+
   const statements = [
     eventRow(db, envelope, 'produce', hash, payload),
     db
@@ -268,12 +277,27 @@ export async function produce(db, payload) {
     );
   }
 
+  for (const row of readings) {
+    statements.push(readingRow(db, row, lotId, envelope.event_id, envelope));
+  }
+
+  // A failed check holds the batch, using the same hold as everything else
+  // rather than a second kind nobody would think to look at.
+  for (const breach of breaches) {
+    statements.push(holdFor(db, envelope, lotId, breach.checkpoint.label, breach.celsius, breach.checkpoint));
+  }
+  if (breaches.length) {
+    statements.push(
+      db.prepare("UPDATE lots SET status = 'held', updated_at = datetime('now') WHERE id = ?").bind(lotId),
+    );
+  }
+
   await db.batch(statements);
   return { duplicate: false, ...(await batchResult(db, envelope.event_id)) };
 }
 
 export async function batchResult(db, eventId) {
-  const [lot, movements, unproven] = await Promise.all([
+  const [lot, movements, unproven, checks] = await Promise.all([
     db
       .prepare(
         `SELECT l.id, l.short_code, l.use_by, l.use_by_source, l.status, i.name AS item_name, i.base_unit
@@ -297,6 +321,21 @@ export async function batchResult(db, eventId) {
       )
       .bind(eventId)
       .all(),
+    db
+      .prepare(
+        `SELECT c.label, c.kind, c.is_ccp, r.celsius, r.confirmed, r.observed_at,
+                r.within_limit, r.due_at, r.recorded_at
+           FROM checkpoint_readings r JOIN checkpoints c ON c.id = r.checkpoint_id
+          WHERE r.event_id = ? ORDER BY c.sort_order`,
+      )
+      .bind(eventId)
+      .all(),
   ]);
-  return { event_id: eventId, lot, movements: movements.results || [], unproven: unproven.results || [] };
+  return {
+    event_id: eventId,
+    lot,
+    movements: movements.results || [],
+    unproven: unproven.results || [],
+    checkpoints: checks.results || [],
+  };
 }

@@ -38,14 +38,25 @@ export function withinLimit(celsius, limitCelsius) {
   return celsius <= limitCelsius;
 }
 
-export function requireReading(value, field) {
+// What a probe could plausibly report, which depends on what is being probed.
+// The bound exists to catch a broken probe or a mis-keyed digit, not to judge
+// the reading — that is the limit's job.
+//
+// A delivery is chilled or frozen, so anything above 60°C is a mistake. A
+// batch is cooked, and a boiling blanch or hot oil reads far higher: capping
+// batching at 60 refused a perfectly ordinary cooking-end temperature of 95.
+export const DELIVERY_RANGE = { min: -40, max: 60 };
+export const COOKING_RANGE = { min: -40, max: 250 };
+
+export function requireReading(value, field, range = DELIVERY_RANGE) {
   if (typeof value !== 'number' || !Number.isFinite(value)) {
     throw new BadRequest(`${field} must be a temperature in °C, got ${JSON.stringify(value)}`);
   }
-  // A probe that reads -60 or +90 is a broken probe or a mis-key, and either
-  // way the number should not enter the record unchallenged.
-  if (value < -40 || value > 60) {
-    throw new BadRequest(`${field} of ${value}°C is outside anything a probe should report`);
+  if (value < range.min || value > range.max) {
+    throw new BadRequest(
+      `${field} of ${value}°C is outside anything a probe should report ` +
+        `(${range.min}°C to ${range.max}°C)`,
+    );
   }
   return value;
 }

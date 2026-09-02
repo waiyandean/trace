@@ -18,6 +18,25 @@ Products with no recipe in the batching system (2)
   - Green Curry Sauce
   - Tom Yum Tare
 
+Checkpoints imported: 60, of which 21 are critical control points
+
+Checkpoints with a clock (12)
+  These are not fields somebody fills in at the end. A batch creates them
+  unanswered with the moment they fall due, and being late is itself the finding.
+
+  - Black Garlic Tonkotsu (Soup) — Cooling end (≤5°C within 60 min), due 60 minutes after cooling-start-7as
+  - Chicken Ramen (Soup) — Cooling end (≤5°C within 60 min), due 60 minutes after cooling-start-p0u
+  - Chilli Oil — Cooling temp after 12 hours, due 720 minutes after cooling-start-temp
+  - Frozen Ramen : Black Garlic — Noodle temp after cooling (≤5°C within 90 min), due 90 minutes after noodle-temp-z8u
+  - Frozen Ramen : Chicken Tori Paitan — Noodle temp after cooling (≤5°C within 90 min), due 90 minutes after noodle-temp-wjk
+  - Frozen Ramen : Hell Ramen — Noodle temp after cooling (≤5°C within 90 min), due 90 minutes after noodle-temp-kw3
+  - Frozen Ramen : Laksa Ramen — Noodle temp after cooling (≤5°C within 90 min), due 90 minutes after noodle-temp-3oh
+  - Garlic Oil — Cooling temp after 12 hours, due 720 minutes after cooling-start-temp
+  - Hell Ramen (Soup) — Cooling end (≤5°C within 60 min), due 60 minutes after cooling-start-761
+  - Laksa Ramen (Soup) — Cooling end (≤5°C within 60 min), due 60 minutes after cooling-start-cb3
+  - Spicy Teriyaki — Cooling temp after 12 hours, due 720 minutes after cooling-start-temp
+  - Teriyaki Sauce — Cooling temp after 12 hours, due 720 minutes after cooling-start-temp
+
 Imported
   - Beef Tataki — 4 ingredients, 180 days
   - Black Garlic Tonkotsu (Soup) — 3 ingredients, 180 days

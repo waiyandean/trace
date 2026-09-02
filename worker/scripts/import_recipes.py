@@ -118,6 +118,7 @@ def main():
             "shelfLifeMonths": None,
             "shelf_life_days": recipe.get("shelf_life_days"),
             "note": f"{recipe.get('note')} (stated by {provenance})",
+            "checkpoints": recipe.get("checkpoints") or [],
             "ingredientTargets": [
                 {"name": line["item"], "qty": line["quantity"], "unit": line["unit"]}
                 for line in recipe["lines"]
@@ -126,6 +127,7 @@ def main():
 
     imported, skipped, no_recipe, missing_items = [], [], [], {}
     unconvertible = {}
+    checkpoints, ccps, timed = {}, set(), []
 
     lines = [
         "-- What each product is made from.",
@@ -194,6 +196,34 @@ def main():
                     f"{line_item['name']} — recipe says {target['unit']}, catalog counts {line_item['base_unit']}",
                     [],
                 ).append(product["name"])
+        for order, cp in enumerate(product.get("checkpoints") or [], 1):
+            cp_id = f"{recipe_id}:{cp['id']}"
+            lines.append(
+                "INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,\n"
+                "                         min_celsius, max_celsius, anchor_code, due_minutes,\n"
+                "                         min_duration_hours, sort_order)\n"
+                f"VALUES ({sql_str(cp_id)}, {sql_str(recipe_id)}, {sql_str(cp['id'])}, "
+                f"{sql_str(cp['label'])}, {sql_str(cp['kind'])}, {1 if cp.get('ccp') else 0}, "
+                f"{1 if cp.get('required') else 0}, {sql_num(cp.get('min'))}, "
+                f"{sql_num(cp.get('max'))}, {sql_str(cp.get('anchor') or None)}, "
+                f"{sql_num(cp.get('dueMinutes'))}, {sql_num(cp.get('minDurationHours'))}, {order})\n"
+                "  ON CONFLICT (id) DO UPDATE SET\n"
+                "  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,\n"
+                "  required = excluded.required, min_celsius = excluded.min_celsius,\n"
+                "  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,\n"
+                "  due_minutes = excluded.due_minutes,\n"
+                "  min_duration_hours = excluded.min_duration_hours,\n"
+                "  sort_order = excluded.sort_order, updated_at = datetime('now');"
+            )
+            checkpoints[cp["label"]] = checkpoints.get(cp["label"], 0) + 1
+            if cp.get("ccp"):
+                ccps.add(f"{product['name']} — {cp['label']}")
+            if cp.get("dueMinutes"):
+                timed.append(
+                    f"{product['name']} — {cp['label']}, due {cp['dueMinutes']} minutes after "
+                    f"{cp.get('anchor') or 'nothing stated'}"
+                )
+
         imported.append(
             f"{product['name']} — {len(resolved)} ingredients, "
             + (f"{days} days" if days else "no shelf life stated")
@@ -227,6 +257,19 @@ def main():
             "  writes one.",
             "",
         ] + [f"  - {name}" for name in no_recipe] + [""]
+    if checkpoints:
+        report += [
+            f"Checkpoints imported: {sum(checkpoints.values())}, of which {len(ccps)} are critical "
+            "control points",
+            "",
+        ]
+    if timed:
+        report += [
+            f"Checkpoints with a clock ({len(timed)})",
+            "  These are not fields somebody fills in at the end. A batch creates them",
+            "  unanswered with the moment they fall due, and being late is itself the finding.",
+            "",
+        ] + [f"  - {entry}" for entry in timed] + [""]
     report += ["Imported"] + [f"  - {entry}" for entry in imported]
 
     text = "\n".join(report) + "\n"

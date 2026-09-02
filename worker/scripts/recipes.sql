@@ -15,6 +15,28 @@ DELETE FROM recipe_lines WHERE recipe_id = 'recipe:msx19517161apq';
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:msx19517161apq:mpwqpwl8j1px', 'recipe:msx19517161apq', 'mpwqpwl8j1px', 18.0, 'Litres', 1, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:msx19517161apq:mpwqjdw1mzjc', 'recipe:msx19517161apq', 'mpwqjdw1mzjc', 1.5, 'kg', 2, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:msx19517161apq:mpudo60gpapk', 'recipe:msx19517161apq', 'mpudo60gpapk', 1.5, 'kg', 3, NULL);
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:msx19517161apq:cooling-start-7as', 'recipe:msx19517161apq', 'cooling-start-7as', 'Cooling start', 'time', 1, 1, NULL, NULL, 'save', NULL, NULL, 1)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:msx19517161apq:cooling-end-5-c-within-60-min-8xc', 'recipe:msx19517161apq', 'cooling-end-5-c-within-60-min-8xc', 'Cooling end (≤5°C within 60 min)', 'temp-after', 1, 1, NULL, 5, 'cooling-start-7as', 60, NULL, 2)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
 INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:mpwqoafdxpka', 'mpwqoafdxpka', 360, '12 months, as the kitchen states it')
   ON CONFLICT (item_id) DO UPDATE SET shelf_life_days = excluded.shelf_life_days, note = excluded.note, updated_at = datetime('now');
 DELETE FROM recipe_lines WHERE recipe_id = 'recipe:mpwqoafdxpka';
@@ -28,6 +50,94 @@ INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, no
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpwqoafdxpka:mpucv3qqzv8r', 'recipe:mpwqoafdxpka', 'mpucv3qqzv8r', 0.06, 'kg', 8, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpwqoafdxpka:mpuct8qvh4np', 'recipe:mpwqoafdxpka', 'mpuct8qvh4np', 0.48, 'kg', 9, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpwqoafdxpka:mpv2thqzwsy1', 'recipe:mpwqoafdxpka', 'mpv2thqzwsy1', 5.0, 'kg', 10, NULL);
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqoafdxpka:boiling-start-time', 'recipe:mpwqoafdxpka', 'boiling-start-time', 'Start of boiling time', 'time', 0, 1, NULL, NULL, NULL, NULL, NULL, 1)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqoafdxpka:boiling-start-temp', 'recipe:mpwqoafdxpka', 'boiling-start-temp', 'Start of boiling temperature', 'temp', 1, 1, NULL, NULL, NULL, NULL, NULL, 2)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqoafdxpka:cooking-end-time', 'recipe:mpwqoafdxpka', 'cooking-end-time', 'End of cooking time', 'time', 0, 1, NULL, NULL, NULL, NULL, NULL, 3)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqoafdxpka:cooking-end-temp', 'recipe:mpwqoafdxpka', 'cooking-end-temp', 'End of cooking temperature', 'temp', 1, 1, NULL, NULL, NULL, NULL, NULL, 4)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqoafdxpka:cooling-start-time', 'recipe:mpwqoafdxpka', 'cooling-start-time', 'Start of cooling time', 'time', 0, 1, NULL, NULL, NULL, NULL, NULL, 5)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqoafdxpka:cooling-start-temp', 'recipe:mpwqoafdxpka', 'cooling-start-temp', 'Start of cooling temperature', 'temp', 0, 1, NULL, NULL, NULL, NULL, NULL, 6)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqoafdxpka:cooling-end-time', 'recipe:mpwqoafdxpka', 'cooling-end-time', 'End of cooling time', 'time', 1, 1, NULL, NULL, NULL, NULL, NULL, 7)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqoafdxpka:cooling-end-temp', 'recipe:mpwqoafdxpka', 'cooling-end-temp', 'End of cooling temperature', 'temp', 1, 1, NULL, NULL, NULL, NULL, NULL, 8)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
 INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:mpwokfhqje42', 'mpwokfhqje42', 180, '6 months, as the kitchen states it')
   ON CONFLICT (item_id) DO UPDATE SET shelf_life_days = excluded.shelf_life_days, note = excluded.note, updated_at = datetime('now');
 DELETE FROM recipe_lines WHERE recipe_id = 'recipe:mpwokfhqje42';
@@ -41,6 +151,28 @@ DELETE FROM recipe_lines WHERE recipe_id = 'recipe:msx197b0svuci1';
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:msx197b0svuci1:mpwqoafdxpka', 'recipe:msx197b0svuci1', 'mpwqoafdxpka', 18.0, 'Litres', 1, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:msx197b0svuci1:ms4h8bkmsw2l', 'recipe:msx197b0svuci1', 'ms4h8bkmsw2l', 0.5, 'kg', 2, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:msx197b0svuci1:mpv2qb0p8fnl', 'recipe:msx197b0svuci1', 'mpv2qb0p8fnl', 2.0, 'kg', 3, NULL);
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:msx197b0svuci1:cooling-start-p0u', 'recipe:msx197b0svuci1', 'cooling-start-p0u', 'Cooling start', 'time', 1, 1, NULL, NULL, 'save', NULL, NULL, 1)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:msx197b0svuci1:cooling-end-5c-within-60-min-bdw', 'recipe:msx197b0svuci1', 'cooling-end-5c-within-60-min-bdw', 'Cooling end (≤5°C within 60 min)', 'temp-after', 1, 1, NULL, 5, 'cooling-start-p0u', 60, NULL, 2)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
 INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:mpwqcudx7vkq', 'mpwqcudx7vkq', 180, '6 months, as the kitchen states it')
   ON CONFLICT (item_id) DO UPDATE SET shelf_life_days = excluded.shelf_life_days, note = excluded.note, updated_at = datetime('now');
 DELETE FROM recipe_lines WHERE recipe_id = 'recipe:mpwqcudx7vkq';
@@ -48,6 +180,50 @@ INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, no
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpwqcudx7vkq:mpuc771xt0jo', 'recipe:mpwqcudx7vkq', 'mpuc771xt0jo', 20.0, 'Litres', 2, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpwqcudx7vkq:mpucubc5jfmh', 'recipe:mpwqcudx7vkq', 'mpucubc5jfmh', 1.0, 'kg', 3, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpwqcudx7vkq:mpudkxf1b97v', 'recipe:mpwqcudx7vkq', 'mpudkxf1b97v', 0.5, 'kg', 4, NULL);
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqcudx7vkq:cooking-start-temp', 'recipe:mpwqcudx7vkq', 'cooking-start-temp', 'Cooking start temp', 'temp', 0, 1, NULL, NULL, NULL, NULL, NULL, 1)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqcudx7vkq:cooking-end-temp', 'recipe:mpwqcudx7vkq', 'cooking-end-temp', 'Cooking end temp', 'temp', 0, 1, NULL, NULL, NULL, NULL, NULL, 2)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqcudx7vkq:cooling-start-temp', 'recipe:mpwqcudx7vkq', 'cooling-start-temp', 'Cooling start temp', 'temp', 0, 1, NULL, NULL, NULL, NULL, NULL, 3)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqcudx7vkq:cooling-temp-after-12-hours', 'recipe:mpwqcudx7vkq', 'cooling-temp-after-12-hours', 'Cooling temp after 12 hours', 'temp-after', 0, 1, NULL, 30, 'cooling-start-temp', 720, NULL, 4)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
 INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:mpylom0aijw5', 'mpylom0aijw5', 180, '6 months, as the kitchen states it')
   ON CONFLICT (item_id) DO UPDATE SET shelf_life_days = excluded.shelf_life_days, note = excluded.note, updated_at = datetime('now');
 DELETE FROM recipe_lines WHERE recipe_id = 'recipe:mpylom0aijw5';
@@ -57,6 +233,61 @@ INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, no
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpylom0aijw5:mpv452gsu2ll', 'recipe:mpylom0aijw5', 'mpv452gsu2ll', 500.0, 'g', 4, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpylom0aijw5:trace:wakame', 'recipe:mpylom0aijw5', 'trace:wakame', 500.0, 'g', 5, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpylom0aijw5:trace:memma', 'recipe:mpylom0aijw5', 'trace:memma', 600.0, 'g', 6, NULL);
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpylom0aijw5:blanch-water-boiling-p3a', 'recipe:mpylom0aijw5', 'blanch-water-boiling-p3a', 'Blanch water boiling', 'check', 0, 1, NULL, NULL, NULL, NULL, NULL, 1)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpylom0aijw5:noodle-temp-z8u', 'recipe:mpylom0aijw5', 'noodle-temp-z8u', 'Noodle temp', 'temp', 0, 1, NULL, NULL, NULL, NULL, NULL, 2)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpylom0aijw5:noodle-temp-after-cooling-5c-within-90-min-go5', 'recipe:mpylom0aijw5', 'noodle-temp-after-cooling-5c-within-90-min-go5', 'Noodle temp after cooling (≤5°C within 90 min)', 'temp-after', 1, 1, NULL, 5, 'noodle-temp-z8u', 90, NULL, 3)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpylom0aijw5:frozen-temp-final-pack-bsh', 'recipe:mpylom0aijw5', 'frozen-temp-final-pack-bsh', 'Frozen temp (final pack)', 'temp', 0, 1, NULL, -18, NULL, NULL, NULL, 4)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpylom0aijw5:vacuum-seal-check-j9k', 'recipe:mpylom0aijw5', 'vacuum-seal-check-j9k', 'Vacuum seal check', 'check', 0, 1, NULL, NULL, NULL, NULL, NULL, 5)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
 INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:mpylq1xtnwoq', 'mpylq1xtnwoq', 180, '6 months, as the kitchen states it')
   ON CONFLICT (item_id) DO UPDATE SET shelf_life_days = excluded.shelf_life_days, note = excluded.note, updated_at = datetime('now');
 DELETE FROM recipe_lines WHERE recipe_id = 'recipe:mpylq1xtnwoq';
@@ -65,6 +296,61 @@ INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, no
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpylq1xtnwoq:trace:chicken-fillet', 'recipe:mpylq1xtnwoq', 'trace:chicken-fillet', 4000.0, 'g', 3, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpylq1xtnwoq:trace:pak-choi', 'recipe:mpylq1xtnwoq', 'trace:pak-choi', 2500.0, 'g', 4, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpylq1xtnwoq:mpv452gsu2ll', 'recipe:mpylq1xtnwoq', 'mpv452gsu2ll', 500.0, 'g', 5, NULL);
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpylq1xtnwoq:blanch-water-boiling-yv8', 'recipe:mpylq1xtnwoq', 'blanch-water-boiling-yv8', 'Blanch water boiling', 'check', 0, 1, NULL, NULL, NULL, NULL, NULL, 1)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpylq1xtnwoq:noodle-temp-wjk', 'recipe:mpylq1xtnwoq', 'noodle-temp-wjk', 'Noodle temp', 'temp', 0, 1, NULL, NULL, NULL, NULL, NULL, 2)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpylq1xtnwoq:noodle-temp-after-cooling-5c-within-90-min-5qx', 'recipe:mpylq1xtnwoq', 'noodle-temp-after-cooling-5c-within-90-min-5qx', 'Noodle temp after cooling (≤5°C within 90 min)', 'temp-after', 1, 1, NULL, 5, 'noodle-temp-wjk', 90, NULL, 3)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpylq1xtnwoq:frozen-temp-final-pack-ldw', 'recipe:mpylq1xtnwoq', 'frozen-temp-final-pack-ldw', 'Frozen temp (final pack)', 'temp', 0, 1, NULL, -18, NULL, NULL, NULL, 4)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpylq1xtnwoq:vacuum-seal-check-p4u', 'recipe:mpylq1xtnwoq', 'vacuum-seal-check-p4u', 'Vacuum seal check', 'check', 0, 1, NULL, NULL, NULL, NULL, NULL, 5)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
 INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:mpylp7salypk', 'mpylp7salypk', 180, '6 months, as the kitchen states it')
   ON CONFLICT (item_id) DO UPDATE SET shelf_life_days = excluded.shelf_life_days, note = excluded.note, updated_at = datetime('now');
 DELETE FROM recipe_lines WHERE recipe_id = 'recipe:mpylp7salypk';
@@ -74,6 +360,61 @@ INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, no
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpylp7salypk:mpv452gsu2ll', 'recipe:mpylp7salypk', 'mpv452gsu2ll', 500.0, 'g', 4, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpylp7salypk:trace:wakame', 'recipe:mpylp7salypk', 'trace:wakame', 500.0, 'g', 5, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpylp7salypk:trace:memma', 'recipe:mpylp7salypk', 'trace:memma', 600.0, 'g', 6, NULL);
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpylp7salypk:blanch-water-boiling-b6c', 'recipe:mpylp7salypk', 'blanch-water-boiling-b6c', 'Blanch water boiling', 'check', 0, 1, NULL, NULL, NULL, NULL, NULL, 1)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpylp7salypk:noodle-temp-kw3', 'recipe:mpylp7salypk', 'noodle-temp-kw3', 'Noodle temp', 'temp', 0, 1, NULL, NULL, NULL, NULL, NULL, 2)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpylp7salypk:noodle-temp-after-cooling-5c-within-90-min-506', 'recipe:mpylp7salypk', 'noodle-temp-after-cooling-5c-within-90-min-506', 'Noodle temp after cooling (≤5°C within 90 min)', 'temp-after', 1, 1, NULL, 5, 'noodle-temp-kw3', 90, NULL, 3)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpylp7salypk:frozen-temp-final-pack-5g5', 'recipe:mpylp7salypk', 'frozen-temp-final-pack-5g5', 'Frozen temp (final pack)', 'temp', 0, 1, NULL, -18, NULL, NULL, NULL, 4)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpylp7salypk:vacuum-seal-check-0ry', 'recipe:mpylp7salypk', 'vacuum-seal-check-0ry', 'Vacuum seal check', 'check', 0, 1, NULL, NULL, NULL, NULL, NULL, 5)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
 INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:mpylqnqkh9k0', 'mpylqnqkh9k0', 180, '6 months, as the kitchen states it')
   ON CONFLICT (item_id) DO UPDATE SET shelf_life_days = excluded.shelf_life_days, note = excluded.note, updated_at = datetime('now');
 DELETE FROM recipe_lines WHERE recipe_id = 'recipe:mpylqnqkh9k0';
@@ -82,17 +423,138 @@ INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, no
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpylqnqkh9k0:trace:chicken-fillet', 'recipe:mpylqnqkh9k0', 'trace:chicken-fillet', 4000.0, 'g', 3, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpylqnqkh9k0:trace:pak-choi', 'recipe:mpylqnqkh9k0', 'trace:pak-choi', 2500.0, 'g', 4, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpylqnqkh9k0:mpv452gsu2ll', 'recipe:mpylqnqkh9k0', 'mpv452gsu2ll', 500.0, 'g', 5, NULL);
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpylqnqkh9k0:blanch-water-boiling-hgx', 'recipe:mpylqnqkh9k0', 'blanch-water-boiling-hgx', 'Blanch water boiling', 'check', 0, 1, NULL, NULL, NULL, NULL, NULL, 1)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpylqnqkh9k0:noodle-temp-3oh', 'recipe:mpylqnqkh9k0', 'noodle-temp-3oh', 'Noodle temp', 'temp', 0, 1, NULL, NULL, NULL, NULL, NULL, 2)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpylqnqkh9k0:noodle-temp-after-cooling-5c-within-90-min-5ni', 'recipe:mpylqnqkh9k0', 'noodle-temp-after-cooling-5c-within-90-min-5ni', 'Noodle temp after cooling (≤5°C within 90 min)', 'temp-after', 1, 1, NULL, 5, 'noodle-temp-3oh', 90, NULL, 3)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpylqnqkh9k0:frozen-temp-final-pack-3lq', 'recipe:mpylqnqkh9k0', 'frozen-temp-final-pack-3lq', 'Frozen temp (final pack)', 'temp', 0, 1, NULL, -18, NULL, NULL, NULL, 4)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpylqnqkh9k0:vacuum-seal-check-79y', 'recipe:mpylqnqkh9k0', 'vacuum-seal-check-79y', 'Vacuum seal check', 'check', 0, 1, NULL, NULL, NULL, NULL, NULL, 5)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
 INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:mpwqjdw1mzjc', 'mpwqjdw1mzjc', 180, '6 months, as the kitchen states it')
   ON CONFLICT (item_id) DO UPDATE SET shelf_life_days = excluded.shelf_life_days, note = excluded.note, updated_at = datetime('now');
 DELETE FROM recipe_lines WHERE recipe_id = 'recipe:mpwqjdw1mzjc';
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpwqjdw1mzjc:mpv3t4jmh10w', 'recipe:mpwqjdw1mzjc', 'mpv3t4jmh10w', 2.0, 'kg', 1, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpwqjdw1mzjc:mpuc771xt0jo', 'recipe:mpwqjdw1mzjc', 'mpuc771xt0jo', 9.4, 'Litres', 2, NULL);
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqjdw1mzjc:cooking-start-temp', 'recipe:mpwqjdw1mzjc', 'cooking-start-temp', 'Cooking start temp', 'temp', 0, 1, NULL, NULL, NULL, NULL, NULL, 1)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqjdw1mzjc:cooking-end-temp', 'recipe:mpwqjdw1mzjc', 'cooking-end-temp', 'Cooking end temp', 'temp', 0, 1, NULL, NULL, NULL, NULL, NULL, 2)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqjdw1mzjc:cooling-start-temp', 'recipe:mpwqjdw1mzjc', 'cooling-start-temp', 'Cooling start temp', 'temp', 0, 1, NULL, NULL, NULL, NULL, NULL, 3)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqjdw1mzjc:cooling-temp-after-12-hours', 'recipe:mpwqjdw1mzjc', 'cooling-temp-after-12-hours', 'Cooling temp after 12 hours', 'temp-after', 0, 1, NULL, 30, 'cooling-start-temp', 720, NULL, 4)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
 INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:msx196i5t9lvzj', 'msx196i5t9lvzj', 180, '6 months, as the kitchen states it')
   ON CONFLICT (item_id) DO UPDATE SET shelf_life_days = excluded.shelf_life_days, note = excluded.note, updated_at = datetime('now');
 DELETE FROM recipe_lines WHERE recipe_id = 'recipe:msx196i5t9lvzj';
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:msx196i5t9lvzj:mpwqpwl8j1px', 'recipe:msx196i5t9lvzj', 'mpwqpwl8j1px', 18.0, 'Litres', 1, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:msx196i5t9lvzj:mpwoga5uqxpp', 'recipe:msx196i5t9lvzj', 'mpwoga5uqxpp', 5.0, 'kg', 2, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:msx196i5t9lvzj:mpwqcudx7vkq', 'recipe:msx196i5t9lvzj', 'mpwqcudx7vkq', 1.5, 'kg', 3, NULL);
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:msx196i5t9lvzj:cooling-start-761', 'recipe:msx196i5t9lvzj', 'cooling-start-761', 'Cooling start', 'time', 1, 1, NULL, NULL, 'save', NULL, NULL, 1)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:msx196i5t9lvzj:cooling-end-5c-within-60-min-ska', 'recipe:msx196i5t9lvzj', 'cooling-end-5c-within-60-min-ska', 'Cooling end (≤5°C within 60 min)', 'temp-after', 1, 1, NULL, 5, 'cooling-start-761', 60, NULL, 2)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
 INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:mpwoga5uqxpp', 'mpwoga5uqxpp', 180, '6 months, as the kitchen states it')
   ON CONFLICT (item_id) DO UPDATE SET shelf_life_days = excluded.shelf_life_days, note = excluded.note, updated_at = datetime('now');
 DELETE FROM recipe_lines WHERE recipe_id = 'recipe:mpwoga5uqxpp';
@@ -129,6 +591,28 @@ DELETE FROM recipe_lines WHERE recipe_id = 'recipe:msx197xjx312in';
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:msx197xjx312in:mpwqoafdxpka', 'recipe:msx197xjx312in', 'mpwqoafdxpka', 18.0, 'Litres', 1, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:msx197xjx312in:mpwp47uz9ugz', 'recipe:msx197xjx312in', 'mpwp47uz9ugz', 4.5, 'kg', 2, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:msx197xjx312in:trace:coconut-milk', 'recipe:msx197xjx312in', 'trace:coconut-milk', 2.4, 'Litres', 3, NULL);
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:msx197xjx312in:cooling-start-cb3', 'recipe:msx197xjx312in', 'cooling-start-cb3', 'Cooling start', 'time', 1, 1, NULL, NULL, 'save', NULL, NULL, 1)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:msx197xjx312in:cooling-end-5c-within-60-min-um8', 'recipe:msx197xjx312in', 'cooling-end-5c-within-60-min-um8', 'Cooling end (≤5°C within 60 min)', 'temp-after', 1, 1, NULL, 5, 'cooling-start-cb3', 60, NULL, 2)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
 INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:trace:pork-chasiu', 'trace:pork-chasiu', NULL, 'cooked here from pork belly; the batching system carries no recipe for it. Water is not a line: it is mains water with no lot to trace, and none of the kitchen''s own twenty-four recipes lists it either, including the broths that are mostly water. (stated by Dean, 2026-09-01)')
   ON CONFLICT (item_id) DO UPDATE SET shelf_life_days = excluded.shelf_life_days, note = excluded.note, updated_at = datetime('now');
 DELETE FROM recipe_lines WHERE recipe_id = 'recipe:trace:pork-chasiu';
@@ -162,6 +646,50 @@ INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, no
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpwqh1089j2e:mpv2xn3jyhta', 'recipe:mpwqh1089j2e', 'mpv2xn3jyhta', 0.192, 'kg', 6, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpwqh1089j2e:mpwqcudx7vkq', 'recipe:mpwqh1089j2e', 'mpwqcudx7vkq', 0.6, 'Litres', 7, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpwqh1089j2e:mpuzoq8ebfnm', 'recipe:mpwqh1089j2e', 'mpuzoq8ebfnm', 7.264, 'kg', 8, NULL);
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqh1089j2e:cooking-start-temp', 'recipe:mpwqh1089j2e', 'cooking-start-temp', 'Cooking start temp', 'temp', 0, 1, NULL, NULL, NULL, NULL, NULL, 1)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqh1089j2e:cooking-end-temp', 'recipe:mpwqh1089j2e', 'cooking-end-temp', 'Cooking end temp', 'temp', 0, 1, NULL, NULL, NULL, NULL, NULL, 2)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqh1089j2e:cooling-start-temp', 'recipe:mpwqh1089j2e', 'cooling-start-temp', 'Cooling start temp', 'temp', 0, 1, NULL, NULL, NULL, NULL, NULL, 3)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqh1089j2e:cooling-temp-after-12-hours', 'recipe:mpwqh1089j2e', 'cooling-temp-after-12-hours', 'Cooling temp after 12 hours', 'temp-after', 0, 1, NULL, 30, 'cooling-start-temp', 720, NULL, 4)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
 INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:mpwp3fcg6zvj', 'mpwp3fcg6zvj', 180, '6 months, as the kitchen states it')
   ON CONFLICT (item_id) DO UPDATE SET shelf_life_days = excluded.shelf_life_days, note = excluded.note, updated_at = datetime('now');
 DELETE FROM recipe_lines WHERE recipe_id = 'recipe:mpwp3fcg6zvj';
@@ -185,6 +713,50 @@ INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, no
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpwq61oizabz:mpuh5g71a757', 'recipe:mpwq61oizabz', 'mpuh5g71a757', 6.0, 'Litres', 2, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpwq61oizabz:mpucubc5jfmh', 'recipe:mpwq61oizabz', 'mpucubc5jfmh', 10.0, 'kg', 3, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpwq61oizabz:mpudm0lkbvi8', 'recipe:mpwq61oizabz', 'mpudm0lkbvi8', 4.0, 'kg', 4, NULL);
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwq61oizabz:cooking-start-temp', 'recipe:mpwq61oizabz', 'cooking-start-temp', 'Cooking start temp', 'temp', 0, 1, NULL, NULL, NULL, NULL, NULL, 1)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwq61oizabz:cooking-end-temp', 'recipe:mpwq61oizabz', 'cooking-end-temp', 'Cooking end temp', 'temp', 0, 1, NULL, NULL, NULL, NULL, NULL, 2)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwq61oizabz:cooling-start-temp', 'recipe:mpwq61oizabz', 'cooling-start-temp', 'Cooling start temp', 'temp', 0, 1, NULL, NULL, NULL, NULL, NULL, 3)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwq61oizabz:cooling-temp-after-12-hours', 'recipe:mpwq61oizabz', 'cooling-temp-after-12-hours', 'Cooling temp after 12 hours', 'temp-after', 0, 1, NULL, 30, 'cooling-start-temp', 720, NULL, 4)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
 INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES ('recipe:mpwqpwl8j1px', 'mpwqpwl8j1px', 360, '12 months, as the kitchen states it')
   ON CONFLICT (item_id) DO UPDATE SET shelf_life_days = excluded.shelf_life_days, note = excluded.note, updated_at = datetime('now');
 DELETE FROM recipe_lines WHERE recipe_id = 'recipe:mpwqpwl8j1px';
@@ -197,3 +769,91 @@ INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, no
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpwqpwl8j1px:mpv40knt0qpi', 'recipe:mpwqpwl8j1px', 'mpv40knt0qpi', 5.0, 'kg', 7, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpwqpwl8j1px:mpucspup5soi', 'recipe:mpwqpwl8j1px', 'mpucspup5soi', 0.192, 'kg', 8, NULL);
 INSERT INTO recipe_lines (id, recipe_id, item_id, quantity, unit, sort_order, note) VALUES ('recipe:mpwqpwl8j1px:mpv2moh60h4k', 'recipe:mpwqpwl8j1px', 'mpv2moh60h4k', 6.0, 'kg', 9, NULL);
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqpwl8j1px:boiling-start-time', 'recipe:mpwqpwl8j1px', 'boiling-start-time', 'Start of boiling time', 'time', 0, 1, NULL, NULL, NULL, NULL, NULL, 1)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqpwl8j1px:boiling-start-temp', 'recipe:mpwqpwl8j1px', 'boiling-start-temp', 'Start of boiling temperature', 'temp', 1, 1, NULL, NULL, NULL, NULL, NULL, 2)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqpwl8j1px:cooking-end-time', 'recipe:mpwqpwl8j1px', 'cooking-end-time', 'End of cooking time', 'time', 0, 1, NULL, NULL, NULL, NULL, NULL, 3)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqpwl8j1px:cooking-end-temp', 'recipe:mpwqpwl8j1px', 'cooking-end-temp', 'End of cooking temperature', 'temp', 1, 1, NULL, NULL, NULL, NULL, NULL, 4)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqpwl8j1px:cooling-start-time', 'recipe:mpwqpwl8j1px', 'cooling-start-time', 'Start of cooling time', 'time', 0, 1, NULL, NULL, NULL, NULL, NULL, 5)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqpwl8j1px:cooling-start-temp', 'recipe:mpwqpwl8j1px', 'cooling-start-temp', 'Start of cooling temperature', 'temp', 1, 1, NULL, NULL, NULL, NULL, NULL, 6)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqpwl8j1px:cooling-end-time', 'recipe:mpwqpwl8j1px', 'cooling-end-time', 'End of cooling time', 'time', 1, 1, NULL, NULL, NULL, NULL, NULL, 7)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
+INSERT INTO checkpoints (id, recipe_id, code, label, kind, is_ccp, required,
+                         min_celsius, max_celsius, anchor_code, due_minutes,
+                         min_duration_hours, sort_order)
+VALUES ('recipe:mpwqpwl8j1px:cooling-end-temp', 'recipe:mpwqpwl8j1px', 'cooling-end-temp', 'End of cooling temperature', 'temp', 1, 1, NULL, NULL, NULL, NULL, NULL, 8)
+  ON CONFLICT (id) DO UPDATE SET
+  label = excluded.label, kind = excluded.kind, is_ccp = excluded.is_ccp,
+  required = excluded.required, min_celsius = excluded.min_celsius,
+  max_celsius = excluded.max_celsius, anchor_code = excluded.anchor_code,
+  due_minutes = excluded.due_minutes,
+  min_duration_hours = excluded.min_duration_hours,
+  sort_order = excluded.sort_order, updated_at = datetime('now');
