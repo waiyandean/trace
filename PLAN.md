@@ -1124,12 +1124,37 @@ These need Dean's answer before the phase that depends on them.
    is what a batch is drawn from. Products are left undetermined — the fifteen
    are all ingredients, and whether an opened tub of chilli oil behaves the
    same way has not been asked.
-5. **The supervised exception workflow (blocks P3).** Lot selection is meant to
+5. **Density, for the four items measured one way and counted another
+   (Dean will verify later, 2026-09-02).** Five recipe lines cannot be checked
+   against what was used because the recipe states a volume for something the
+   catalog weighs, or the reverse: balsamic vinegar and chilli oil in litres
+   against kilograms, japanese soy sauce in grams against litres, and spring
+   onion in grams against bunches.
+
+   The supplier specifications were checked and do not answer it. They give
+   pack volumes and nutrition per hundred grams, never both for the same
+   quantity, so no density can be read off them.
+
+   Two routes. Weigh one pack once — a full bottle less the empty bottle,
+   divided by its stated volume — which measures this kitchen's own product
+   and holds forever. Or restate the recipe line in the unit the item is
+   counted in, which is free but edits the recipe card.
+
+   Whichever, the thing to guard against is the plausible default. One gram
+   per millilitre looks right, is right for water, and is out by a fifth for
+   soy sauce; once it is in, every yield using it is quietly wrong and nothing
+   flags it. So a density should be refused outside roughly 0.8 to 1.5 kg per
+   litre, cross-checked against the pack's stated volume, and stored with who
+   weighed what and when — the same provenance as any other stated figure.
+
+   Nothing is blocked meanwhile. Those five lines import as stated and the
+   mass balance lists them separately rather than adding them.
+6. **The supervised exception workflow (blocks P3).** Lot selection is meant to
    be mandatory before a batch can complete. There will still be cases where
    the physical lot genuinely is not in the system. What that escape hatch
    looks like, and who is allowed to use it, determines whether staff comply
    with the rule or route around it.
-6. **Shelf-life ownership — resolved 2026-08-28 (Dean).** The use-by is read
+7. **Shelf-life ownership — resolved 2026-08-28 (Dean).** The use-by is read
    off the supplier's box wherever it is printed, and that always wins. Where
    there is none, which is mostly fresh produce, staff assign one week from
    delivery. So the shelf-life rule is a fallback rather than the primary
@@ -1145,7 +1170,7 @@ These need Dean's answer before the phase that depends on them.
    ingredient, which lots were dated by the rule rather than by evidence. It is
    one column, and it is the difference between a date and a date you can
    defend to an auditor.
-7. **Decant and merge discipline.** The system can model `COMBINE` honestly,
+8. **Decant and merge discipline.** The system can model `COMBINE` honestly,
    but how often staff combine lots determines how much trace precision is
    lost in practice. Worth observing before assuming it is rare.
 
@@ -1155,10 +1180,10 @@ These need Dean's answer before the phase that depends on them.
    left behind. The kind that costs precision is decanting *part* of a lot
    into a container that already holds some of another, and whether that
    happens here is still the open part.
-8. **Authentication.** The current forms use a staff picker with no real login.
+9. **Authentication.** The current forms use a staff picker with no real login.
    An audit trail naming who recorded and who approved an amendment is weaker
    if anyone can pick any name. Whether that changes, and to what, is open.
-9. **Packaging.** The old rebuild deliberately excluded packaging lines. Does
+10. **Packaging.** The old rebuild deliberately excluded packaging lines. Does
    packaging get lot-tracked here, or stay out of scope?
 
 ## References
