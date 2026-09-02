@@ -21,6 +21,7 @@ is the structural change the whole rebuild rests on.
 - `src/ledger/envelope.js` — the parts every submission shares: ids, clocks,
   the idempotency key and its payload fingerprint.
 - `src/ledger/stock.js` — moving stock, throwing it away, holding it.
+- `src/ledger/produce.js` — batching: consumes lots, opens a product lot.
 - `public/index.html` — the goods intake form, served from the same origin.
 - `public/stock.html`, `public/stock.js` — the stock screen: move, waste, hold.
 - `public/app.css` — the styling both pages share.
@@ -56,6 +57,8 @@ is the structural change the whole rebuild rests on.
     POST /api/move                     move stock between storage areas
     POST /api/waste                    throw stock away, with a reason
     POST /api/hold                     hold a lot; add ?release to let it go
+    POST /api/produce                  make a batch: consumes lots, opens one
+    GET  /api/catalog?action=recipes    &item=<product id>
 
 Every catalog action takes `&active=all` to include retired rows; the default
 is active rows only. Items out of scope at Glasgow are held as inactive rows
@@ -314,6 +317,32 @@ Held stock cannot be moved, which is how held stock otherwise finds its way
 back into the usable racking. A lot is held by a temperature deviation or by a
 hold somebody opened by hand, and it returns to `open` only when **nothing at
 all** is holding it.
+
+## Batching
+
+`POST /api/produce` is one event: it consumes from the lots named and opens a
+lot of the product, so stock on hand and genealogy both fall out of the
+movements with no special case. Every `CONSUME` row carries the new lot as its
+counterpart, which is the genealogy edge — one step back from a product is the
+lots its consuming movements name.
+
+Two things about it are decisions rather than mechanics.
+
+**A line may name several lots.** Half a batch of broth from one case of
+carcasses and half from another is the ordinary case, so a line takes a list
+of allocations rather than one lot. The same lot twice from the same place is
+refused, since that is a slip rather than a split.
+
+**An ingredient with no identified lot does not stop the batch.** It is
+recorded in `unproven_inputs` with a required reason and the batch proceeds
+(Dean, 2026-08-31). A blocked batch with a pot on the heat gets worked around,
+and the way around it is a plausible wrong lot — worse than an honest hole,
+because it cannot be seen afterwards. A one-step-back report has to show these
+as unproven rather than absent.
+
+The use-by is derived once from the recipe's shelf life rather than typed per
+batch. A product whose recipe states none gets no use-by at all rather than a
+guessed one, and the lot records which of the two happened.
 
 ## Devices
 
