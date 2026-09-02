@@ -1,5 +1,5 @@
 overrides: catalog-overrides.json (Dean, 2026-08-31)
-97 items (69 ingredients, 28 products), 128 conversions, 4 locations, 2 suppliers, 10 staff -> /Users/grid/Repos/trace/worker/scripts/catalog.sql
+98 items (69 ingredients, 29 products), 128 conversions, 4 locations, 2 suppliers, 10 staff -> /Users/grid/Repos/trace/worker/scripts/catalog.sql
 
 Opened pack shortens the use-by, per the supplier's specification (2)
   - Balsamic Vinegar — 90 days
@@ -34,15 +34,16 @@ Product kept in ambient storage, named by the kitchen (5)
   - Spicy Teriyaki
   - Teriyaki Sauce
 
-Product kept in freezer storage, named by the kitchen (6)
+Product kept in freezer storage, named by the kitchen (7)
   - Chicken Broth
   - Frozen Ramen : Black Garlic
   - Frozen Ramen : Chicken Tori Paitan
   - Frozen Ramen : Hell Ramen
   - Frozen Ramen : Laksa Ramen
   - Tonkotsu Broth
+  - Tonkotsu Broth Diluted
 
-Added from the overrides, not in the workbook (8)
+Added from the overrides, not in the workbook (9)
   - Chicken Fillet
   - Coconut Milk
   - Memma Bamboo Shoots
@@ -50,7 +51,11 @@ Added from the overrides, not in the workbook (8)
   - Pork Belly
   - Pork Chasiu
   - Ramen Noodles
+  - Tonkotsu Broth Diluted
   - Wakame Seaweed
+
+Added item has no storage, left null (1)
+  - Tonkotsu Broth Diluted
 
 No case conversion, by decision (1)
   - Pork Belly — sold per kg, so there is no fixed case size to convert from
@@ -73,7 +78,7 @@ No item-to-base conversion written (15)
   - Yutaka Gochujang — the item size carries no unit the workbook recognises
 
 Opened pack shortens the use-by by the kitchen's 42-day rule: 11 rows
-After-opening storage taken from the kitchen's rule: same as unopened: 94 rows
+After-opening storage taken from the kitchen's rule: same as unopened: 95 rows
 Health mark not yet determined, left null: 83 rows
 Used whole, so no Date Opened label: 54 rows
 Base unit set from the pack size the kitchen stated: 15 rows

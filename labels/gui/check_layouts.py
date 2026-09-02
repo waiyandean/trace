@@ -100,6 +100,16 @@ CASES = [
         packed="01/09/2026", qty="700 g", sku="", allergens="Gluten, Soya",
         barcode="5070004671219", producer=PRODUCER, health_mark=True,
         hm_code="GA 121", quantity=1)),
+    ("packet with a variant tag", zpl.product, dict(
+        name="Tonkotsu Broth", use_by="01/09/2027", batch="0209GA1",
+        packed="02/09/2026", qty="1.8 Litres", sku="", tag="Diluted",
+        allergens="Gluten, Fish, Soya", producer=PRODUCER,
+        health_mark=True, hm_code="GA 121", quantity=1)),
+    ("variant tag against a long name", zpl.product, dict(
+        name="Spicy Miso Tonkotsu Ramen", use_by="01/09/2027", batch="0209GA1",
+        packed="02/09/2026", qty="1.8 Litres", sku="BF-SPMSTKR-12K",
+        tag="Diluted", allergens="Gluten, Fish, Soya", producer=PRODUCER,
+        health_mark=True, hm_code="GA 121", quantity=1)),
     ("notice, two words", zpl.notice, dict(text="DO NOT USE", quantity=1)),
     ("notice, a sentence", zpl.notice, dict(
         text="Allergen area. Clean down before and after use.", quantity=1)),

@@ -154,6 +154,13 @@
       "base_unit": "kg",
       "storage_unopened": "chill",
       "note": "made here from pork belly, ginger, garlic and japanese soy sauce (Dean, 2026-09-01). Storage follows the kitchen's product default of chill and has not been confirmed for this product specifically."
+    },
+    "Tonkotsu Broth Diluted": {
+      "id": "trace:tonkotsu-broth-diluted",
+      "kind": "product",
+      "base_unit": "L",
+      "note": "The kitchen dilutes Tonkotsu Broth before it goes to the restaurant. It is a separate product rather than a state of the concentrate: the two look identical in the pouch, and serving the wrong one is the mistake the label exists to prevent (Dean, 2026-09-02).",
+      "needs_health_mark": true
     }
   },
   "locations": [
@@ -251,7 +258,8 @@
       "Garlic Oil": "ambient",
       "Teriyaki Sauce": "ambient",
       "Spicy Teriyaki": "ambient",
-      "Soba Sauce": "ambient"
+      "Soba Sauce": "ambient",
+      "Tonkotsu Broth Diluted": "freezer"
     }
   },
   "excluded": {
@@ -320,7 +328,8 @@
     "litres": [
       "Chicken Broth",
       "Tonkotsu Broth",
-      "Ikigai Chicken Broth"
+      "Ikigai Chicken Broth",
+      "Tonkotsu Broth Diluted"
     ],
     "grams": [
       "Black Garlic Tonkotsu (Soup)",

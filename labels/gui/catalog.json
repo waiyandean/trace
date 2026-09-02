@@ -1241,6 +1241,19 @@
    "pack": null
   },
   {
+   "id": "trace:tonkotsu-broth-diluted",
+   "name": "Tonkotsu Broth Diluted",
+   "kind": "product",
+   "base_unit": "L",
+   "storage_unopened": "freezer",
+   "storage_opened": "freezer",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": 1,
+   "suppliers": [],
+   "pack": null
+  },
+  {
    "id": "trace:wakame",
    "name": "Wakame Seaweed",
    "kind": "ingredient",

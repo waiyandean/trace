@@ -95,7 +95,9 @@ DECIDED = {
 # Chasiu is cooked in the soy sauce and declares what the soy sauce declares
 # (Dean, 2026-09-01). If the source item's row in the matrix changes, so does
 # this one.
-SAME_AS = {"Pork Chasiu": "Japanese Soy Sauce"}
+SAME_AS = {"Pork Chasiu": "Japanese Soy Sauce",
+           # Diluting it with water adds nothing and removes nothing.
+           "Tonkotsu Broth Diluted": "Tonkotsu Broth"}
 
 # Matrix rows for things the kitchen has stopped using (Dean, 2026-09-01).
 # Recorded rather than deleted from the matrix, so that a row reappearing is

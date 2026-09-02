@@ -428,12 +428,19 @@ def build_items(ingredients, products, overrides, rule, policy, excluded, openin
                 f"{name} — missing {' and '.join(missing)}",
             )
             continue
+        # A minted product reads product_storage the same way a workbook one
+        # does. Without this the map that exists to say where products live is
+        # silently skipped for exactly the products it was written for, and
+        # the row comes out with no storage at all.
+        minted_storage = override.get("storage_unopened")
+        if minted_storage is None and override["kind"] == "product":
+            minted_storage = product_storage(name, policy, report)
         items[override["id"]] = {
             "id": override["id"],
             "name": name,
             "kind": override["kind"],
             "base_unit": override["base_unit"],
-            "storage_unopened": override.get("storage_unopened"),
+            "storage_unopened": minted_storage,
             # Items added from the overrides go through the same rule as the
             # workbook's. Chicken fillet and pork belly are not on the list of
             # fifteen, so they come out whole_pack — which is right, and would
@@ -442,7 +449,7 @@ def build_items(ingredients, products, overrides, rule, policy, excluded, openin
                        opening_for(name, override["base_unit"], opening, report)
                        if override["kind"] == "ingredient" else (None, None))),
             "storage_opened": override.get("storage_opened")
-            or after_opening(name, override.get("storage_unopened"), rule, report),
+            or after_opening(name, minted_storage, rule, report),
             "needs_health_mark": override.get("needs_health_mark"),
             **exclusion(name, excluded, report),
         }

@@ -25,6 +25,11 @@
     "               dropped (Dean, 2026-09-01), which is why most products need no",
     "               label_name at all.",
     "",
+    "               tag names a variant, and prints as a reversed chip beside the",
+    "               product name. It is for two products that look identical in",
+    "               the pouch, where a word in the name is not enough: the",
+    "               diluted tonkotsu against the concentrate.",
+    "",
     "               category puts a product under a heading on the picker. The",
     "               order the headings appear in is product_categories; anything",
     "               with no category falls to the end under its own heading rather",
@@ -142,6 +147,7 @@
     "Toban Djan Chilli Bean Sauce": "Soya",
     "Tom Yum Tare": "Gluten, Crustaceans, Fish, Soya",
     "Tonkotsu Broth": "Gluten, Fish, Soya",
+    "Tonkotsu Broth Diluted": "Gluten, Fish, Soya",
     "Wakame Seaweed": "None declared",
     "White Miso": "Soya",
     "White Truffle Oil": "None declared",
@@ -458,6 +464,22 @@
         "qty": "8 x 1.8 Litres"
       },
       "category": "Broths"
+    },
+    "Tonkotsu Broth Diluted": {
+      "label_name": "Tonkotsu Broth",
+      "tag": "Diluted",
+      "category": "Broths",
+      "health_mark": true,
+      "packet": {
+        "sku": "",
+        "qty": "1.8 Litres",
+        "no_sku": true
+      },
+      "box": {
+        "sku": "",
+        "qty": "8 x 1.8 Litres",
+        "no_sku": true
+      }
     }
   },
   "may_contain": {

@@ -1,6 +1,6 @@
 Allergen import from /Users/grid/Repos/forms/apps/wiki/html/1.4 Allergen Management/1.4.1 Allergen Matrix.html
 
-71 rows in the matrix, 85 matched to catalog items.
+71 rows in the matrix, 86 matched to catalog items.
 5 carry a 'may contain'.
 
 -- Stated directly, not in the matrix (11)
@@ -17,9 +17,10 @@ Allergen import from /Users/grid/Repos/forms/apps/wiki/html/1.4 Allergen Managem
      Wakame Seaweed  =  None declared
      White Truffle Oil  =  None declared
 
--- Taken from another item's row (1)
+-- Taken from another item's row (2)
    Not in the matrix; declared the same as the item named.
      Pork Chasiu  <-  Japanese Soy Sauce
+     Tonkotsu Broth Diluted  <-  Tonkotsu Broth
 
 -- Retired, skipped (2)
    Still in the matrix, no longer used by the kitchen.

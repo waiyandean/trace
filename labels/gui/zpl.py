@@ -260,11 +260,11 @@ def _label_allergen_block(text, top, warnings):
     return out
 
 
-def _warn_name(name, warnings):
-    if not fits(escape(name), NAME_HEIGHT):
+def _warn_name(name, warnings, width=INNER):
+    if not fits(escape(name), NAME_HEIGHT, width):
         warnings.append(
             f"'{name}' is about {text_width(escape(name), NAME_HEIGHT)} dots wide "
-            f"at {NAME_HEIGHT}, over the {INNER} available. It will be clipped at "
+            f"at {NAME_HEIGHT}, over the {width} available. It will be clipped at "
             f"the right-hand edge; shorten the name rather than the type size.")
 
 
@@ -370,9 +370,38 @@ def date_opened(*, name, opened, use_by, batch, allergens, storage_opened,
     return "\n".join(out) + "\n", warnings
 
 
+def variant_tag(words, warnings):
+    """A reversed chip naming a variant, for two products that look alike.
+
+    Tonkotsu broth and the diluted version of it are the same colour in the
+    same pouch, and serving one for the other is a mistake nobody catches by
+    reading carefully -- so the distinction has to survive being glanced at
+    from across a room, which a word in the product name does not.
+
+    Reversed type in a solid band was tried for the four label types and
+    dropped at 41-48% black. This is one chip of about 240 by 40 dots, under
+    three per cent of the label, so it buys the loudest device available for
+    almost none of the ink that made the earlier attempt untenable.
+    """
+    text = escape(words).upper()
+    if not text:
+        return []
+    width = text_width(text, 30) + 40
+    if width > 320:
+        warnings.append(
+            f"'{text}' is too long for the variant tag, which has to sit "
+            f"beside the product name. One or two words.")
+        return []
+    x = WIDTH - MARGIN - width
+    return [
+        f"^FO{x},44^GB{width},40,40^FS",
+        f"^FR^FO{x},49^A0N,30,0^FB{width},1,0,C^FD{text}^FS",
+    ]
+
+
 def product(*, name, use_by, batch, packed, qty, sku, allergens, producer,
-            may_contain="", barcode="", health_mark=False, hm_country="GB",
-            hm_code="", is_case=False, quantity=1):
+            may_contain="", barcode="", tag="", health_mark=False,
+            hm_country="GB", hm_code="", is_case=False, quantity=1):
     """The customer-facing product label, packet and case from one layout.
 
     The QR encodes the SKU. Once the trace endpoint exists it should carry a
@@ -387,13 +416,18 @@ def product(*, name, use_by, batch, packed, qty, sku, allergens, producer,
     distinctions because a pouch and a case are not easily confused.
     """
     warnings = []
-    _warn_name(name, warnings)
+    # The chip eats into the room the name has, so the name is measured
+    # against what is left rather than the full width.
+    chip_width = (text_width(escape(tag).upper(), 30) + 60) if escape(tag) else 0
+    _warn_name(name, warnings, INNER - chip_width)
     if health_mark and not hm_code:
         warnings.append(
             "The health mark oval is on but no approval number is set, so the "
             "oval would print empty. Set health_mark_code in label-data.json.")
 
+    chip = variant_tag(tag, warnings)
     out = _head(quantity)
+    out += chip
     out += [
         f"^FO{MARGIN},42^A0N,{NAME_HEIGHT}^FD{escape(name)}^FS",
         f"^FO{MARGIN},96^GB{INNER},0,4^FS",
