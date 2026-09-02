@@ -216,3 +216,18 @@ test('a mistyped code is decoded rather than rejected', () => {
   assert.match(batchingScript, /replace\(\/\[IL\]\/g, '1'\)/);
   assert.match(batchingScript, /replace\(\/O\/g, '0'\)/);
 });
+
+test('the lot picker searches the batch number as well as the short code', () => {
+  // The batch number is what staff read off the label today. A picker that
+  // only knew the short code could not be searched the way they work.
+  assert.match(batchingScript, /const byBatch = available\.filter/);
+  assert.match(batchingHtml, /short code, or the batch number/);
+});
+
+test('an ambiguous batch number narrows the list rather than choosing', () => {
+  // Every case of one ingredient delivered on a day carries the same batch
+  // number, so it names several. Asking is the point: it is why the system
+  // stopped joining on this number.
+  assert.match(batchingScript, /carry batch \$\{typed\}/);
+  assert.match(batchingScript, /the use-by tells them apart/);
+});
