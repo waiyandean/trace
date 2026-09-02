@@ -20,7 +20,7 @@
 // deleted, so a stale cache cannot outlive the code it belongs to. It is also
 // shown on screen, so the iPad can be asked what it is running rather than
 // guessed at.
-const VERSION = '2026-09-02.1';
+const VERSION = '2026-09-02.2';
 
 const SHELL_CACHE = `trace-shell-${VERSION}`;
 const PHOTO_CACHE = 'trace-photos';
@@ -37,7 +37,7 @@ const SHELL = [
   // '/stock' and not '/stock.html': Workers' static assets answer the .html
   // form with a 307 to the extensionless one, and a cached redirect cannot
   // satisfy a navigation. The same trap as '/index.html'.
-  '/stock', '/stock.js', '/batching', '/batching.js',
+  '/stock', '/stock.js', '/batching', '/batching.js', '/batches', '/batches.js',
 ];
 
 self.addEventListener('install', (event) => {

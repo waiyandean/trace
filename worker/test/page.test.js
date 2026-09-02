@@ -231,3 +231,35 @@ test('an ambiguous batch number narrows the list rather than choosing', () => {
   assert.match(batchingScript, /carry batch \$\{typed\}/);
   assert.match(batchingScript, /the use-by tells them apart/);
 });
+
+// The open batches screen, where everything after the ingredients is resumed.
+
+const batchesHtml = readFileSync(new URL('../public/batches.html', import.meta.url), 'utf8');
+const batchesScript = readFileSync(new URL('../public/batches.js', import.meta.url), 'utf8');
+
+test('every element the open batches screen reaches for exists in its page', () => {
+  const declared = new Set([...batchesHtml.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+  const used = new Set([...batchesScript.matchAll(/\$\('([^']+)'\)/g)].map((m) => m[1]));
+  assert.deepEqual([...used].filter((id) => !declared.has(id)), []);
+});
+
+test('the batching form asks for nothing that has not happened yet', () => {
+  // Temperatures are taken while it cooks and the yield is not known until it
+  // is packed. A form asking for either would be asking somebody to type a
+  // number before it existed.
+  assert.doesNotMatch(batchingHtml, /id="yield"/);
+  assert.doesNotMatch(batchingHtml, /id="checkpoints"/);
+});
+
+test('the open batches screen is one list, not three', () => {
+  // A batch needs its temperatures and then packing out, both picked up by
+  // whoever is on shift when they fall due. Two screens would mean two places
+  // to remember to look.
+  assert.match(batchesScript, /\/api\/batches/);
+  assert.match(batchesScript, /\/api\/checks/);
+  assert.match(batchesScript, /\/api\/packing/);
+});
+
+test('a batch cannot be packed out with checks outstanding', () => {
+  assert.match(batchesScript, /check\(s\) still to take/);
+});

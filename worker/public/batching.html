@@ -48,6 +48,7 @@
   <span class="pill" id="net">checking</span>
   <a href="/" class="pill" style="text-decoration:none">Goods In</a>
   <a href="/stock" class="pill" style="text-decoration:none">Stock</a>
+  <a href="/batches" class="pill" style="text-decoration:none">Open batches <span id="open-count"></span></a>
 </header>
 
 <main>
@@ -85,23 +86,12 @@
     <ul class="lines" id="ingredients"></ul>
   </section>
 
-  <section id="checks-section" hidden>
-    <h2>Checks</h2>
-    <div id="checkpoints"></div>
-  </section>
-
+  <!-- What is recorded here is what has happened: the ingredients went in.
+       The temperatures are taken while it cooks and how much it made is not
+       known until it is packed, so both are picked up later from the list of
+       open batches rather than typed before they exist. -->
   <section id="finish-section" hidden>
-    <h2>Finish</h2>
-    <div class="row">
-      <div class="field">
-        <label for="yield" id="yield-label">How much it made</label>
-        <input id="yield" type="number" min="0" step="any" inputmode="decimal" />
-      </div>
-      <div class="field">
-        <label for="where">Where it is going</label>
-        <select id="where"></select>
-      </div>
-    </div>
+    <h2>Start the batch</h2>
     <ul class="attest" id="attest">
       <li><label><input type="checkbox" id="equipment" /> Equipment checked before starting</label></li>
     </ul>

@@ -174,13 +174,12 @@ async function chooseProduct(item) {
     api(`/api/catalog?action=checkpoints&item=${encodeURIComponent(item.id)}`),
   ]);
   state.recipe = recipe.ok ? recipe.body.rows : [];
+  // Not asked for here, only counted: the form says what will be waiting
+  // rather than pretending these can be answered now.
   state.checkpoints = checks.ok ? checks.body.rows : [];
 
   await loadStock();
   $('product-name').textContent = item.name;
-  // Addressed by id rather than walked to from the input: a label found by
-  // climbing the tree breaks the day somebody wraps the field in a div.
-  $('yield-label').textContent = `How much it made, in ${item.base_unit}`;
   render();
 }
 
@@ -458,107 +457,6 @@ function saveLots() {
 
 // ------------------------------------------------------------ checkpoints
 
-function renderCheckpoints() {
-  const holder = $('checkpoints');
-  holder.replaceChildren();
-  $('checks-section').hidden = !state.checkpoints.length;
-
-  for (const checkpoint of state.checkpoints) {
-    const row = document.createElement('div');
-    row.className = 'cp';
-
-    const grow = document.createElement('div');
-    grow.className = 'grow';
-    const label = document.createElement('div');
-    label.className = 'label';
-    label.textContent = checkpoint.label;
-    if (checkpoint.is_ccp) {
-      const flag = document.createElement('span');
-      flag.className = 'ccp';
-      flag.textContent = ' CCP';
-      label.append(flag);
-    }
-    grow.append(label);
-
-    const limit = document.createElement('div');
-    limit.className = 'limit';
-    const bounds = [
-      checkpoint.min_celsius !== null ? `at least ${checkpoint.min_celsius}°C` : null,
-      checkpoint.max_celsius !== null ? `no more than ${checkpoint.max_celsius}°C` : null,
-    ].filter(Boolean);
-    limit.textContent = bounds.length ? bounds.join(', ') : 'recorded, no limit stated';
-    grow.append(limit);
-    row.append(grow);
-
-    if (checkpoint.due_minutes) {
-      // Not asked for now: it falls due later and somebody comes back to it.
-      const later = document.createElement('div');
-      later.className = 'later';
-      later.textContent =
-        `Due ${checkpoint.due_minutes} minutes after ${checkpoint.anchor_code.replace(/-/g, ' ')}. ` +
-        'It will be waiting on the checks screen; the batch does not need it now.';
-      row.append(later);
-      holder.append(row);
-      continue;
-    }
-
-    if (checkpoint.kind === 'check') {
-      const wrap = document.createElement('label');
-      wrap.style.display = 'flex';
-      wrap.style.alignItems = 'center';
-      wrap.style.gap = '10px';
-      const box = document.createElement('input');
-      box.type = 'checkbox';
-      box.dataset.code = checkpoint.code;
-      box.dataset.kind = 'check';
-      wrap.append(box, document.createTextNode('Confirmed'));
-      row.append(wrap);
-    } else if (checkpoint.kind === 'time') {
-      const input = document.createElement('input');
-      input.type = 'datetime-local';
-      input.dataset.code = checkpoint.code;
-      input.dataset.kind = 'time';
-      row.append(input);
-    } else {
-      const input = document.createElement('input');
-      input.type = 'number';
-      input.step = '0.1';
-      input.inputMode = 'decimal';
-      input.placeholder = '°C';
-      input.dataset.code = checkpoint.code;
-      input.dataset.kind = 'temp';
-      input.dataset.min = checkpoint.min_celsius ?? '';
-      input.dataset.max = checkpoint.max_celsius ?? '';
-      input.addEventListener('input', () => renderFinish());
-      row.append(input);
-    }
-
-    holder.append(row);
-  }
-}
-
-function readCheckpoints() {
-  const given = {};
-  const breaches = [];
-  for (const input of $('checkpoints').querySelectorAll('[data-code]')) {
-    const code = input.dataset.code;
-    if (input.dataset.kind === 'check') {
-      given[code] = { confirmed: input.checked };
-    } else if (input.dataset.kind === 'time') {
-      if (input.value) given[code] = { observed_at: new Date(input.value).toISOString() };
-    } else if (input.value !== '') {
-      const celsius = Number(input.value);
-      given[code] = { celsius };
-      const min = input.dataset.min === '' ? null : Number(input.dataset.min);
-      const max = input.dataset.max === '' ? null : Number(input.dataset.max);
-      if ((min !== null && celsius < min) || (max !== null && celsius > max)) {
-        breaches.push(input.closest('.cp').querySelector('.label').textContent.replace(' CCP', ''));
-      }
-    }
-  }
-  return { given, breaches };
-}
-
 // ----------------------------------------------------------------- finish
 
 function renderFinish() {
@@ -567,18 +465,10 @@ function renderFinish() {
 
   const problems = [];
   if (!$('staff').value) problems.push('who is making it');
-  if (!Number($('yield').value)) problems.push('how much it made');
-  if (!$('where').value) problems.push('where it is going');
   if (!$('equipment').checked) problems.push('that the equipment was checked');
 
   const unpicked = state.recipe.filter((line) => !state.picks.has(line.ingredient_id));
   if (unpicked.length) problems.push(`lots for ${unpicked.map((l) => l.ingredient_name).join(', ')}`);
-
-  for (const checkpoint of state.checkpoints) {
-    if (!checkpoint.required || checkpoint.due_minutes) continue;
-    const input = $('checkpoints').querySelector(`[data-code="${checkpoint.code}"]`);
-    if (input && input.dataset.kind !== 'check' && input.value === '') problems.push(checkpoint.label);
-  }
 
   const note = $('finish-note');
   if (problems.length) {
@@ -587,24 +477,23 @@ function renderFinish() {
     return;
   }
 
-  const { breaches } = readCheckpoints();
   const unproven = state.recipe.filter((line) => state.picks.get(line.ingredient_id)?.unproven);
   const parts = [];
-  if (breaches.length) {
-    parts.push(`${breaches.join(' and ')} is outside its limit, so this batch will be held until it is rechecked.`);
-  }
   if (unproven.length) {
     parts.push(`${unproven.length} ingredient(s) with no identified lot will be recorded as unproven.`);
   }
-  const later = state.checkpoints.filter((c) => c.due_minutes).length;
-  if (later) parts.push(`${later} check(s) will be waiting on the checks screen afterwards.`);
-  note.textContent = parts.join(' ') || 'Everything is picked and every check is in.';
+  if (state.checkpoints.length) {
+    parts.push(
+      `${state.checkpoints.length} check(s) will be waiting under open batches — ` +
+        'the temperatures, and how much it made when it is packed.',
+    );
+  }
+  note.textContent = parts.join(' ');
   $('save').disabled = false;
 }
 
 function render() {
   renderIngredients();
-  renderCheckpoints();
   renderFinish();
 }
 
@@ -629,7 +518,6 @@ async function save() {
     };
   });
 
-  const { given } = readCheckpoints();
   const response = await api('/api/produce', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -640,12 +528,8 @@ async function save() {
       occurred_at: $('made').value ? new Date($('made').value).toISOString() : new Date().toISOString(),
       lot_id: ulid(),
       item_id: state.product.id,
-      location_id: $('where').value,
-      yield_quantity: Number($('yield').value),
-      yield_unit: state.product.base_unit,
       multiplier: Number($('multiplier').value) || 1,
       equipment_checked: $('equipment').checked,
-      checkpoints: given,
       lines,
     }),
   });
@@ -657,11 +541,12 @@ async function save() {
 
   const lot = response.body.lot;
   notify(
-    `${lot.item_name} recorded${lot.use_by ? `, use by ${lot.use_by}` : ''}` +
-      `${lot.status === 'held' ? ' — held, a check was outside its limit' : ''}.`,
-    lot.status === 'held' ? 'warn' : 'ok',
+    `${lot.item_name} started${lot.use_by ? `, use by ${lot.use_by}` : ''}. ` +
+      'Its checks and its packing are waiting under open batches.',
+    'ok',
   );
   clear();
+  countOpenBatches();
 }
 
 function clear() {
@@ -670,28 +555,33 @@ function clear() {
   state.checkpoints = [];
   state.picks = new Map();
   $('product-name').textContent = 'none chosen';
-  $('yield').value = '';
   $('equipment').checked = false;
   $('multiplier').value = '1';
   $('ingredients-section').hidden = true;
-  $('checks-section').hidden = true;
   $('finish-section').hidden = true;
 }
 
 // ------------------------------------------------------------------- boot
 
+// The count sits in the header so a batch waiting on its temperatures is
+// visible from the page somebody is already on.
+async function countOpenBatches() {
+  const response = await api('/api/batches');
+  if (response.ok) $('open-count').textContent = response.body.count ? String(response.body.count) : '';
+}
+
 async function boot() {
-  const parts = ['staff', 'locations', 'items', 'recipes'];
+  const parts = ['staff', 'items', 'recipes'];
   const responses = await Promise.all(parts.map((action) => api(`/api/catalog?action=${action}`)));
   if (responses.some((response) => !response.ok)) {
     notify('Could not load the catalog. This screen needs a connection.', 'bad');
     return;
   }
-  const [staff, locations, items, recipes] = responses.map((response) => response.body.rows);
-  state.catalog = { staff, locations, items, recipes };
+  const [staff, items, recipes] = responses.map((response) => response.body.rows);
+  state.catalog = { staff, items, recipes };
 
   fillSelect($('staff'), staff, { placeholder: 'Choose your name', selected: store.read(STAFF_KEY, null) });
-  fillSelect($('where'), locations, { placeholder: 'Choose where it is going' });
+  await countOpenBatches();
 
   const now = new Date();
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -706,8 +596,6 @@ $('staff').addEventListener('change', (event) => {
   renderFinish();
 });
 $('multiplier').addEventListener('input', render);
-$('yield').addEventListener('input', renderFinish);
-$('where').addEventListener('change', renderFinish);
 $('equipment').addEventListener('change', renderFinish);
 
 $('pick-product').addEventListener('click', () => {

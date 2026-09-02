@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Open batches — trace</title>
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Open batches" />
+<meta name="theme-color" content="#f2f2f7" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="stylesheet" href="/app.css" />
+<style>
+/* One list rather than three. A batch needs its temperatures taken and then
+   packing out, both by whoever is on shift when they fall due, so what is
+   waiting has to be in one place — the screen nobody looks at is where a
+   cooling check goes to die. */
+.batch { border-top: 1px solid var(--line); padding: 12px 16px; display: flex; gap: 12px; align-items: center; }
+.batch .grow { flex: 1; min-width: 0; }
+.batch .name { font-weight: 600; }
+.batch .detail { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.batch .waiting { font-size: 14px; margin-top: 4px; }
+.batch .overdue { color: var(--bad); font-weight: 600; }
+.batch .held { color: var(--warn); font-weight: 600; }
+.cp { border-top: 1px solid var(--line); padding: 12px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.cp .grow { flex: 1 1 200px; min-width: 0; }
+.cp .label { font-weight: 600; }
+.cp .limit { font-size: 13px; color: var(--muted); }
+.cp .ccp { font-size: 11px; font-weight: 700; color: var(--bad); letter-spacing: 0.5px; }
+.cp .answered { color: var(--tint); font-weight: 600; }
+.cp .failed { color: var(--bad); font-weight: 600; }
+.cp .due { font-size: 13px; color: var(--muted); }
+.cp .due.late { color: var(--bad); font-weight: 600; }
+.cp input { max-width: 150px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Open batches</h1>
+  <span class="pill" id="net">checking</span>
+  <a href="/batching" class="pill" style="text-decoration:none">New batch</a>
+  <a href="/" class="pill" style="text-decoration:none">Goods In</a>
+  <a href="/stock" class="pill" style="text-decoration:none">Stock</a>
+</header>
+
+<main>
+  <div id="alerts"></div>
+
+  <section>
+    <h2>Who is doing this</h2>
+    <div class="row">
+      <div class="field">
+        <label for="staff">Your name</label>
+        <select id="staff"></select>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Still to finish</h2>
+    <ul class="lines" id="batches"></ul>
+    <p class="empty" id="batches-empty">Loading…</p>
+  </section>
+</main>
+
+<dialog id="batch-dialog">
+  <header><h1 id="batch-title">Batch</h1></header>
+  <p class="note" id="batch-detail"></p>
+
+  <h2 style="padding:12px 16px 0">Checks</h2>
+  <div id="batch-checks"></div>
+
+  <h2 style="padding:16px 16px 0" id="pack-heading">Pack it out</h2>
+  <div id="pack-form">
+    <div class="row">
+      <div class="field">
+        <label for="yield" id="yield-label">How much it made</label>
+        <input id="yield" type="number" min="0" step="any" inputmode="decimal" />
+      </div>
+      <div class="field">
+        <label for="where">Where it is going</label>
+        <select id="where"></select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="packets">How many packets</label>
+        <input id="packets" type="number" min="0" step="1" inputmode="numeric" />
+      </div>
+    </div>
+    <ul class="attest">
+      <li><label><input type="checkbox" id="labelled" /> Every packet carries its label</label></li>
+    </ul>
+  </div>
+
+  <div id="batch-error"></div>
+  <div class="actions">
+    <button id="pack-save">Pack it out</button>
+    <button class="secondary" id="batch-close">Close</button>
+  </div>
+</dialog>
+
+<script type="module" src="/batches.js"></script>
+</body>
+</html>
