@@ -1173,11 +1173,21 @@ These need Dean's answer before the phase that depends on them.
 
    Nothing is blocked meanwhile. Those five lines import as stated and the
    mass balance lists them separately rather than adding them.
-6. **The supervised exception workflow (blocks P3).** Lot selection is meant to
-   be mandatory before a batch can complete. There will still be cases where
-   the physical lot genuinely is not in the system. What that escape hatch
-   looks like, and who is allowed to use it, determines whether staff comply
-   with the rule or route around it.
+6. **The supervised exception workflow — resolved 2026-09-03 (Dean).** No gate
+   at entry: `produce.js` already proceeds on an ingredient with no identified
+   lot, requiring only a typed reason, and that stays open to anybody. A hard
+   gate was considered and rejected — it fights the reasoning already in that
+   file, that a block at the pot gets worked around with a plausible wrong
+   lot, which is worse than an honest gap.
+
+   The supervision moves entirely to review, in the same shape P1 already
+   used for a temperature deviation: nothing stops the batch, but the gap
+   stays open until a named person has looked at it. Migration `0012` adds
+   `reviewed_at`/`reviewed_by`/`review_note` to `unproven_inputs`;
+   `GET`/`POST /api/unproven` list and close them; the batches screen carries
+   a red badge — same pattern as the Held count on Goods In — opening a plain
+   queue with a reviewed button per row. A running count per staff name was
+   considered and deferred: the queue alone is enough for now.
 7. **Shelf-life ownership — resolved 2026-08-28 (Dean).** The use-by is read
    off the supplier's box wherever it is printed, and that always wins. Where
    there is none, which is mostly fresh produce, staff assign one week from
