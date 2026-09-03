@@ -8,6 +8,7 @@ import { move, waste, hold, releaseHold, openHolds } from './ledger/stock.js';
 import { produce } from './ledger/produce.js';
 import { pendingReadings, recordReading } from './ledger/checkpoints.js';
 import { openBatches, batchDetail, recordPacking, massBalance } from './ledger/packing.js';
+import { openUnproven, reviewUnproven } from './ledger/unproven.js';
 
 // The `trace` Worker.
 //
@@ -27,6 +28,8 @@ import { openBatches, batchDetail, recordPacking, massBalance } from './ledger/p
 //   POST /api/receive             book a delivery: opens lots, writes RECEIVE
 //   POST /api/deviations          close one: a second reading, an outcome, a name
 //   GET  /api/holds               lots held by hand, and why
+//   GET  /api/unproven            batch inputs with no identified lot, unreviewed
+//   POST /api/unproven            mark one reviewed: {unproven_id, staff_id, note}
 //   POST /api/move                move stock between storage areas
 //   POST /api/waste               throw stock away, with a reason
 //   POST /api/hold                hold a lot; ?release to let it go
@@ -73,6 +76,7 @@ const ROUTES = {
   '/api/packing': ['POST'],
   '/api/batches': ['GET'],
   '/api/balance': ['GET'],
+  '/api/unproven': ['GET', 'POST'],
 };
 
 async function readBody(request) {
@@ -115,6 +119,10 @@ async function route(request, env, url) {
       const rows = await openHolds(db);
       return json({ count: rows.length, rows });
     }
+    if (url.pathname === '/api/unproven') {
+      const rows = await openUnproven(db);
+      return json({ count: rows.length, rows });
+    }
     return null;
   }
 
@@ -135,6 +143,7 @@ async function route(request, env, url) {
         : json(await hold(db, body), { status: 201 });
     }
     if (url.pathname === '/api/checks') return json(await recordReading(db, await readBody(request)));
+    if (url.pathname === '/api/unproven') return json(await reviewUnproven(db, await readBody(request)));
     if (url.pathname === '/api/packing') return json(await recordPacking(db, await readBody(request)));
     if (url.pathname === '/api/produce') return json(await produce(db, await readBody(request)), { status: 201 });
     if (url.pathname === '/api/receive') {

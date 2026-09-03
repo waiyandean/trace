@@ -38,6 +38,7 @@
 <header>
   <h1>Open batches</h1>
   <span class="pill" id="net">checking</span>
+  <button class="secondary" id="open-unproven" style="min-height:36px;padding:6px 12px;font-size:14px">Unproven <span id="unproven-count">0</span></button>
   <a href="/batching" class="pill" style="text-decoration:none">New batch</a>
   <a href="/" class="pill" style="text-decoration:none">Goods In</a>
   <a href="/stock" class="pill" style="text-decoration:none">Stock</a>
@@ -97,6 +98,18 @@
   <div class="actions">
     <button id="pack-save">Pack it out</button>
     <button class="secondary" id="batch-close">Close</button>
+  </div>
+</dialog>
+
+<dialog id="unproven-dialog">
+  <header><h1>Unproven inputs</h1></header>
+  <p class="note">Batches that went ahead with an ingredient no lot could be
+    named for. Nothing here changes the batch — this is where somebody looks
+    at the gap and says so.</p>
+  <div id="unproven-body"></div>
+  <div class="actions">
+    <button class="secondary" id="unproven-list-refresh">Refresh</button>
+    <button class="secondary" id="unproven-list-close">Close</button>
   </div>
 </dialog>
 
