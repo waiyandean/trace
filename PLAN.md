@@ -1204,16 +1204,31 @@ These need Dean's answer before the phase that depends on them.
    ingredient, which lots were dated by the rule rather than by evidence. It is
    one column, and it is the difference between a date and a date you can
    defend to an auditor.
-8. **Decant and merge discipline.** The system can model `COMBINE` honestly,
-   but how often staff combine lots determines how much trace precision is
-   lost in practice. Worth observing before assuming it is rare.
+8. **Decant and merge discipline — resolved 2026-09-03 (Dean).** In storage,
+   every lot stays in its own container; nothing is topped up or tipped
+   together while it sits on the shelf. The only point two lots ever meet is
+   at batching, when one runs out mid-recipe and the rest is drawn from a
+   second lot — and that is not a merge in physical containers, it is drawing
+   from two lots straight into the pot.
+
+   That case needs no `COMBINE` movement. It is exactly the split allocation
+   PLAN.md's model section and P3 already built for: one recipe line can name
+   several lots, each written as its own `CONSUME` row against the batch's new
+   lot. `batching.js`'s picker sheet already lets a line take more than one
+   lot, and `produce.js` already writes one `CONSUME` per allocation — this
+   was the ordinary case in the design from the start, not an edge case added
+   for it.
+
+   `COMBINE` stays an allowed movement type with nothing writing it. Nothing
+   observed here calls for building the physical-merge flow — no case of
+   decanting part of one lot into a container already holding part of
+   another turned up. Revisit only if that changes.
 
    **One case is already known (Dean, 2026-08-31):** yakisoba sauce is
    decanted a whole bottle at a time. That is the harmless kind — the
    container changes but the lot does not, nothing is mixed, and nothing is
-   left behind. The kind that costs precision is decanting *part* of a lot
-   into a container that already holds some of another, and whether that
-   happens here is still the open part.
+   left behind — and needs no more than the re-label flow already described
+   above, under "Loose goods, decanting and re-labelling".
 9. **Authentication.** The current forms use a staff picker with no real login.
    An audit trail naming who recorded and who approved an amendment is weaker
    if anyone can pick any name. Whether that changes, and to what, is open.
