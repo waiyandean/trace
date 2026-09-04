@@ -16,7 +16,9 @@ const store = makeStore(window.localStorage);
 const STAFF_KEY = 'trace.dispatch.staff';
 const CUSTOMER_KEY = 'trace.dispatch.customer';
 
-const state = { catalog: null, products: new Map(), rows: [], lines: [], chosen: null };
+const state = {
+  catalog: null, products: new Map(), rows: [], lines: [], chosen: null, chosenProduct: null,
+};
 
 async function api(path, options) {
   const response = await fetch(path, options);
@@ -92,27 +94,96 @@ async function load() {
   renderLots();
 }
 
-// The whole product list, always. A product with no lot in stock stays on
-// screen greyed out rather than vanishing (Dean, 2026-09-04): staff need to
-// see that it exists and that there is nothing to send, not be left guessing
-// whether it was filtered or forgotten.
+function thumbnail(itemId) {
+  const image = document.createElement('img');
+  image.src = `/photos/${itemId}.jpg`;
+  image.alt = '';
+  image.loading = 'lazy';
+  image.addEventListener('error', () => {
+    const fallback = document.createElement('div');
+    fallback.className = 'noimg';
+    image.replaceWith(fallback);
+  });
+  return image;
+}
+
+// The dispatch screen's grouping of the product list (Dean, 2026-09-04),
+// derived from the catalog's own naming rather than a stored field:
+//
+//   - the intermediate broths from which the ramen is built are named
+//     "… (Soup)" and are not dispatched at all, so they are hidden here;
+//   - the retail frozen lines are all "Frozen Ramen : …";
+//   - the two broths that do ship carry "Broth";
+//   - everything else is a sauce.
+//
+// If this grouping ever has to be authoritative it belongs on `items`, not
+// in this file — for now it is one screen's view of the catalog.
+const DISPATCH_GROUPS = ['Broths', 'Frozen Ramen', 'Sauces'];
+
+function groupFor(product) {
+  const name = product.name.trim();
+  if (/\(soup\)$/i.test(name)) return null;
+  if (/^frozen ramen\b/i.test(name)) return 'Frozen Ramen';
+  if (/\bbroth\b/i.test(name)) return 'Broths';
+  return 'Sauces';
+}
+
+function buildTile(product, taken) {
+  const stock = state.rows.filter((row) => row.item_id === product.id);
+  const available = stock.filter((row) => !taken.has(`${row.lot_id}@${row.location_id}`));
+
+  const tile = document.createElement('button');
+  tile.type = 'button';
+  tile.className = 'tile';
+  tile.append(thumbnail(product.id));
+
+  const grow = document.createElement('div');
+  grow.className = 'grow';
+  const name = document.createElement('div');
+  name.className = 'name';
+  name.textContent = product.name;
+  const status = document.createElement('div');
+  status.className = 'status';
+  grow.append(name, status);
+  tile.append(grow);
+
+  if (available.length) {
+    const total = Number(available.reduce((sum, row) => sum + row.quantity, 0).toFixed(3));
+    status.textContent =
+      `${total} ${product.base_unit} · ${available.length} lot${available.length === 1 ? '' : 's'}`;
+    tile.addEventListener('click', () => openProduct(product, available));
+  } else {
+    tile.disabled = true;
+    status.textContent = stock.length ? 'every lot already added' : 'no lot in stock';
+  }
+  return tile;
+}
+
+// The product list as a grid of photographs under group headings — the same
+// picker shape the goods-in and batching screens use. A product with no lot
+// in stock stays on the grid greyed out and not tappable (Dean, 2026-09-04):
+// staff need to see it exists and that there is nothing to send, rather than
+// wonder whether it was filtered out.
 function renderLots() {
   const wanted = $('search').value.trim().toLowerCase();
   const taken = new Set(state.lines.map((line) => `${line.lot_id}@${line.location_id}`));
 
-  const list = $('lots');
-  list.replaceChildren();
+  const container = $('lots');
+  container.replaceChildren();
   $('lots-empty').hidden = true;
 
-  const products = (state.catalog?.products || []).filter(
-    (product) =>
-      !wanted ||
-      product.name.toLowerCase().includes(wanted) ||
-      state.rows.some(
-        (row) => row.item_id === product.id && (row.short_code || '').toLowerCase().includes(wanted),
-      ),
-  );
-  if (!products.length) {
+  const visible = (state.catalog?.products || [])
+    .filter((product) => groupFor(product) !== null)
+    .filter(
+      (product) =>
+        !wanted ||
+        product.name.toLowerCase().includes(wanted) ||
+        state.rows.some(
+          (row) => row.item_id === product.id && (row.short_code || '').toLowerCase().includes(wanted),
+        ),
+    );
+
+  if (!visible.length) {
     $('lots-empty').hidden = false;
     $('lots-empty').textContent = state.catalog?.products?.length
       ? `Nothing matches “${$('search').value}”.`
@@ -120,61 +191,19 @@ function renderLots() {
     return;
   }
 
-  for (const product of products) {
-    const stock = state.rows.filter((row) => row.item_id === product.id);
-    const available = stock.filter((row) => !taken.has(`${row.lot_id}@${row.location_id}`));
+  for (const group of DISPATCH_GROUPS) {
+    const inGroup = visible.filter((product) => groupFor(product) === group);
+    if (!inGroup.length) continue;
 
-    const head = document.createElement('li');
-    head.className = available.length ? 'prod' : 'prod disabled';
+    const heading = document.createElement('h3');
+    heading.className = 'grouphdr';
+    heading.textContent = group;
+    container.append(heading);
 
-    const grow = document.createElement('div');
-    grow.className = 'grow';
-    const name = document.createElement('div');
-    name.className = 'name';
-    name.textContent = product.name;
-    grow.append(name);
-
-    if (!available.length) {
-      const detail = document.createElement('div');
-      detail.className = 'detail';
-      detail.textContent = stock.length
-        ? 'every lot in stock is already on this dispatch'
-        : 'no lot in stock — cannot be dispatched';
-      grow.append(detail);
-      head.append(grow);
-      list.append(head);
-      continue;
-    }
-
-    const total = available.reduce((sum, row) => sum + row.quantity, 0);
-    const qty = document.createElement('div');
-    qty.className = 'qty';
-    qty.textContent = `${Number(total.toFixed(3))} ${product.base_unit}`;
-    head.append(grow, qty);
-    list.append(head);
-
-    for (const row of available) {
-      const li = document.createElement('li');
-      li.className = 'lot';
-
-      const g = document.createElement('div');
-      g.className = 'grow';
-      const detail = document.createElement('div');
-      detail.className = 'detail';
-      const useBy = row.use_by ? `use by ${row.use_by}` : 'no use-by recorded';
-      detail.textContent = `${row.short_code || 'no code'} · ${row.location_name} · ${useBy}`;
-      const soon = soonSpan(row.use_by);
-      if (soon) detail.append(soon);
-      g.append(detail);
-
-      const q = document.createElement('div');
-      q.className = 'qty';
-      q.textContent = `${row.quantity} ${row.base_unit}`;
-
-      li.append(g, q);
-      li.addEventListener('click', () => openLine(row));
-      list.append(li);
-    }
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    for (const product of inGroup) grid.append(buildTile(product, taken));
+    container.append(grid);
   }
 }
 
@@ -237,27 +266,69 @@ function afterLinesChanged() {
   refreshSave();
 }
 
-function openLine(row) {
-  state.chosen = row;
-  $('line-title').textContent = row.item_name;
+function openProduct(product, lots) {
+  state.chosenProduct = product;
+  state.chosen = null;
+  $('line-title').textContent = product.name;
 
   const chosen = $('line-chosen');
   chosen.replaceChildren();
-  const image = document.createElement('img');
-  image.src = `/photos/${row.item_id}.jpg`;
-  image.alt = '';
-  image.addEventListener('error', () => image.remove());
+  const total = Number(lots.reduce((sum, row) => sum + row.quantity, 0).toFixed(3));
   const b = document.createElement('b');
-  b.textContent = `${row.quantity} ${row.base_unit} available`;
-  chosen.append(image, b);
+  b.textContent = `${total} ${product.base_unit} in stock`;
+  chosen.append(thumbnail(product.id), b);
 
+  $('line-error').replaceChildren();
+  $('line-quantity').value = '';
+
+  if (lots.length === 1) {
+    pickLot(lots[0]);
+  } else {
+    // Several lots: make the person say which one is going, first-expiring
+    // first. Nothing is chosen for them — entering a quantity against a lot
+    // they did not look at is the pre-filled-figure mistake in another shape.
+    $('line-pick-note').hidden = false;
+    $('line-quantity-row').hidden = true;
+    $('line-add').hidden = true;
+    const box = $('line-lots');
+    box.hidden = false;
+    box.replaceChildren();
+    const ordered = [...lots].sort((a, b2) => String(a.use_by).localeCompare(String(b2.use_by)));
+    for (const lot of ordered) {
+      const row = document.createElement('div');
+      row.className = 'lotrow';
+      const g = document.createElement('div');
+      g.className = 'grow';
+      const detail = document.createElement('div');
+      detail.className = 'detail';
+      const useBy = lot.use_by ? `use by ${lot.use_by}` : 'no use-by recorded';
+      detail.textContent = `${lot.short_code || 'no code'} · ${lot.location_name} · ${useBy}`;
+      const soon = soonSpan(lot.use_by);
+      if (soon) detail.append(soon);
+      g.append(detail);
+      const q = document.createElement('div');
+      q.className = 'qty';
+      q.textContent = `${lot.quantity} ${lot.base_unit}`;
+      row.append(g, q);
+      row.addEventListener('click', () => pickLot(lot));
+      box.append(row);
+    }
+  }
+  $('line-dialog').showModal();
+}
+
+function pickLot(lot) {
+  state.chosen = lot;
+  $('line-lots').hidden = true;
+  $('line-pick-note').hidden = true;
+  $('line-quantity-row').hidden = false;
+  $('line-add').hidden = false;
   $('line-where').textContent =
-    `${row.short_code || 'no code'} · ${row.location_name}` +
-    (row.use_by ? ` · use by ${row.use_by}` : '');
-  $('line-quantity-label').textContent = `How much, in ${row.base_unit} (there is ${row.quantity})`;
+    `${lot.short_code || 'no code'} · ${lot.location_name}` +
+    (lot.use_by ? ` · use by ${lot.use_by}` : '');
+  $('line-quantity-label').textContent = `How much, in ${lot.base_unit} (there is ${lot.quantity})`;
   $('line-quantity').value = '';
   $('line-error').replaceChildren();
-  $('line-dialog').showModal();
 }
 
 function addLine() {

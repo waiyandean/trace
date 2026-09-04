@@ -18,6 +18,9 @@
    falls back to a plain tile rather than a stand-in picture of something
    else. A product with no lot in stock stays on the grid greyed out and
    not tappable (Dean, 2026-09-04), so staff can see it exists. */
+.grouphdr { font-size: 13px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
+  color: var(--tint); padding: 18px 16px 6px; }
+.grouphdr:first-child { padding-top: 4px; }
 .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 0 16px 8px; }
 @media (max-width: 520px) { .grid { grid-template-columns: 1fr; } }
 .tile { display: flex; align-items: center; gap: 12px; text-align: left; width: 100%;
@@ -110,7 +113,7 @@
         <input id="search" type="search" autocomplete="off" placeholder="broth, K7M4QP…" />
       </div>
     </div>
-    <div class="grid" id="lots"></div>
+    <div id="lots"></div>
     <p class="empty" id="lots-empty">Loading…</p>
   </section>
 
