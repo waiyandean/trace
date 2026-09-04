@@ -1014,6 +1014,64 @@ with tests plus a supervised real submission before its line is ticked.
 - **P4 — Dispatch.** Consumes product lots and inherits their recorded use-by
   rather than calculating a new one. This closes the chain to the customer,
   which is the question an audit actually asks.
+
+  **Progress 2026-09-04.** Built and passing 208 tests. Migration `0013`
+  adds one table, `dispatches` — a delivery-note-level row per submission
+  carrying the customer, the paper reference and the vehicle condition;
+  `events.kind` and `movements.type` already allowed `dispatch`/`DISPATCH`
+  from P1, so nothing else in the schema moved. `POST /api/dispatch`
+  (`src/ledger/dispatch.js`) books one customer and many product lines,
+  writing a negative `DISPATCH` movement per line at the location the stock
+  left from; `GET /api/dispatches` lists them and `?event=` returns one.
+  `worker/public/dispatch.html`/`.js` is the screen, and it is one more
+  nav pill on the other four.
+
+  Four decisions the code now enforces:
+
+  - **The use-by is inherited, never recomputed.** A produced lot already
+    carries the use-by its recipe rule set at packing — that is what is on
+    the packet — so dispatch reads `use_by`/`use_by_source` straight off the
+    lot and passes them through. `dispatch.js` has no date arithmetic at
+    all, which a test pins.
+  - **Only produced stock leaves this way.** A line naming a lot whose
+    `origin` is `received` is refused: sending a delivered ingredient to a
+    customer would put the wrong genealogy in front of them. Held lots and
+    lots that are not `open` are refused too, and a line cannot take more
+    than the balance at its location — the same rule the stock and batching
+    screens apply, worded the same way.
+  - **The vehicle check is a gate, not a deviation (Dean, 2026-09-04).**
+    Goods-in records a warm delivery and holds the lot, because the stock
+    has already arrived. A dispatch has not happened yet, so a van above
+    the chilled 5°C or frozen -18°C limit is a refusal at the point of
+    loading rather than a deviation to chase afterwards. The reading is
+    asked for only for a class the load actually carries, and a passing one
+    is written to `temperature_readings` as the evidence the check was made.
+    There is no per-packet probe: the state of the stock was settled at
+    packing, and the open question here is whether the transport is suitable.
+  - **Online only, no device.** Dispatch is done inside at the freezer on
+    wifi, so — like the stock and batching screens — it reads live balances
+    rather than caching them and pretending, and it needs no registered
+    device because it mints no short codes.
+
+  **Customers still to load.** `customers` has been empty since P0 because
+  nothing needed it. `worker/scripts/import_customers.py` builds the list
+  from the kitchen's own dispatch records — the curated `Destinations` tab
+  and the distinct destinations a real note has named — each row labelled
+  with which source supports it, and names matched on case and spacing only
+  so "JFC" and "JFC Warehouse" stay two rows unless the kitchen says
+  otherwise. It needs an `.xlsx` export of the dispatch sheet to run; until
+  it does, the dispatch screen loads but has no customer to pick and says
+  so.
+
+  **Nothing from this is deployed.** Same as P1–P3: the live Worker is the
+  P0 read-only build, and a writing endpoint with no authentication would
+  let anyone book a dispatch that never happened. Authentication stays
+  deferred to the end of the build (Dean, 2026-08-31), so P4 cannot close
+  formally until then — everything above is proven locally and by test,
+  including a real delivery-note submission driven end to end against a
+  local D1 (a lot booked out, the balance dropping, the replay answered as
+  a duplicate, and the note read back with its customer and inherited
+  use-by), not yet by a real dispatch on the real iPad.
 - **P5 — Count.** The weekly count: expected versus counted, variance written
   as `ADJUST`. This is what makes the balance self-correcting.
 - **P6 — Reports.** One-step-back, one-step-forward, mass balance, and alerts
