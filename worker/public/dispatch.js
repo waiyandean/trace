@@ -83,62 +83,98 @@ async function load() {
     notify(`Could not read stock: ${stock.body.error || stock.status}`, 'bad');
     return;
   }
-  // Only produced stock is dispatchable. The stock read does not carry the
-  // lot origin, so the product catalog is what filters it — a delivered
-  // ingredient never appears here.
+  // Every open product lot with something in it. The stock read does not
+  // carry the lot origin, so the product catalog is what filters it — a
+  // delivered ingredient never appears here.
   state.rows = stock.body.rows.filter(
-    (row) => state.products.has(row.item_id) && row.status === 'open',
+    (row) => state.products.has(row.item_id) && row.status === 'open' && row.quantity > 0,
   );
   renderLots();
 }
 
+// The whole product list, always. A product with no lot in stock stays on
+// screen greyed out rather than vanishing (Dean, 2026-09-04): staff need to
+// see that it exists and that there is nothing to send, not be left guessing
+// whether it was filtered or forgotten.
 function renderLots() {
   const wanted = $('search').value.trim().toLowerCase();
   const taken = new Set(state.lines.map((line) => `${line.lot_id}@${line.location_id}`));
-  const rows = state.rows.filter(
-    (row) =>
-      !taken.has(`${row.lot_id}@${row.location_id}`) &&
-      (!wanted ||
-        row.item_name.toLowerCase().includes(wanted) ||
-        (row.short_code || '').toLowerCase().includes(wanted)),
-  );
 
   const list = $('lots');
   list.replaceChildren();
-  $('lots-empty').hidden = rows.length > 0;
-  if (!rows.length) {
-    $('lots-empty').textContent = state.rows.length
-      ? 'Nothing else to add.'
-      : 'No produced stock in the system yet.';
+  $('lots-empty').hidden = true;
+
+  const products = (state.catalog?.products || []).filter(
+    (product) =>
+      !wanted ||
+      product.name.toLowerCase().includes(wanted) ||
+      state.rows.some(
+        (row) => row.item_id === product.id && (row.short_code || '').toLowerCase().includes(wanted),
+      ),
+  );
+  if (!products.length) {
+    $('lots-empty').hidden = false;
+    $('lots-empty').textContent = state.catalog?.products?.length
+      ? `Nothing matches “${$('search').value}”.`
+      : 'No products in the catalog.';
+    return;
   }
 
-  for (const row of rows) {
-    const li = document.createElement('li');
-    li.className = 'lot';
+  for (const product of products) {
+    const stock = state.rows.filter((row) => row.item_id === product.id);
+    const available = stock.filter((row) => !taken.has(`${row.lot_id}@${row.location_id}`));
+
+    const head = document.createElement('li');
+    head.className = available.length ? 'prod' : 'prod disabled';
 
     const grow = document.createElement('div');
     grow.className = 'grow';
-
     const name = document.createElement('div');
     name.className = 'name';
-    name.textContent = row.item_name;
+    name.textContent = product.name;
     grow.append(name);
 
-    const detail = document.createElement('div');
-    detail.className = 'detail';
-    const useBy = row.use_by ? `use by ${row.use_by}` : 'no use-by recorded';
-    detail.textContent = `${row.short_code || 'no code'} · ${row.location_name} · ${useBy}`;
-    const soon = soonSpan(row.use_by);
-    if (soon) detail.append(soon);
-    grow.append(detail);
+    if (!available.length) {
+      const detail = document.createElement('div');
+      detail.className = 'detail';
+      detail.textContent = stock.length
+        ? 'every lot in stock is already on this dispatch'
+        : 'no lot in stock — cannot be dispatched';
+      grow.append(detail);
+      head.append(grow);
+      list.append(head);
+      continue;
+    }
 
+    const total = available.reduce((sum, row) => sum + row.quantity, 0);
     const qty = document.createElement('div');
     qty.className = 'qty';
-    qty.textContent = `${row.quantity} ${row.base_unit}`;
+    qty.textContent = `${Number(total.toFixed(3))} ${product.base_unit}`;
+    head.append(grow, qty);
+    list.append(head);
 
-    li.append(grow, qty);
-    li.addEventListener('click', () => openLine(row));
-    list.append(li);
+    for (const row of available) {
+      const li = document.createElement('li');
+      li.className = 'lot';
+
+      const g = document.createElement('div');
+      g.className = 'grow';
+      const detail = document.createElement('div');
+      detail.className = 'detail';
+      const useBy = row.use_by ? `use by ${row.use_by}` : 'no use-by recorded';
+      detail.textContent = `${row.short_code || 'no code'} · ${row.location_name} · ${useBy}`;
+      const soon = soonSpan(row.use_by);
+      if (soon) detail.append(soon);
+      g.append(detail);
+
+      const q = document.createElement('div');
+      q.className = 'qty';
+      q.textContent = `${row.quantity} ${row.base_unit}`;
+
+      li.append(g, q);
+      li.addEventListener('click', () => openLine(row));
+      list.append(li);
+    }
   }
 }
 
@@ -343,7 +379,7 @@ async function boot() {
     return;
   }
   const [staff, customers, locations, products] = responses.map((response) => response.body.rows);
-  state.catalog = { staff, customers, locations };
+  state.catalog = { staff, customers, locations, products };
   state.products = new Map(products.map((item) => [item.id, item]));
 
   fillSelect($('staff'), staff, { placeholder: 'Choose your name', selected: store.read(STAFF_KEY, null) });
