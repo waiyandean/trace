@@ -973,6 +973,44 @@ with tests plus a supervised real submission before its line is ticked.
 - **P3 — Produce.** Recipe-driven batching with mandatory lot selection, split
   allocation across lots, and use-by derived once from the recipe rule rather
   than typed or auto-calculated per form.
+
+  **Progress 2026-09-04.** Built and passing 189 tests across the whole
+  Worker: `worker/public/batching.html`/`.js` starts a batch, `POST
+  /api/produce` (`src/ledger/produce.js`) writes it, `worker/public/batches`
+  is the daily screen for what a started batch is still waiting on, and
+  `POST /api/packing` (`src/ledger/packing.js`) closes it out. Migrations
+  0008–0012 carry recipes, the produce ledger, checkpoints, batch records and
+  the unproven-review columns.
+
+  What is recorded, and when, follows the shape decided along the way rather
+  than one design pass: a batch records its ingredients the moment they go
+  in, because that is the only thing true at that moment (2026-09-02); the
+  product's own yield, packet count and label check are not known until
+  `packing.js` closes it; the checkpoints a recipe requires — a mix of
+  temperature limits, plain confirmations and timed checks like a twelve-hour
+  cool — are created unanswered at the moment of production so a check
+  nobody has a row for cannot go quietly missing.
+
+  Two open questions this phase depended on are now resolved. **Lot
+  selection is mandatory in the sense the model always meant** — every line
+  either names one or more lots (`prepareAllocation` in `produce.js`, backing
+  the split-allocation case the model section describes) or is explicitly
+  declared unproven with a reason of at least three characters; there is no
+  third way through the form. **The supervised exception workflow** (open
+  question 6, resolved 2026-09-03) puts no gate on that declaration and
+  reviews it afterward instead, in the same shape as a P1 temperature
+  deviation. **Decant and merge discipline** (open question 8, resolved
+  2026-09-03) turned out to need no `COMBINE` handler at all: the one case
+  where two lots meet is a line running out mid-batch, and that is the split
+  allocation already built, not a physical merge.
+
+  **Nothing from any of this is deployed.** Same reason as P1 and P2: the
+  live Worker is still the P0 read-only build, because deploying a writing
+  endpoint with no authentication would let anyone book, produce or move
+  stock that never happened. Authentication stays deferred until every phase
+  is built (Dean, 2026-08-31, reaffirmed 2026-09-04), so P3 cannot close
+  formally until then either — everything above is proven locally and by
+  test, not yet by a real batch run on the real iPad.
 - **P4 — Dispatch.** Consumes product lots and inherits their recorded use-by
   rather than calculating a new one. This closes the chain to the customer,
   which is the question an audit actually asks.
