@@ -9,6 +9,7 @@ import { produce } from './ledger/produce.js';
 import { pendingReadings, recordReading } from './ledger/checkpoints.js';
 import { openBatches, batchDetail, recordPacking, massBalance } from './ledger/packing.js';
 import { openUnproven, reviewUnproven } from './ledger/unproven.js';
+import { dispatch, dispatchResult, recentDispatches } from './ledger/dispatch.js';
 
 // The `trace` Worker.
 //
@@ -40,6 +41,9 @@ import { openUnproven, reviewUnproven } from './ledger/unproven.js';
 //   GET  /api/batches?lot=…       one batch: its inputs, its checks, its state
 //   POST /api/packing             record packets produced and the label check
 //   GET  /api/balance?lot=…       what went in against what came out
+//   GET  /api/dispatches          recent dispatches, newest first
+//   GET  /api/dispatches?event=…  one dispatch: its customer, lines and temps
+//   POST /api/dispatch            send produced lots to a customer: writes DISPATCH
 //
 // The old `forms` system stays authoritative until Dean cuts over, so nothing
 // here is yet the kitchen's record of anything.
@@ -77,6 +81,8 @@ const ROUTES = {
   '/api/batches': ['GET'],
   '/api/balance': ['GET'],
   '/api/unproven': ['GET', 'POST'],
+  '/api/dispatch': ['POST'],
+  '/api/dispatches': ['GET'],
 };
 
 async function readBody(request) {
@@ -119,6 +125,12 @@ async function route(request, env, url) {
       const rows = await openHolds(db);
       return json({ count: rows.length, rows });
     }
+    if (url.pathname === '/api/dispatches') {
+      const event = url.searchParams.get('event');
+      if (event) return json(await dispatchResult(db, event));
+      const rows = await recentDispatches(db, { customerId: url.searchParams.get('customer') });
+      return json({ count: rows.length, rows });
+    }
     if (url.pathname === '/api/unproven') {
       const rows = await openUnproven(db);
       return json({ count: rows.length, rows });
@@ -146,6 +158,7 @@ async function route(request, env, url) {
     if (url.pathname === '/api/unproven') return json(await reviewUnproven(db, await readBody(request)));
     if (url.pathname === '/api/packing') return json(await recordPacking(db, await readBody(request)));
     if (url.pathname === '/api/produce') return json(await produce(db, await readBody(request)), { status: 201 });
+    if (url.pathname === '/api/dispatch') return json(await dispatch(db, await readBody(request)), { status: 201 });
     if (url.pathname === '/api/receive') {
       const result = await receive(db, await readBody(request));
       // 200 for a replay, 201 for a submission that wrote something. A device
