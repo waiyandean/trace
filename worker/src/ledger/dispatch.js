@@ -4,9 +4,7 @@ import {
 } from './envelope.js';
 import { toBaseUnit } from './units.js';
 import { balanceAt, holdsOn } from './stock.js';
-import {
-  loadLimits, probeKindFor, withinLimit, requireReading,
-} from './temperature.js';
+import { loadLimits, probeKindFor, withinLimit, requireReading } from './temperature.js';
 
 // Dispatch: produced stock leaving for a customer.
 //
@@ -24,9 +22,12 @@ import {
 // - **The temperature check is a gate, not a deviation.** Goods-in records a
 //   warm delivery and holds the lot, because the stock has already arrived. A
 //   dispatch has not happened yet, so a van that is too warm is a refusal at
-//   the point of loading (Dean, 2026-09-04). Readings that pass are written
-//   as evidence the check was made; a reading that fails stops the whole
-//   submission and nothing is written.
+//   the point of loading (Dean, 2026-09-04). The check is the vehicle's own
+//   temperature, one reading per class the load carries — the question is
+//   whether the transport is suitable, not the state of each packet, which
+//   was settled at packing. A reading that passes is written as evidence the
+//   check was made; a reading that fails stops the whole submission and
+//   nothing is written.
 //
 // Like goods-in, every line is validated before anything is written, so a
 // dispatch is recorded whole or not at all.
@@ -123,43 +124,10 @@ export async function dispatch(db, payload) {
     throw new BadRequest('the same lot is listed twice from the same place: combine those lines');
   }
 
-  // Product probe readings, judged as a gate. A line kept in the fridge or
-  // freezer must carry one; an ambient line must not, because a reading of it
-  // would mean nothing.
-  const readings = [];
-  for (const [index, line] of lines.entries()) {
-    const where = `lines[${index}]`;
-    if (line.probeKind) {
-      if (payload.lines[index].product_temp_c === undefined || payload.lines[index].product_temp_c === null) {
-        throw new BadRequest(
-          `${where}: ${line.lot.item_name} is kept in the ` +
-            `${line.probeKind === 'frozen' ? 'freezer' : 'fridge'}, so it needs a product temperature`,
-        );
-      }
-      const celsius = requireReading(payload.lines[index].product_temp_c, `${where}.product_temp_c`);
-      if (!withinLimit(celsius, limits[line.probeKind])) {
-        throw new BadRequest(
-          `${where}: ${line.lot.item_name} at ${celsius}°C is above its ${limits[line.probeKind]}°C ` +
-            'limit and cannot be dispatched',
-        );
-      }
-      readings.push({
-        id: `${envelope.event_id}-PRODUCT-${index}`,
-        lotId: line.lot.id,
-        kind: 'product',
-        celsius,
-        limitCelsius: limits[line.probeKind],
-      });
-    } else if (
-      payload.lines[index].product_temp_c !== undefined && payload.lines[index].product_temp_c !== null
-    ) {
-      throw new BadRequest(`${where}: ${line.lot.item_name} is ambient, so a product reading would mean nothing`);
-    }
-  }
-
   // Vehicle readings, one per temperature class the load actually contains.
   // Asked for only where there is stock they are about, and a breach stops
   // the load rather than sending it warm.
+  const readings = [];
   for (const [kind, field] of [['chilled', 'vehicle_chilled_c'], ['frozen', 'vehicle_frozen_c']]) {
     const needed = lines.some((row) => row.probeKind === kind);
     const value = payload[field];

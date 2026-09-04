@@ -158,7 +158,13 @@ async function route(request, env, url) {
     if (url.pathname === '/api/unproven') return json(await reviewUnproven(db, await readBody(request)));
     if (url.pathname === '/api/packing') return json(await recordPacking(db, await readBody(request)));
     if (url.pathname === '/api/produce') return json(await produce(db, await readBody(request)), { status: 201 });
-    if (url.pathname === '/api/dispatch') return json(await dispatch(db, await readBody(request)), { status: 201 });
+    if (url.pathname === '/api/dispatch') {
+      const result = await dispatch(db, await readBody(request));
+      // 200 for a replay of a submission already accepted, 201 for one that
+      // wrote — the same distinction receive makes, so a device reconciling
+      // its record can tell them apart without reading the body.
+      return json(result, { status: result.duplicate ? 200 : 201 });
+    }
     if (url.pathname === '/api/receive') {
       const result = await receive(db, await readBody(request));
       // 200 for a replay, 201 for a submission that wrote something. A device

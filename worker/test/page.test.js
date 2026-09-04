@@ -191,7 +191,7 @@ test('the batching form does not walk the DOM to find a label', () => {
 });
 
 test('the service worker caches every page', () => {
-  for (const path of ['/', '/stock', '/batching']) {
+  for (const path of ['/', '/stock', '/batching', '/dispatch']) {
     assert.ok(shellPaths().includes(path), `${path} is not precached`);
   }
 });
@@ -262,4 +262,34 @@ test('the open batches screen is one list, not three', () => {
 
 test('a batch cannot be packed out with checks outstanding', () => {
   assert.match(batchesScript, /check\(s\) still to take/);
+});
+
+// The dispatch screen, checked the same way as the others.
+
+const dispatchHtml = readFileSync(new URL('../public/dispatch.html', import.meta.url), 'utf8');
+const dispatchScript = readFileSync(new URL('../public/dispatch.js', import.meta.url), 'utf8');
+
+test('every element the dispatch screen reaches for exists in its page', () => {
+  const declared = new Set([...dispatchHtml.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+  const used = new Set([...dispatchScript.matchAll(/\$\('([^']+)'\)/g)].map((m) => m[1]));
+  assert.deepEqual([...used].filter((id) => !declared.has(id)), []);
+});
+
+test('every page shares the one stylesheet', () => {
+  for (const page of [html, stockHtml, batchingHtml, dispatchHtml]) {
+    assert.match(page, /<link rel="stylesheet" href="\/app\.css" \/>/);
+  }
+});
+
+test('the dispatch screen does not pretend to work offline', () => {
+  // Used inside at the freezer on wifi (Dean, 2026-09-04); it reads live
+  // balances a cached copy would get wrong.
+  assert.match(dispatchScript, /this screen needs a connection/);
+});
+
+test('the dispatch screen never enters or recalculates a use-by', () => {
+  // The produced lot already carries the use-by its recipe rule set at
+  // packing, and that is what is on the packet. The screen only shows it.
+  assert.doesNotMatch(dispatchHtml, /id="use-by"|id="use_by"/);
+  assert.doesNotMatch(dispatchScript, /deriveUseBy|setUTCDate/);
 });
