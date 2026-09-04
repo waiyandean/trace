@@ -1053,15 +1053,19 @@ with tests plus a supervised real submission before its line is ticked.
     rather than caching them and pretending, and it needs no registered
     device because it mints no short codes.
 
-  **Customers still to load.** `customers` has been empty since P0 because
-  nothing needed it. `worker/scripts/import_customers.py` builds the list
-  from the kitchen's own dispatch records — the curated `Destinations` tab
-  and the distinct destinations a real note has named — each row labelled
-  with which source supports it, and names matched on case and spacing only
-  so "JFC" and "JFC Warehouse" stay two rows unless the kitchen says
-  otherwise. It needs an `.xlsx` export of the dispatch sheet to run; until
-  it does, the dispatch screen loads but has no customer to pick and says
-  so.
+  **Customers seeded 2026-09-04 (Dean).** `customers` was empty since P0
+  because nothing needed it. Six destinations, read off the dispatch records
+  by Dean: JFC Warehouse, Lynas Warehouse, Maki 6 - Bath Street, Maki 8 -
+  Renfield, Maki Ramen Shoreditch, Matthews Foods. They live in
+  `worker/scripts/customers.sql` and are loaded into the local database.
+  Lynas is also a supplier — a warehouse the kitchen sends product to is a
+  different fact from one it receives from, and the two tables keep them
+  apart. `worker/scripts/import_customers.py` rebuilds the list from an
+  `.xlsx` export of the dispatch sheet, labelling each row with whether it
+  came from the curated `Destinations` tab or from a real dispatch note, and
+  matching names on case and spacing only so "JFC" and "JFC Warehouse" stay
+  two rows unless the kitchen says otherwise. The six above are recorded as
+  `dispatched` provenance pending that export.
 
   **Nothing from this is deployed.** Same as P1–P3: the live Worker is the
   P0 read-only build, and a writing endpoint with no authentication would
