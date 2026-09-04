@@ -13,12 +13,30 @@
 /* Dispatch is done inside, on wifi, at the freezer (Dean, 2026-09-04), so it
    reads live balances rather than caching them — the same reasoning as the
    stock and batching screens. */
-.lot { border-top: 1px solid var(--line); padding: 12px 16px; display: flex; gap: 12px; align-items: center; }
-.lot .grow { flex: 1; min-width: 0; }
-.lot .name { font-weight: 600; }
-.lot .detail { font-size: 14px; color: var(--muted); margin-top: 2px; }
-.lot .qty { font: 600 16px/1 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; }
-.lot .soon { color: var(--bad); font-weight: 600; }
+/* The product grid. Photographs come from /photos/<item id>.jpg, the same
+   source the goods-in and batching pickers use; a product with no photo
+   falls back to a plain tile rather than a stand-in picture of something
+   else. A product with no lot in stock stays on the grid greyed out and
+   not tappable (Dean, 2026-09-04), so staff can see it exists. */
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 0 16px 8px; }
+@media (max-width: 520px) { .grid { grid-template-columns: 1fr; } }
+.tile { display: flex; align-items: center; gap: 12px; text-align: left; width: 100%;
+  background: var(--surface); color: var(--text); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 10px; min-height: 64px; }
+.tile:active { background: var(--tint-soft); border-color: var(--tint); }
+.tile img, .tile .noimg { width: 48px; height: 48px; border-radius: 10px; object-fit: cover;
+  background: var(--sunk); flex: none; }
+.tile .noimg { display: flex; align-items: center; justify-content: center; }
+.tile .grow { min-width: 0; }
+.tile .name { font-weight: 600; overflow-wrap: anywhere; }
+.tile .status { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.tile[disabled] { opacity: 0.45; }
+.tile[disabled]:active { background: var(--surface); border-color: var(--line); }
+.lotrow { border-top: 1px solid var(--line); padding: 12px 16px; display: flex; gap: 12px; align-items: center; cursor: pointer; }
+.lotrow .grow { flex: 1; min-width: 0; }
+.lotrow .detail { font-size: 14px; color: var(--muted); }
+.lotrow .qty { font: 600 16px/1 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; }
+.lotrow .soon { color: var(--bad); font-weight: 600; }
 .line { border-top: 1px solid var(--line); padding: 12px 16px; display: flex; gap: 12px; align-items: flex-start; }
 .line .grow { flex: 1; min-width: 0; }
 .line .detail { font-size: 14px; color: var(--muted); margin-top: 2px; }
@@ -92,7 +110,7 @@
         <input id="search" type="search" autocomplete="off" placeholder="broth, K7M4QP…" />
       </div>
     </div>
-    <ul class="lines" id="lots"></ul>
+    <div class="grid" id="lots"></div>
     <p class="empty" id="lots-empty">Loading…</p>
   </section>
 
@@ -108,11 +126,19 @@
 <dialog id="line-dialog">
   <header><h1 id="line-title">How much</h1></header>
   <div class="chosen" id="line-chosen"></div>
-  <p class="note" id="line-where"></p>
-  <div class="row">
-    <div class="field">
-      <label for="line-quantity" id="line-quantity-label">How much</label>
-      <input id="line-quantity" type="number" step="any" min="0" inputmode="decimal" />
+
+  <!-- Shown only when the product has more than one lot in stock. One lot and
+       it is chosen for you; several and you say which, first-expiring first. -->
+  <p class="note" id="line-pick-note" hidden>This product has more than one lot. Choose which one is going.</p>
+  <div id="line-lots" hidden></div>
+
+  <div id="line-quantity-row">
+    <p class="note" id="line-where"></p>
+    <div class="row">
+      <div class="field">
+        <label for="line-quantity" id="line-quantity-label">How much</label>
+        <input id="line-quantity" type="number" step="any" min="0" inputmode="decimal" />
+      </div>
     </div>
   </div>
   <div id="line-error"></div>
