@@ -1232,8 +1232,17 @@ These need Dean's answer before the phase that depends on them.
 9. **Authentication.** The current forms use a staff picker with no real login.
    An audit trail naming who recorded and who approved an amendment is weaker
    if anyone can pick any name. Whether that changes, and to what, is open.
-10. **Packaging.** The old rebuild deliberately excluded packaging lines. Does
-   packaging get lot-tracked here, or stay out of scope?
+10. **Packaging — resolved 2026-09-04 (Dean).** Stays out of scope, same as
+   the old rebuild. Nothing in the join failures this project exists to fix —
+   not the 12,731 recorded uses, not the 2,675 delivery rows — ever pointed at
+   packaging as the source of a gap; a packaging recall is a real but
+   different and much rarer failure than an ingredient one. Bringing it in
+   would cost a goods-in path for cartons and pouches, Kite as a supplier, and
+   — the part nothing today does — wiring pack-out to actually consume a
+   packaging lot, rather than the plain checkbox `packing.js` uses now. The
+   schema already leaves room at no cost: `kind = 'packaging'` is an allowed
+   value on `items` and always has been, just unused. Revisit only if an
+   auditor asks for it or Kite has an actual recall.
 
 ## References
 
