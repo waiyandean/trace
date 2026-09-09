@@ -328,6 +328,6 @@ test('the count screen never counts per lot', () => {
 test('the count screen treats a missing item as uncounted, not zero', () => {
   // Not adding a line leaves that item alone. The note on screen has to say
   // so, or a half-done sheet reads as "everything else is gone".
-  assert.match(countHtml, /not set to zero|not counted/);
-  assert.match(countScript, /not set to zero|left as it is/);
+  assert.match(countScript, /not set to zero/);
+  assert.match(countScript, /left as it is/);
 });
