@@ -20,6 +20,16 @@
 .item .detail { font-size: 14px; color: var(--muted); margin-top: 2px; }
 .item .ledger { font: 600 15px/1 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; color: var(--muted); }
 .item.counted { background: var(--tint-soft); }
+/* Four tappable areas instead of a dropdown: tap where you are standing and
+   the items in that area come up, the way the current stock check works. */
+.areas { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 4px 16px 8px; }
+.area { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  background: var(--surface); color: var(--text); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 16px 10px; min-height: 92px; text-align: center; font: inherit; }
+.area .glyph { font-size: 26px; line-height: 1; }
+.area .label { font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
+.area:active { background: var(--tint-soft); }
+.area.on { background: var(--tint-soft); border-color: var(--tint); color: var(--tint); }
 .lines .delta { font: 600 14px/1 ui-monospace, SFMono-Regular, Menlo, monospace; }
 .lines .delta.short { color: var(--bad); }
 .lines .delta.over { color: var(--warn); }
@@ -48,18 +58,20 @@
   <div id="alerts"></div>
 
   <section>
-    <h2>Who is counting, and where</h2>
+    <h2>Who is counting</h2>
     <div class="row">
       <div class="field">
         <label for="staff">Your name</label>
         <select id="staff"></select>
       </div>
-      <div class="field">
-        <label for="where">Storage area</label>
-        <select id="where"></select>
-      </div>
     </div>
-    <p class="note" id="where-note">Pick the area you are standing in. The count is measured against what the ledger has in that one place.</p>
+  </section>
+
+  <section>
+    <h2>Which area</h2>
+    <input type="hidden" id="where" />
+    <div class="areas" id="areas"></div>
+    <p class="note" id="where-note">Tap the area you are standing in. Its items come up ready to count, measured against what the ledger has in that one place.</p>
   </section>
 
   <section id="lines-section" hidden>

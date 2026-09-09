@@ -27,7 +27,19 @@ async function api(path, options) {
 }
 
 const online = () => navigator.onLine;
-const areaName = () => state.catalog.locations.find((l) => l.id === $('where').value)?.name || 'that area';
+const areaOf = () => state.catalog.locations.find((l) => l.id === $('where').value) || null;
+const areaName = () => areaOf()?.name || 'that area';
+const areaKindOf = () => areaOf()?.kind || null;
+
+// A glyph per area so the four tiles read at a glance. The label underneath is
+// the real identifier; the glyph only tells the two dry-store tiles apart
+// quickly.
+function areaGlyph(loc) {
+  if (/allergen/i.test(loc.name)) return '🌾';
+  if (/freezer/i.test(loc.name) || loc.kind === 'freezer') return '🧊';
+  if (/fridge|chill/i.test(loc.name) || loc.kind === 'chill') return '❄️';
+  return '📦';
+}
 
 function notify(message, kind = 'warn') {
   const div = document.createElement('div');
@@ -86,22 +98,70 @@ async function loadLedger() {
 
 const ledgerFor = (itemId) => state.ledger.get(itemId) || 0;
 
+// ------------------------------------------------------------------- areas
+
+// Four tappable tiles instead of a dropdown: tap where you are standing and
+// the items in that area come up ready to count, the way the current stock
+// check works.
+function renderAreas() {
+  const box = $('areas');
+  box.replaceChildren();
+  const current = $('where').value;
+  for (const loc of state.catalog.locations) {
+    const tile = document.createElement('button');
+    tile.type = 'button';
+    tile.className = `area${loc.id === current ? ' on' : ''}`;
+    const glyph = document.createElement('span');
+    glyph.className = 'glyph';
+    glyph.textContent = areaGlyph(loc);
+    const label = document.createElement('span');
+    label.className = 'label';
+    label.textContent = loc.name;
+    tile.append(glyph, label);
+    tile.addEventListener('click', () => selectArea(loc.id));
+    box.append(tile);
+  }
+}
+
+function selectArea(id) {
+  if (id === $('where').value) return;
+  // Lines already counted belong to the area they were counted in. Switching
+  // area drops them rather than measuring them against the wrong ledger.
+  if (state.lines.length) {
+    state.lines = [];
+    renderLines();
+    notify('Area changed — cleared what was counted, it belonged to the other area.', 'warn');
+  }
+  $('where').value = id;
+  $('result-section').hidden = true;
+  $('search').value = '';
+  renderAreas();
+  loadLedger();
+}
+
 // ------------------------------------------------------------------ items
 
 function renderItems() {
   const wanted = $('search').value.trim().toLowerCase();
   const chosen = new Set(state.lines.map((line) => line.item_id));
-  const items = (state.catalog.items || []).filter(
-    (item) => !chosen.has(item.id) && (!wanted || item.name.toLowerCase().includes(wanted)),
-  );
+  const kind = areaKindOf();
+  const items = (state.catalog.items || []).filter((item) => {
+    if (chosen.has(item.id)) return false;
+    if (wanted) return item.name.toLowerCase().includes(wanted);
+    // No search term: show what is kept in this area, plus anything the ledger
+    // already has stock of here. A search reaches every other item.
+    return item.storage_unopened === kind || state.ledger.has(item.id);
+  });
 
   const list = $('items');
   list.replaceChildren();
   $('items-empty').hidden = items.length > 0;
   if (!items.length) {
-    $('items-empty').textContent = state.catalog.items.length
-      ? `Nothing matches “${$('search').value}”.`
-      : 'No items in the catalog.';
+    $('items-empty').textContent = !$('where').value
+      ? 'Tap an area above to start.'
+      : $('search').value
+        ? `Nothing matches “${$('search').value}”.`
+        : 'Nothing is kept in this area. Search to count something stored elsewhere.';
   }
 
   for (const item of items) {
@@ -400,7 +460,7 @@ async function boot() {
   state.catalog = { staff, locations, items };
 
   fillSelect($('staff'), staff, { placeholder: 'Choose your name', selected: store.read(STAFF_KEY, null) });
-  fillSelect($('where'), locations, { placeholder: 'Choose the area' });
+  renderAreas();
 
   $('net').textContent = online() ? 'online' : 'offline';
   $('net').className = `pill ${online() ? 'ok' : 'warn'}`;
@@ -412,16 +472,6 @@ async function boot() {
 $('staff').addEventListener('change', (event) => {
   store.write(STAFF_KEY, event.target.value);
   refreshSave();
-});
-$('where').addEventListener('change', () => {
-  if (state.lines.length) {
-    state.lines = [];
-    renderLines();
-    notify('Storage area changed — cleared what was counted, it belonged to the other area.', 'warn');
-  }
-  $('result-section').hidden = true;
-  $('search').value = '';
-  loadLedger();
 });
 $('search').addEventListener('input', renderItems);
 $('line-add').addEventListener('click', addLine);

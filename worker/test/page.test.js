@@ -317,6 +317,15 @@ test('the count screen does not pretend to work offline', () => {
   assert.match(countScript, /this screen needs a connection/);
 });
 
+test('the count screen picks an area by tapping a tile, not from a dropdown', () => {
+  // Four tappable areas so staff tap where they are standing and the items
+  // come up — the way the current stock check works.
+  assert.doesNotMatch(countHtml, /<select id="where"/);
+  assert.match(countHtml, /id="areas"/);
+  assert.match(countScript, /renderAreas/);
+  assert.match(countScript, /selectArea/);
+});
+
 test('the count screen never counts per lot', () => {
   // Dean, 2026-09-09: staff record one figure per item per storage area. The
   // form must not ask which lot — a countable jar's lot is unambiguous and a
