@@ -191,7 +191,7 @@ test('the batching form does not walk the DOM to find a label', () => {
 });
 
 test('the service worker caches every page', () => {
-  for (const path of ['/', '/stock', '/batching', '/dispatch']) {
+  for (const path of ['/', '/stock', '/batching', '/dispatch', '/count']) {
     assert.ok(shellPaths().includes(path), `${path} is not precached`);
   }
 });
@@ -292,4 +292,42 @@ test('the dispatch screen never enters or recalculates a use-by', () => {
   // packing, and that is what is on the packet. The screen only shows it.
   assert.doesNotMatch(dispatchHtml, /id="use-by"|id="use_by"/);
   assert.doesNotMatch(dispatchScript, /deriveUseBy|setUTCDate/);
+});
+
+// The count screen, checked the same way as the others.
+
+const countHtml = readFileSync(new URL('../public/count.html', import.meta.url), 'utf8');
+const countScript = readFileSync(new URL('../public/count.js', import.meta.url), 'utf8');
+
+test('every element the count screen reaches for exists in its page', () => {
+  const declared = new Set([...countHtml.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+  const used = new Set([...countScript.matchAll(/\$\('([^']+)'\)/g)].map((m) => m[1]));
+  assert.deepEqual([...used].filter((id) => !declared.has(id)), []);
+});
+
+test('all five pages share the one stylesheet', () => {
+  for (const page of [html, stockHtml, batchingHtml, dispatchHtml, countHtml]) {
+    assert.match(page, /<link rel="stylesheet" href="\/app\.css" \/>/);
+  }
+});
+
+test('the count screen does not pretend to work offline', () => {
+  // It is measured against live balances a cached copy would get wrong the
+  // moment somebody else moved something, so it says so.
+  assert.match(countScript, /this screen needs a connection/);
+});
+
+test('the count screen never counts per lot', () => {
+  // Dean, 2026-09-09: staff record one figure per item per storage area. The
+  // form must not ask which lot — a countable jar's lot is unambiguous and a
+  // bulk tub's cannot be split on sight.
+  assert.doesNotMatch(countHtml, /id="lot"|id="lot-code"|id="lot-id"/);
+  assert.doesNotMatch(countScript, /lot_id:/);
+});
+
+test('the count screen treats a missing item as uncounted, not zero', () => {
+  // Not adding a line leaves that item alone. The note on screen has to say
+  // so, or a half-done sheet reads as "everything else is gone".
+  assert.match(countHtml, /not set to zero|not counted/);
+  assert.match(countScript, /not set to zero|left as it is/);
 });
