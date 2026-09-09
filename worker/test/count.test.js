@@ -99,24 +99,24 @@ test('a count that matches the ledger writes the sheet and no movements', async 
 
 test('a line keyed in tiers sums them into the base unit', async () => {
   const db = countDb();
-  // 2 cases (8 kg each) + 1.5 kg loose = 17.5 kg, which the ledger has
+  // 3 cases (8 kg each) + 6 kg loose = 30 kg, which the ledger has
   await recordCount(db, sheet({
     lines: [{
       item_id: 'item:hoisin',
       location_id: 'loc:fridge',
-      entries: [{ quantity: 2, unit: 'case' }, { quantity: 1.5, unit: 'kg' }],
+      entries: [{ quantity: 3, unit: 'case' }, { quantity: 6, unit: 'kg' }],
     }],
   }));
 
   const line = lineRows(db)[0].params;
-  assert.equal(line[4], 17.5, 'base-unit sum of the tiers');
+  assert.equal(line[4], 30, 'base-unit sum of the tiers');
   assert.equal(line[5], null, 'a multi-tier line keeps no single entered figure');
   assert.equal(line[6], null);
   assert.equal(line[9], 'no_variance');
 
   const entries = entryRows(db).map((s) => s.params);
   assert.equal(entries.length, 2);
-  assert.deepEqual(entries.map((p) => [p[2], p[3], p[4]]), [[2, 'case', 16], [1.5, 'kg', 1.5]]);
+  assert.deepEqual(entries.map((p) => [p[2], p[3], p[4]]), [[3, 'case', 24], [6, 'kg', 6]]);
 });
 
 test('a blank tier is skipped, and one tier alone is stored as the single figure', async () => {
