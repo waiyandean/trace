@@ -22,6 +22,8 @@ function countDb(overrides = {}) {
     },
     countLines: {},
     events: {},
+    // conversion hops for toBaseUnit: a case of hoi sin is 8 kg
+    conversions: [{ id: 'c1', from_unit: 'case', to_unit: 'kg', factor: 8 }],
     ...overrides,
   };
 
@@ -61,6 +63,7 @@ function countDb(overrides = {}) {
             const [itemId, locationId] = statement.params;
             return { results: state.ledger[`${itemId}@${locationId}`] ?? [] };
           }
+          if (sql.includes('FROM unit_conversions')) return { results: state.conversions ?? [] };
           return { results: [] };
         },
       };
@@ -80,7 +83,8 @@ const sheet = (changes = {}) => ({
 
 const sqlOf = (db, fragment) => db.written.filter((s) => s.sql.includes(fragment));
 const movements = (db) => sqlOf(db, "INSERT INTO movements");
-const lineRows = (db) => sqlOf(db, 'INSERT INTO count_lines');
+const lineRows = (db) => sqlOf(db, 'INSERT INTO count_lines (');
+const entryRows = (db) => sqlOf(db, 'INSERT INTO count_line_entries');
 
 test('a count that matches the ledger writes the sheet and no movements', async () => {
   const db = countDb();
@@ -91,6 +95,44 @@ test('a count that matches the ledger writes the sheet and no movements', async 
   assert.equal(line[7], 30, 'ledger figure recorded');
   assert.equal(line[8], 0, 'no variance');
   assert.equal(line[9], 'no_variance');
+});
+
+test('a line keyed in tiers sums them into the base unit', async () => {
+  const db = countDb();
+  // 2 cases (8 kg each) + 1.5 kg loose = 17.5 kg, which the ledger has
+  await recordCount(db, sheet({
+    lines: [{
+      item_id: 'item:hoisin',
+      location_id: 'loc:fridge',
+      entries: [{ quantity: 2, unit: 'case' }, { quantity: 1.5, unit: 'kg' }],
+    }],
+  }));
+
+  const line = lineRows(db)[0].params;
+  assert.equal(line[4], 17.5, 'base-unit sum of the tiers');
+  assert.equal(line[5], null, 'a multi-tier line keeps no single entered figure');
+  assert.equal(line[6], null);
+  assert.equal(line[9], 'no_variance');
+
+  const entries = entryRows(db).map((s) => s.params);
+  assert.equal(entries.length, 2);
+  assert.deepEqual(entries.map((p) => [p[2], p[3], p[4]]), [[2, 'case', 16], [1.5, 'kg', 1.5]]);
+});
+
+test('a blank tier is skipped, and one tier alone is stored as the single figure', async () => {
+  const db = countDb();
+  await recordCount(db, sheet({
+    lines: [{
+      item_id: 'item:hoisin',
+      location_id: 'loc:fridge',
+      entries: [{ quantity: 0, unit: 'case' }, { quantity: 30, unit: 'kg' }],
+    }],
+  }));
+  const line = lineRows(db)[0].params;
+  assert.equal(line[4], 30);
+  assert.equal(line[5], 30, 'the one filled tier is the single entered figure');
+  assert.equal(line[6], 'kg');
+  assert.equal(entryRows(db).length, 1);
 });
 
 test('a shortfall is split across the lots pro-rata by balance, one negative ADJUST each', async () => {

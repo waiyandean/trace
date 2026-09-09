@@ -97,16 +97,35 @@ async function prepareLine(db, line, where) {
   if (!location) throw new BadRequest(`${where}: unknown location ${JSON.stringify(line.location_id)}`);
   if (location.active !== 1) throw new BadRequest(`${where}: ${location.name} is not an active location`);
 
-  const enteredQuantity = requireCount(line.counted_quantity, `${where}.counted_quantity`);
-  const enteredUnit = line.unit || item.base_unit;
+  // Staff key each tier they handle — cases, individual units, loose weight —
+  // and the line total is their sum in the item's base unit (PLAN.md open
+  // question 4: ask in the pack unit, not a weight somebody works out). A line
+  // may instead carry a single `counted_quantity` (+ optional `unit`), which
+  // is the one-tier form of the same thing.
+  const tiers = Array.isArray(line.entries)
+    ? line.entries
+    : line.counted_quantity !== undefined
+      ? [{ quantity: line.counted_quantity, unit: line.unit || item.base_unit }]
+      : null;
+  if (tiers === null) throw new BadRequest(`${where}: needs entries or counted_quantity`);
 
-  // A count of nothing needs no conversion, and toBaseUnit refuses a zero.
-  const counted = enteredQuantity === 0
-    ? { quantity: 0 }
-    : await toBaseUnit(db, item, enteredQuantity, enteredUnit);
+  const entries = [];
+  let countedBase = 0;
+  for (const [t, tier] of tiers.entries()) {
+    const quantity = requireCount(tier && tier.quantity, `${where}.entries[${t}].quantity`);
+    if (quantity === 0) continue; // a blank tier is simply not counted
+    const unit = typeof tier.unit === 'string' && tier.unit ? tier.unit : item.base_unit;
+    const converted = await toBaseUnit(db, item, quantity, unit);
+    entries.push({ enteredQuantity: quantity, enteredUnit: unit, baseQuantity: converted.quantity });
+    countedBase += converted.quantity;
+  }
+
+  // Kept on count_lines only when the line is a single tier; a multi-tier
+  // line's figures live in count_line_entries and these stay null.
+  const single = entries.length === 1 ? entries[0] : null;
 
   const ledger = await ledgerAt(db, item.id, location.id);
-  const variance = counted.quantity - ledger.total;
+  const variance = countedBase - ledger.total;
 
   let disposition;
   let adjustments = [];
@@ -127,9 +146,10 @@ async function prepareLine(db, line, where) {
   return {
     item,
     location,
-    enteredQuantity,
-    enteredUnit,
-    countedBase: counted.quantity,
+    entries,
+    enteredQuantity: single ? single.enteredQuantity : null,
+    enteredUnit: single ? single.enteredUnit : null,
+    countedBase,
     ledgerQuantity: ledger.total,
     variance,
     disposition,
@@ -190,6 +210,23 @@ export async function recordCount(db, payload) {
         ),
     );
 
+    line.entries.forEach((entry, at) => {
+      statements.push(
+        db
+          .prepare(
+            `INSERT INTO count_line_entries (id, count_line_id, entered_quantity, entered_unit, base_quantity)
+             VALUES (?, ?, ?, ?, ?)`,
+          )
+          .bind(
+            `${envelope.event_id}-L${index}-E${at}`,
+            `${envelope.event_id}-L${index}`,
+            entry.enteredQuantity,
+            entry.enteredUnit,
+            entry.baseQuantity,
+          ),
+      );
+    });
+
     line.adjustments.forEach((adj, at) => {
       statements.push(
         db
@@ -221,7 +258,7 @@ export async function recordCount(db, payload) {
 // already accepted. Each line carries its counted and ledger figures, the
 // variance, and how it was resolved.
 export async function countResult(db, eventId) {
-  const [head, lines] = await Promise.all([
+  const [head, lines, entries] = await Promise.all([
     db
       .prepare(
         `SELECT c.event_id, c.counted_at, c.note, s.name AS counted_by
@@ -247,8 +284,30 @@ export async function countResult(db, eventId) {
       )
       .bind(eventId)
       .all(),
+    db
+      .prepare(
+        `SELECT e.count_line_id, e.entered_quantity, e.entered_unit, e.base_quantity
+           FROM count_line_entries e
+           JOIN count_lines cl ON cl.id = e.count_line_id
+          WHERE cl.event_id = ?
+          ORDER BY e.id`,
+      )
+      .bind(eventId)
+      .all(),
   ]);
-  return { event_id: eventId, count: head, lines: lines.results || [] };
+
+  const byLine = new Map();
+  for (const entry of entries.results || []) {
+    if (!byLine.has(entry.count_line_id)) byLine.set(entry.count_line_id, []);
+    byLine.get(entry.count_line_id).push({
+      entered_quantity: entry.entered_quantity,
+      entered_unit: entry.entered_unit,
+      base_quantity: entry.base_quantity,
+    });
+  }
+  const rows = (lines.results || []).map((row) => ({ ...row, entries: byLine.get(row.id) || [] }));
+
+  return { event_id: eventId, count: head, lines: rows };
 }
 
 // Recent counts, newest first: one row per sheet with the line count and how

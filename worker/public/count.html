@@ -109,10 +109,26 @@
   <header><h1 id="line-title">How much</h1></header>
   <div class="chosen" id="line-chosen"></div>
   <p class="note" id="line-where"></p>
-  <div class="row">
+  <!-- Cases / units / loose, the way the current stock check asks. A tier is
+       shown only where the conversions master can turn it into the item's
+       base unit; everything sums to that base unit on the server. Leave a box
+       blank where there is none. -->
+  <div class="row" id="tier-cases-row" hidden>
     <div class="field">
-      <label for="line-quantity" id="line-quantity-label">How much is there</label>
-      <input id="line-quantity" type="number" step="any" min="0" inputmode="decimal" />
+      <label for="tier-cases" id="tier-cases-label">Cases</label>
+      <input id="tier-cases" type="number" step="any" min="0" inputmode="decimal" placeholder="0" />
+    </div>
+  </div>
+  <div class="row" id="tier-units-row" hidden>
+    <div class="field">
+      <label for="tier-units" id="tier-units-label">Loose units</label>
+      <input id="tier-units" type="number" step="any" min="0" inputmode="decimal" placeholder="0" />
+    </div>
+  </div>
+  <div class="row" id="tier-loose-row">
+    <div class="field">
+      <label for="tier-loose" id="tier-loose-label">Loose weight</label>
+      <input id="tier-loose" type="number" step="any" min="0" inputmode="decimal" placeholder="0" />
     </div>
   </div>
   <div id="line-error"></div>

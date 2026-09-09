@@ -1,4 +1,4 @@
-import { ulid, makeStore } from './lib/offline.js';
+import { ulid, makeStore, unitsFor } from './lib/offline.js';
 
 // The weekly count: what the ledger thinks is in one storage area against what
 // is physically counted there. The difference is written as ADJUST movements
@@ -68,6 +68,34 @@ function fillSelect(select, rows, { placeholder = null, selected = null } = {}) 
 }
 
 const trim = (n) => Number(n.toFixed(4)).toString();
+
+// The only conversions the form does itself are the two that need no evidence
+// — a spelling and a metric prefix — the same rule the batching form follows.
+// A tier in cases or inner units is left to the server, which has the
+// conversions master; the line just shows what was keyed until then.
+function toBaseSimple(quantity, unit, baseUnit) {
+  const same = (a, b) => a.trim().toLowerCase() === b.trim().toLowerCase();
+  const canon = (u) => (same(u, 'litres') || same(u, 'litre') ? 'L' : u.trim());
+  const from = canon(unit);
+  const to = canon(baseUnit);
+  if (same(from, to)) return quantity;
+  if (same(from, 'g') && same(to, 'kg')) return quantity / 1000;
+  if (same(from, 'ml') && same(to, 'L')) return quantity / 1000;
+  return null;
+}
+
+// The line total in the base unit, but only when every tier resolves without
+// the master. Otherwise null — the server works it out and the variance shows
+// in the recorded result.
+function previewBase(entries, baseUnit) {
+  let sum = 0;
+  for (const entry of entries) {
+    const value = toBaseSimple(entry.quantity, entry.unit, baseUnit);
+    if (value === null) return null;
+    sum += value;
+  }
+  return sum;
+}
 
 // ---------------------------------------------------------------- ledger
 
@@ -205,13 +233,21 @@ function renderLines() {
     name.textContent = line.item_name;
     const detail = document.createElement('div');
     detail.className = 'detail';
-    detail.textContent = `counted ${trim(line.counted)} ${line.base_unit} · ledger ${trim(line.ledger)} ${line.base_unit}`;
+    const tierText = line.entries.length
+      ? line.entries.map((entry) => `${trim(entry.quantity)} ${entry.unit}`).join(' + ')
+      : 'none counted';
+    detail.textContent = `${tierText} · ledger ${trim(line.ledger)} ${line.base_unit}`;
     grow.append(name, detail);
 
-    const delta = line.counted - line.ledger;
     const span = document.createElement('div');
-    span.className = `delta ${Math.abs(delta) < 1e-6 ? 'exact' : delta < 0 ? 'short' : 'over'}`;
-    span.textContent = Math.abs(delta) < 1e-6 ? 'Δ 0' : `Δ ${delta > 0 ? '+' : ''}${trim(delta)}`;
+    if (line.counted === null) {
+      span.className = 'delta exact';
+      span.textContent = 'Δ on save';
+    } else {
+      const delta = line.counted - line.ledger;
+      span.className = `delta ${Math.abs(delta) < 1e-6 ? 'exact' : delta < 0 ? 'short' : 'over'}`;
+      span.textContent = Math.abs(delta) < 1e-6 ? 'Δ 0' : `Δ ${delta > 0 ? '+' : ''}${trim(delta)}`;
+    }
     grow.append(span);
 
     const remove = document.createElement('button');
@@ -245,32 +281,58 @@ function openLine(item) {
   label.textContent = item.name;
   chosen.append(image, label);
 
+  // Which tiers to show: cases and inner units only where the conversions
+  // master can turn them into this item's base unit. The loose tier is the
+  // base unit itself and is always there.
+  const units = new Set(unitsFor(item, state.catalog.conversions || []));
+  $('tier-cases-row').hidden = !units.has('case');
+  $('tier-units-row').hidden = !units.has('item');
+  $('tier-cases-label').textContent = 'Cases';
+  $('tier-units-label').textContent = 'Loose units';
+  $('tier-loose-label').textContent = item.base_unit === 'Units'
+    ? 'Loose count (individual units)'
+    : `Loose ${item.base_unit}`;
+  for (const id of ['tier-cases', 'tier-units', 'tier-loose']) $(id).value = '';
+
   const has = ledgerFor(item.id);
   $('line-where').textContent = has
-    ? `The ledger has ${trim(has)} ${item.base_unit} in ${areaName()}. Count everything of it that is in this area.`
+    ? `The ledger has ${trim(has)} ${item.base_unit} in ${areaName()}. Count everything of it in this area, split across the boxes as it comes.`
     : `The ledger has none of this in ${areaName()}. If there is some, that gets flagged for a person to trace.`;
-  $('line-quantity-label').textContent = `How much is there, in ${item.base_unit}`;
-  $('line-quantity').value = '';
   $('line-error').replaceChildren();
   $('line-dialog').showModal();
 }
 
+const TIERS = [
+  ['tier-cases', 'case'],
+  ['tier-units', 'item'],
+  ['tier-loose', null], // null → the item's base unit
+];
+
 function addLine() {
   const item = state.chosen;
-  const counted = Number($('line-quantity').value);
-  if (!Number.isFinite(counted) || counted < 0 || $('line-quantity').value.trim() === '') {
-    const div = document.createElement('div');
-    div.className = 'banner bad';
-    div.textContent = 'Enter how much is there — zero if there is none.';
-    $('line-error').replaceChildren(div);
-    return;
+  const entries = [];
+  for (const [id, unit] of TIERS) {
+    const raw = $(id).value.trim();
+    if (raw === '') continue;
+    const n = Number(raw);
+    if (!Number.isFinite(n) || n < 0) {
+      const div = document.createElement('div');
+      div.className = 'banner bad';
+      div.textContent = 'Numbers only — leave a box blank where there is none.';
+      $('line-error').replaceChildren(div);
+      return;
+    }
+    if (n === 0) continue;
+    entries.push({ quantity: n, unit: unit || item.base_unit });
   }
+  // No tier filled is a real line too: it says "none of this is here".
   state.lines.push({
     item_id: item.id,
     item_name: item.name,
     base_unit: item.base_unit,
-    counted,
+    entries,
     ledger: ledgerFor(item.id),
+    counted: previewBase(entries, item.base_unit),
   });
   $('line-dialog').close();
   renderLines();
@@ -308,7 +370,7 @@ async function save() {
     lines: state.lines.map((line) => ({
       item_id: line.item_id,
       location_id: where,
-      counted_quantity: line.counted,
+      entries: line.entries,
     })),
   };
 
@@ -346,15 +408,20 @@ function renderResult(result) {
     const detail = document.createElement('div');
     detail.className = 'detail';
 
+    const tiers = (row.entries || []).length > 1
+      ? ` (${row.entries.map((e) => `${trim(e.entered_quantity)} ${e.entered_unit}`).join(' + ')})`
+      : '';
+
     if (row.disposition === 'no_variance') {
       head.textContent = row.item_name;
-      detail.textContent = `counted ${trim(row.counted_quantity)} ${row.base_unit} — matched the ledger`;
+      detail.textContent = `counted ${trim(row.counted_quantity)} ${row.base_unit}${tiers} — matched the ledger`;
     } else if (row.disposition === 'apportioned') {
       head.textContent = `${row.item_name} · adjusted ${row.variance > 0 ? '+' : ''}${trim(row.variance)} ${row.base_unit}`;
-      detail.textContent = 'spread across the open lots in that area, pro-rata by balance';
+      detail.textContent = `counted ${trim(row.counted_quantity)} ${row.base_unit}${tiers}, ledger had `
+        + `${trim(row.ledger_quantity)} — spread across the open lots pro-rata by balance`;
     } else {
       head.textContent = `${row.item_name} — no lot to carry it`;
-      detail.textContent = `counted ${trim(row.counted_quantity)} ${row.base_unit}, the ledger had `
+      detail.textContent = `counted ${trim(row.counted_quantity)} ${row.base_unit}${tiers}, the ledger had `
         + `${trim(row.ledger_quantity)}. Nothing adjusted; flagged as unresolved.`;
     }
     div.append(head, detail);
@@ -450,14 +517,14 @@ async function confirmResolve() {
 // -------------------------------------------------------------------- boot
 
 async function boot() {
-  const parts = ['staff', 'locations', 'items'];
+  const parts = ['staff', 'locations', 'items', 'conversions'];
   const responses = await Promise.all(parts.map((action) => api(`/api/catalog?action=${action}`)));
   if (responses.some((response) => !response.ok)) {
     notify('Could not load the catalog. This screen needs a connection.', 'bad');
     return;
   }
-  const [staff, locations, items] = responses.map((response) => response.body.rows);
-  state.catalog = { staff, locations, items };
+  const [staff, locations, items, conversions] = responses.map((response) => response.body.rows);
+  state.catalog = { staff, locations, items, conversions };
 
   fillSelect($('staff'), staff, { placeholder: 'Choose your name', selected: store.read(STAFF_KEY, null) });
   renderAreas();
