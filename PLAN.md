@@ -1079,14 +1079,26 @@ with tests plus a supervised real submission before its line is ticked.
 - **P5 — Count.** The weekly count: expected versus counted, variance written
   as `ADJUST`. This is what makes the balance self-correcting.
 
-  **Progress 2026-09-09.** Built and passing 223 tests across the Worker.
+  **Progress 2026-09-09.** Built and passing 231 tests across the Worker.
   Migration `0014_count.sql` adds `counts` (one row per sheet) and
-  `count_lines` (one row per item per storage area); `events.kind` and
-  `movements.type` already allowed `count` and `ADJUST` from P1, so nothing
-  else in the schema moved. `POST /api/count` (`src/ledger/count.js`) records
-  a sheet, `GET /api/counts` lists them, `?event=` returns one, `?open`
-  returns the lines still needing a human, and `POST /api/counts` closes one
-  of those.
+  `count_lines` (one row per item per storage area); `0015_count_entries.sql`
+  adds `count_line_entries`, one row per tier a line was keyed in.
+  `events.kind` and `movements.type` already allowed `count` and `ADJUST` from
+  P1, so nothing else in the schema moved. `POST /api/count`
+  (`src/ledger/count.js`) records a sheet, `GET /api/counts` lists them,
+  `?event=` returns one, `?open` returns the lines still needing a human, and
+  `POST /api/counts` closes one of those. `worker/public/count.html` /
+  `count.js` is the screen: four tappable area tiles rather than a dropdown,
+  then per item a cases / units / loose-weight entry the way the current stock
+  check asks.
+
+  **Keyed in the units staff handle (Dean, 2026-09-09).** A line's result is
+  one figure in the item's base unit, but it is entered as up to three tiers —
+  cases, inner units, loose weight — each converted through the conversions
+  master and summed (open question 4: ask in the pack unit, not a weight
+  somebody works out). A tier is offered only where the master can convert it;
+  each is kept in `count_line_entries` beside what it converted to, the same
+  provenance `movements` keeps.
 
   Two decisions from Dean (2026-09-09) settled open question 3 and shape the
   code:
