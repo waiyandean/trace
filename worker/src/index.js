@@ -10,6 +10,7 @@ import { pendingReadings, recordReading } from './ledger/checkpoints.js';
 import { openBatches, batchDetail, recordPacking, massBalance } from './ledger/packing.js';
 import { openUnproven, reviewUnproven } from './ledger/unproven.js';
 import { dispatch, dispatchResult, recentDispatches } from './ledger/dispatch.js';
+import { recordCount, countResult, recentCounts, openCountLines, resolveCountLine } from './ledger/count.js';
 
 // The `trace` Worker.
 //
@@ -44,6 +45,11 @@ import { dispatch, dispatchResult, recentDispatches } from './ledger/dispatch.js
 //   GET  /api/dispatches          recent dispatches, newest first
 //   GET  /api/dispatches?event=…  one dispatch: its customer, lines and temps
 //   POST /api/dispatch            send produced lots to a customer: writes DISPATCH
+//   POST /api/count               record a weekly count: writes ADJUST per lot
+//   GET  /api/counts              recent count sheets, newest first
+//   GET  /api/counts?event=…      one count: its lines, variances and outcomes
+//   GET  /api/counts?open         count lines with stock but no lot to carry it
+//   POST /api/counts              resolve one such line: {line_id, staff_id, note}
 //
 // The old `forms` system stays authoritative until Dean cuts over, so nothing
 // here is yet the kitchen's record of anything.
@@ -83,6 +89,8 @@ const ROUTES = {
   '/api/unproven': ['GET', 'POST'],
   '/api/dispatch': ['POST'],
   '/api/dispatches': ['GET'],
+  '/api/count': ['POST'],
+  '/api/counts': ['GET', 'POST'],
 };
 
 async function readBody(request) {
@@ -135,6 +143,16 @@ async function route(request, env, url) {
       const rows = await openUnproven(db);
       return json({ count: rows.length, rows });
     }
+    if (url.pathname === '/api/counts') {
+      const event = url.searchParams.get('event');
+      if (event) return json(await countResult(db, event));
+      if (url.searchParams.get('open') !== null) {
+        const rows = await openCountLines(db);
+        return json({ count: rows.length, rows });
+      }
+      const rows = await recentCounts(db);
+      return json({ count: rows.length, rows });
+    }
     return null;
   }
 
@@ -164,6 +182,15 @@ async function route(request, env, url) {
       // wrote — the same distinction receive makes, so a device reconciling
       // its record can tell them apart without reading the body.
       return json(result, { status: result.duplicate ? 200 : 201 });
+    }
+    if (url.pathname === '/api/count') {
+      const result = await recordCount(db, await readBody(request));
+      // 200 for a replay of a submission already accepted, 201 for one that
+      // wrote — the same distinction receive and dispatch make.
+      return json(result, { status: result.duplicate ? 200 : 201 });
+    }
+    if (url.pathname === '/api/counts') {
+      return json(await resolveCountLine(db, await readBody(request)));
     }
     if (url.pathname === '/api/receive') {
       const result = await receive(db, await readBody(request));

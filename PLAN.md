@@ -1078,6 +1078,51 @@ with tests plus a supervised real submission before its line is ticked.
   use-by), not yet by a real dispatch on the real iPad.
 - **P5 — Count.** The weekly count: expected versus counted, variance written
   as `ADJUST`. This is what makes the balance self-correcting.
+
+  **Progress 2026-09-09.** Built and passing 223 tests across the Worker.
+  Migration `0014_count.sql` adds `counts` (one row per sheet) and
+  `count_lines` (one row per item per storage area); `events.kind` and
+  `movements.type` already allowed `count` and `ADJUST` from P1, so nothing
+  else in the schema moved. `POST /api/count` (`src/ledger/count.js`) records
+  a sheet, `GET /api/counts` lists them, `?event=` returns one, `?open`
+  returns the lines still needing a human, and `POST /api/counts` closes one
+  of those.
+
+  Two decisions from Dean (2026-09-09) settled open question 3 and shape the
+  code:
+
+  - **The count is item + location, never per lot.** Staff record one figure
+    per item per storage area. A countable jar is whole-pack (open question 4)
+    so its lot is never ambiguous, and a part-used bulk tub cannot be split by
+    lot on sight — so the sheet asks only for the figure the floor can give.
+    `count_lines` is keyed on `(count, item, location)`.
+  - **A variance is apportioned across that item's open lots at the location
+    pro-rata by each lot's ledger balance**, one signed `ADJUST` per lot. The
+    count cannot see which lot drifted, so it assumes nothing and spreads the
+    difference by weight. Pro-rata by a positive balance also keeps every lot
+    at or above zero, and the rounding remainder lands on the largest lot so
+    the shares always sum back to the variance exactly.
+
+  One case writes no movement: stock counted with **no open lot at that
+  location to carry it**. The system will not open a lot to balance to — that
+  is the invented link this project exists to remove — so the line is recorded
+  as `unresourced` and left for a person. That queue is the P6 "missing lot"
+  alert in its first form.
+
+  Like the stock and dispatch screens the count is online-only and needs no
+  device: it mints no short codes and is measured against live balances a
+  cached copy would get wrong the moment someone else moved stock. The ledger
+  balance each line is measured against is snapshotted onto the `count_lines`
+  row, not recomputed later, so a movement backdated after the count cannot
+  silently rewrite the variance.
+
+  **Nothing from this is deployed.** Same as P1–P4: the live Worker is the P0
+  read-only build, and a writing endpoint with no authentication would let
+  anyone post a count that never happened. Authentication stays deferred to
+  the end of the build (Dean, 2026-08-31), so P5 cannot close formally until
+  then — everything above is proven locally and by test. Still to come: the
+  count screen staff use (the endpoint has no front end yet), and the
+  supervised real count that ends the phase.
 - **P6 — Reports.** One-step-back, one-step-forward, mass balance, and alerts
   for missing lots, negative balances and conflicting dates. Simple versions of
   these are built alongside P1–P5 to validate the data model as it grows; P6 is
@@ -1154,12 +1199,25 @@ These need Dean's answer before the phase that depends on them.
    about the delivery — it simply has no printed code until one can be
    assigned, which is a relabel rather than lost data. Were the short code the
    primary key, an empty pool would stop intake entirely.
-3. **Count granularity (blocks P5).** Staff physically count "how much of X is
-   in the freezer", not per lot. Traceability wants per lot. Options are
-   counting by lot where cases are individually labelled and falling back to
-   item-plus-location for loose or decanted stock, or apportioning an
-   item-level variance across that item's open lots by a stated rule. This is
-   an operational decision, not just a technical one.
+3. **Count granularity — resolved 2026-09-09 (Dean).** Staff physically count
+   "how much of X is in the freezer", not per lot. The choice was between
+   counting by lot where cases are individually labelled with an
+   item-plus-location fallback, and counting item-plus-location throughout
+   with the variance apportioned across the item's open lots by a stated rule.
+
+   Dean chose **item + location throughout**, variance **apportioned pro-rata
+   by each lot's ledger balance**. The reasoning that made it clean is open
+   question 4: the ingredients counted as countable units are all whole-pack,
+   so their lot is never in doubt anyway, and the ones that open are bulk
+   containers nobody can split by lot on sight. So per-lot counting would buy
+   precision only where the pack already gives it for free, and ask for a
+   judgement nobody can make everywhere else. Pro-rata rather than FEFO
+   because the count has no evidence about which lot drifted, and pro-rata by
+   a positive balance also cannot push a lot below zero.
+
+   Built in P5, see the phase note above. The one gap the rule cannot fill —
+   stock counted with no lot at that location — is recorded and queued for a
+   human rather than balanced to an invented lot.
 4. **Opening a pack — resolved 2026-08-31 (Dean).** Three things happen in
    this kitchen and the catalog could not tell them apart, so `items` now
    carries `opening_rule` and `days_after_opening`:
