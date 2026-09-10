@@ -414,22 +414,39 @@ def name_bar(name, sub, warnings):
     41-48% that made a full reversed band untenable for the four base formats.
     The band stands in for the name and the divider rule beneath it; its lower
     edge is the divider.
+
+    The variant text sits reversed against the right edge of the band, in the
+    same place the diluted chip sits on that label, so the eye lands on the
+    same spot to read which broth this is whichever of the three it has.
     """
     name = escape(name)
     sub = escape(sub).upper()
-    if not fits(name, 40, INNER - 28):
+    top, height = 40, 62
+    inset = MARGIN + 14
+    out = [f"^FO{MARGIN},{top}^GB{INNER},{height},{height}^FS"]
+    if not sub:
+        out.append(f"^FR^FO{inset},{top + (height - 40) // 2}^A0N,40^FD{name}^FS")
+        return out
+    # The variant text is right-aligned in its own block against the band's
+    # right edge, in the same place the diluted chip sits on that label, so
+    # the eye lands on the same spot on all three broths. The name takes what
+    # is left of the row beside it; where it will not fit there -- only ever a
+    # name much longer than the "Tonkotsu Broth" the band is built for -- the
+    # variant text drops to a second line so the two never collide.
+    sub_w = text_width(sub, 30) + 24
+    if fits(name, 40, INNER - 28 - sub_w - 24):
+        out.append(
+            f"^FR^FO{inset},{top + (height - 40) // 2}^A0N,40^FD{name}^FS")
+        out.append(
+            f"^FR^FO{WIDTH - MARGIN - 14 - sub_w},{top + (height - 30) // 2}"
+            f"^A0N,30,0^FB{sub_w},1,0,C^FD{sub}^FS")
+    else:
         warnings.append(
-            f"'{name}' is too wide for the name band once it is inset from the "
-            f"black edge. Shorten the name.")
-    if sub and text_width(sub, 15) > INNER - 28:
-        warnings.append(
-            f"'{sub}' is too wide for the line under the name in the band.")
-    out = [
-        f"^FO{MARGIN},40^GB{INNER},62,62^FS",
-        f"^FR^FO{MARGIN + 14},43^A0N,40^FD{name}^FS",
-    ]
-    if sub:
-        out.append(f"^FR^FO{MARGIN + 14},84^A0N,15^FD{sub}^FS")
+            f"'{name}' is too wide to sit beside the variant text on the band, "
+            f"so the text drops to a second line. The band is built for the "
+            f"'Tonkotsu Broth' name -- shorten it.")
+        out.append(f"^FR^FO{inset},{top + 3}^A0N,34^FD{name}^FS")
+        out.append(f"^FR^FO{inset},{top + height - 22}^A0N,15^FD{sub}^FS")
     return out
 
 

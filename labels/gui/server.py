@@ -551,9 +551,10 @@ class Data:
                 fields.append(field(
                     "bar", "Trial band", product["bar"], editable=False,
                     hint="Prints as a solid black band carrying the name in "
-                         "reverse, with this text beneath it. A different "
-                         "shape from the chip, so a third look-alike is not "
-                         "mistaken for the first two at a glance."))
+                         "reverse, with this text set against the right edge "
+                         "where the diluted chip sits. A different shape from "
+                         "the chip, so a third look-alike is not mistaken for "
+                         "the first two at a glance."))
             if product.get("barcode"):
                 fields.append(field(
                     "barcode", "Barcode", product["barcode"], editable=False,
