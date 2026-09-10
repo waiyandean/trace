@@ -547,6 +547,13 @@ class Data:
                     hint="Prints as a reversed chip beside the name. It is "
                          "what tells this apart from the product it looks "
                          "identical to."))
+            if product.get("bar"):
+                fields.append(field(
+                    "bar", "Trial band", product["bar"], editable=False,
+                    hint="Prints as a solid black band carrying the name in "
+                         "reverse, with this text beneath it. A different "
+                         "shape from the chip, so a third look-alike is not "
+                         "mistaken for the first two at a glance."))
             if product.get("barcode"):
                 fields.append(field(
                     "barcode", "Barcode", product["barcode"], editable=False,
@@ -599,6 +606,7 @@ def build(data, type_id, item_id, values, quantity):
         may_contain=values.get("may_contain", ""),
         barcode=values.get("barcode", ""),
         tag=values.get("tag", ""),
+        bar=values.get("bar", ""),
         producer=data.extra.get("producer", ""),
         health_mark=values.get("health_mark") == "yes",
         hm_country=data.extra.get("health_mark_country", "GB"),

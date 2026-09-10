@@ -161,6 +161,13 @@
       "base_unit": "L",
       "note": "The kitchen dilutes Tonkotsu Broth before it goes to the restaurant. It is a separate product rather than a state of the concentrate: the two look identical in the pouch, and serving the wrong one is the mistake the label exists to prevent (Dean, 2026-09-02).",
       "needs_health_mark": true
+    },
+    "Tonkotsu Broth 6.5 Brix Test": {
+      "id": "trace:tonkotsu-broth-6-5-brix-test",
+      "kind": "product",
+      "base_unit": "L",
+      "note": "Reduction trial: Tonkotsu Broth concentrated by reducing the ingredients rather than adding water, to a 6.5 Brix target. A separate product, not a state of the broth, for the same reason as the diluted version -- it goes down the same pouch and serving the wrong one is what the label prevents. Test batches only, not yet a restaurant line; the label carries a 6.5 BRIX TEST band so it cannot be mistaken for either of the other two (Dean, 2026-09-10).",
+      "needs_health_mark": true
     }
   },
   "locations": [
@@ -259,7 +266,8 @@
       "Teriyaki Sauce": "ambient",
       "Spicy Teriyaki": "ambient",
       "Soba Sauce": "ambient",
-      "Tonkotsu Broth Diluted": "freezer"
+      "Tonkotsu Broth Diluted": "freezer",
+      "Tonkotsu Broth 6.5 Brix Test": "freezer"
     }
   },
   "excluded": {
@@ -330,7 +338,8 @@
       "Chicken Broth",
       "Tonkotsu Broth",
       "Ikigai Chicken Broth",
-      "Tonkotsu Broth Diluted"
+      "Tonkotsu Broth Diluted",
+      "Tonkotsu Broth 6.5 Brix Test"
     ],
     "grams": [
       "Black Garlic Tonkotsu (Soup)",

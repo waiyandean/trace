@@ -399,8 +399,42 @@ def variant_tag(words, warnings):
     ]
 
 
+def name_bar(name, sub, warnings):
+    """The whole name row as a solid black band, for a third look-alike.
+
+    variant_tag is the right weight for one look-alike, but a second product
+    carrying a second chip in the same corner reads as the same label from
+    across a room: the chip's position and shape are the signal, not the word
+    in it. A trial variant that must be told apart from both the standard broth
+    and the diluted one therefore takes a different silhouette -- the name row
+    goes to a black band, which cannot be confused with the plain label's open
+    top or with a cornered chip.
+
+    It is about 45,000 dots of black, an eighth of the label, against the
+    41-48% that made a full reversed band untenable for the four base formats.
+    The band stands in for the name and the divider rule beneath it; its lower
+    edge is the divider.
+    """
+    name = escape(name)
+    sub = escape(sub).upper()
+    if not fits(name, 40, INNER - 28):
+        warnings.append(
+            f"'{name}' is too wide for the name band once it is inset from the "
+            f"black edge. Shorten the name.")
+    if sub and text_width(sub, 15) > INNER - 28:
+        warnings.append(
+            f"'{sub}' is too wide for the line under the name in the band.")
+    out = [
+        f"^FO{MARGIN},40^GB{INNER},62,62^FS",
+        f"^FR^FO{MARGIN + 14},43^A0N,40^FD{name}^FS",
+    ]
+    if sub:
+        out.append(f"^FR^FO{MARGIN + 14},84^A0N,15^FD{sub}^FS")
+    return out
+
+
 def product(*, name, use_by, batch, packed, qty, sku, allergens, producer,
-            may_contain="", barcode="", tag="", health_mark=False,
+            may_contain="", barcode="", tag="", bar="", health_mark=False,
             hm_country="GB", hm_code="", is_case=False, quantity=1):
     """The customer-facing product label, packet and case from one layout.
 
@@ -417,20 +451,26 @@ def product(*, name, use_by, batch, packed, qty, sku, allergens, producer,
     """
     warnings = []
     # The chip eats into the room the name has, so the name is measured
-    # against what is left rather than the full width.
-    chip_width = (text_width(escape(tag).upper(), 30) + 60) if escape(tag) else 0
-    _warn_name(name, warnings, INNER - chip_width)
+    # against what is left rather than the full width. The band takes the whole
+    # row and does its own width check, so neither applies with `bar` set.
+    if not bar:
+        chip_width = (text_width(escape(tag).upper(), 30) + 60) if escape(tag) else 0
+        _warn_name(name, warnings, INNER - chip_width)
     if health_mark and not hm_code:
         warnings.append(
             "The health mark oval is on but no approval number is set, so the "
             "oval would print empty. Set health_mark_code in label-data.json.")
 
-    chip = variant_tag(tag, warnings)
     out = _head(quantity)
-    out += chip
+    if bar:
+        out += name_bar(name, bar, warnings)
+    else:
+        out += variant_tag(tag, warnings)
+        out += [
+            f"^FO{MARGIN},42^A0N,{NAME_HEIGHT}^FD{escape(name)}^FS",
+            f"^FO{MARGIN},96^GB{INNER},0,4^FS",
+        ]
     out += [
-        f"^FO{MARGIN},42^A0N,{NAME_HEIGHT}^FD{escape(name)}^FS",
-        f"^FO{MARGIN},96^GB{INNER},0,4^FS",
         "",
         f"^FO{MARGIN},112^A0N,20^FDUSE BY^FS",
         f"^FO{MARGIN},136^A0N,42^FD{escape(use_by)}^FS",

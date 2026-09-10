@@ -110,6 +110,16 @@ CASES = [
         packed="02/09/2026", qty="1.8 Litres", sku="BF-SPMSTKR-12K",
         tag="Diluted", allergens="Gluten, Fish, Soya", producer=PRODUCER,
         health_mark=True, hm_code="GA 121", quantity=1)),
+    ("packet with a trial band", zpl.product, dict(
+        name="Tonkotsu Broth", use_by="01/09/2027", batch="0209GA1",
+        packed="02/09/2026", qty="1.8 Litres", sku="", bar="6.5 BRIX TEST",
+        allergens="Gluten, Fish, Soya", producer=PRODUCER,
+        health_mark=True, hm_code="GA 121", quantity=1)),
+    ("trial band against a long name", zpl.product, dict(
+        name="Spicy Miso Tonkotsu Ramen", use_by="01/09/2027", batch="0209GA1",
+        packed="02/09/2026", qty="12 x 1.8 Litres", sku="",
+        bar="6.5 BRIX TEST REDUCED", allergens="Gluten, Fish, Soya",
+        producer=PRODUCER, health_mark=True, hm_code="GA 121", quantity=1)),
     ("notice, two words", zpl.notice, dict(text="DO NOT USE", quantity=1)),
     ("notice, a sentence", zpl.notice, dict(
         text="Allergen area. Clean down before and after use.", quantity=1)),

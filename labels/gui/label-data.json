@@ -148,6 +148,7 @@
     "Tom Yum Tare": "Gluten, Crustaceans, Fish, Soya",
     "Tonkotsu Broth": "Gluten, Fish, Soya",
     "Tonkotsu Broth Diluted": "Gluten, Fish, Soya",
+    "Tonkotsu Broth 6.5 Brix Test": "Gluten, Fish, Soya",
     "Wakame Seaweed": "None declared",
     "White Miso": "Soya",
     "White Truffle Oil": "None declared",
@@ -474,6 +475,20 @@
         "qty": "1.8 Litres"
       },
       "box": {
+        "qty": "8 x 1.8 Litres"
+      }
+    },
+    "Tonkotsu Broth 6.5 Brix Test": {
+      "label_name": "Tonkotsu Broth",
+      "bar": "6.5 BRIX TEST",
+      "category": "Broths",
+      "health_mark": true,
+      "packet": {
+        "no_sku": true,
+        "qty": "1.8 Litres"
+      },
+      "box": {
+        "no_sku": true,
         "qty": "8 x 1.8 Litres"
       }
     }
