@@ -120,15 +120,19 @@
 
   <!-- The label prints itself the moment a line is added (PLAN.md: "the code
        is taken now... because that is when the label is written"), through a
-       small relay on the kitchen LAN rather than through labels/gui — see
-       lib/zpl.js. Blank by default, so this form prints nothing until
-       somebody has actually pointed it at a relay. -->
+       small relay on the kitchen laptop rather than through labels/gui — see
+       lib/zpl.js. Defaults to the standing Cloudflare Tunnel in front of that
+       relay (print-relay.deanops.uk), not the laptop's bare LAN address:
+       this page is served over HTTPS, and a browser refuses to let an HTTPS
+       page call an HTTP endpoint at all, kitchen wifi or not — the tunnel is
+       what makes the relay reachable as HTTPS. Cleared to blank, this form
+       prints nothing and falls back to writing the short code by hand. -->
   <section id="printer-section" class="footnote">
     <h2>Label printer</h2>
     <div class="row">
       <div class="field">
         <label for="relay-url">Print relay address</label>
-        <input id="relay-url" placeholder="http://192.168.0.183:8643" autocomplete="off" />
+        <input id="relay-url" placeholder="https://print-relay.deanops.uk" autocomplete="off" />
       </div>
     </div>
     <p class="note" id="printer-note">

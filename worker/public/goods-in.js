@@ -1022,7 +1022,11 @@ async function boot() {
   $('device-row').hidden = devices.length < 2;
   fillSelect($('device'), devices, { placeholder: 'Not set', selected: state.deviceId });
 
-  $('relay-url').value = store.read(RELAY_KEY, '');
+  // Defaults to the standing tunnel in front of the kitchen laptop's relay
+  // (deanops.uk, set up 2026-09-16) rather than blank, so printing works on a
+  // fresh device with nothing typed in. Still editable, and still nothing
+  // stops somebody clearing it to add lines without printing.
+  $('relay-url').value = store.read(RELAY_KEY, 'https://print-relay.deanops.uk');
 
   const now = new Date();
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
