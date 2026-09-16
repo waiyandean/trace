@@ -118,6 +118,24 @@
     <p class="note" id="device-note"></p>
   </section>
 
+  <!-- The label prints itself the moment a line is added (PLAN.md: "the code
+       is taken now... because that is when the label is written"), through a
+       small relay on the kitchen LAN rather than through labels/gui — see
+       lib/zpl.js. Blank by default, so this form prints nothing until
+       somebody has actually pointed it at a relay. -->
+  <section id="printer-section" class="footnote">
+    <h2>Label printer</h2>
+    <div class="row">
+      <div class="field">
+        <label for="relay-url">Print relay address</label>
+        <input id="relay-url" placeholder="http://192.168.0.183:8643" autocomplete="off" />
+      </div>
+    </div>
+    <p class="note" id="printer-note">
+      Leave this blank to add lines without printing — write the short code on the case by hand, as before.
+    </p>
+  </section>
+
 </main>
 
 <dialog id="line-dialog">
