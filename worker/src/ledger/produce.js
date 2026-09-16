@@ -49,7 +49,7 @@ async function productAndRecipe(db, itemId) {
 
   const recipe = await lookupRow(
     db,
-    'SELECT id, shelf_life_days FROM recipes WHERE item_id = ? AND active = 1',
+    'SELECT id, shelf_life_months FROM recipes WHERE item_id = ? AND active = 1',
     itemId,
   );
   return { item, recipe };
@@ -59,10 +59,19 @@ async function productAndRecipe(db, itemId) {
 // typed per batch (PLAN.md, open question "Shelf-life ownership"). A batch of
 // a product with no recipe shelf life gets no use-by at all rather than a
 // guessed one — and the lot records which of the two happened.
-export function deriveUseBy(producedAt, shelfLifeDays) {
+//
+// Whole months, landing on the first of the result — never the packed day
+// carried forward (HANDOFF.md: "Shelf life is counted in whole months from
+// the day a batch is packed... Rounding down to the start of the month is
+// the conservative direction — it can only shorten the life, never extend it
+// past what was intended"). Mirrors labels/gui's months_on() exactly
+// (migrations/0017_shelf_life_months.sql has the fuller history: this used
+// to add shelf_life_days as raw days, which is not the same arithmetic and
+// drifted the date away from the 1st).
+export function deriveUseBy(producedAt, shelfLifeMonths) {
   const made = new Date(producedAt);
-  const useBy = new Date(Date.UTC(made.getUTCFullYear(), made.getUTCMonth(), made.getUTCDate()));
-  useBy.setUTCDate(useBy.getUTCDate() + shelfLifeDays);
+  const total = made.getUTCFullYear() * 12 + made.getUTCMonth() + shelfLifeMonths;
+  const useBy = new Date(Date.UTC(Math.floor(total / 12), total % 12, 1));
   return useBy.toISOString().slice(0, 10);
 }
 
@@ -191,7 +200,7 @@ export async function produce(db, payload) {
     shortCode = held.code;
   }
 
-  const useBy = recipe?.shelf_life_days ? deriveUseBy(envelope.occurred_at, recipe.shelf_life_days) : null;
+  const useBy = recipe?.shelf_life_months ? deriveUseBy(envelope.occurred_at, recipe.shelf_life_months) : null;
 
   // The checks the batch was made under. Planned before anything is written,
   // so a missing required reading refuses the batch rather than leaving one

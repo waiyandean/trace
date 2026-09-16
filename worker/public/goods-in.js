@@ -741,6 +741,7 @@ async function printLine(line, item) {
     delivered: $('occurred').value ? $('occurred').value.slice(0, 10) : new Date().toISOString().slice(0, 10),
     supplier: (state.catalog?.suppliers || []).find((row) => row.id === $('supplier').value)?.name || '',
     quantity: line.quantity,
+    healthMark: item?.needs_health_mark === true,
   });
 
   try {

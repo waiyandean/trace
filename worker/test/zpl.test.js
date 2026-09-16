@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildGoodsInLabel } from '../public/lib/zpl.js';
+import { buildGoodsInLabel, buildPackingLabel } from '../public/lib/zpl.js';
 
 // This is the one label goods-in.js prints on its own, separate from
 // labels/gui (Dean, 2026-09-16). See public/lib/zpl.js for why.
@@ -20,7 +20,7 @@ test('a use-by prints; a missing one says where to look instead of a blank', () 
   const withDate = buildGoodsInLabel({
     name: 'X', shortCode: 'ABCDEF', batch: '1', useBy: '2026-10-01', delivered: '2026-09-16', supplier: 'S',
   });
-  assert.match(withDate, /\^FD2026-10-01\^FS/);
+  assert.match(withDate, /\^FD01\/10\/2026\^FS/);
   assert.doesNotMatch(withDate, /See product packaging/);
 
   const withoutDate = buildGoodsInLabel({
@@ -65,4 +65,149 @@ test('opens and closes exactly one label', () => {
   });
   assert.equal((zpl.match(/\^XA/g) || []).length, 1);
   assert.equal((zpl.match(/\^XZ/g) || []).length, 1);
+});
+
+// -------------------------------------------------------- buildPackingLabel
+
+test('carries the short code as both text and the QR payload', () => {
+  const zpl = buildPackingLabel({
+    name: 'Tonkotsu Broth', shortCode: 'k7m4qp', batch: '1609GA1',
+    useBy: '2026-10-16', packed: '2026-09-16', quantity: 20,
+  });
+  assert.match(zpl, /\^FDK7M4QP\^FS/);
+  assert.match(zpl, /\^BQN,2,6\^FDQA,K7M4QP\^FS/);
+});
+
+test('a use-by prints; a missing one says so rather than a blank', () => {
+  const withDate = buildPackingLabel({
+    name: 'X', shortCode: 'ABCDEF', batch: '1609GA', useBy: '2026-10-01', packed: '2026-09-16',
+  });
+  assert.match(withDate, /\^FD01\/10\/2026\^FS/);
+
+  const withoutDate = buildPackingLabel({
+    name: 'X', shortCode: 'ABCDEF', batch: '1609GA', useBy: null, packed: '2026-09-16',
+  });
+  assert.match(withoutDate, /No shelf life recorded/);
+});
+
+test('the batch code and packet count land where a packet label needs them', () => {
+  const zpl = buildPackingLabel({
+    name: 'X', shortCode: 'ABCDEF', batch: '1609GA3', useBy: null, packed: '2026-09-16', quantity: 48,
+  });
+  assert.match(zpl, /\^FD1609GA3\^FS/);
+  assert.match(zpl, /\^PQ48$/m);
+});
+
+test('quantity defaults to one and is never printed as zero', () => {
+  const zpl = buildPackingLabel({
+    name: 'X', shortCode: 'ABCDEF', batch: '1609GA', useBy: null, packed: '2026-09-16', quantity: 0,
+  });
+  assert.match(zpl, /\^PQ1$/m);
+});
+
+test('opens and closes exactly one label', () => {
+  const zpl = buildPackingLabel({
+    name: 'X', shortCode: 'ABCDEF', batch: '1609GA', useBy: null, packed: '2026-09-16',
+  });
+  assert.equal((zpl.match(/\^XA/g) || []).length, 1);
+  assert.equal((zpl.match(/\^XZ/g) || []).length, 1);
+});
+
+test('every date prints UK-style, dd/mm/yyyy, not the yyyy-mm-dd it arrives in', () => {
+  const zpl = buildGoodsInLabel({
+    name: 'X', shortCode: 'ABCDEF', batch: '1', useBy: '2026-01-05', delivered: '2026-12-31', supplier: 'S',
+  });
+  assert.match(zpl, /\^FD05\/01\/2026\^FS/);
+  assert.match(zpl, /Delivered 31\/12\/2026/);
+});
+
+// -------------------------------------------------------------- health mark
+
+test('the oval prints only when the item needs it', () => {
+  const without = buildGoodsInLabel({
+    name: 'X', shortCode: 'ABCDEF', batch: '1', useBy: null, delivered: '2026-09-16', supplier: 'S',
+  });
+  assert.doesNotMatch(without, /\^GE150,58,3\^FS/);
+
+  const withMark = buildGoodsInLabel({
+    name: 'Chicken Carcass', shortCode: 'ABCDEF', batch: '1', useBy: null, delivered: '2026-09-16',
+    supplier: 'S', healthMark: true,
+  });
+  assert.match(withMark, /\^GE150,58,3\^FS/);
+  assert.match(withMark, /\^FDGB\\&\^FS/);
+  assert.match(withMark, /\^FDGA121\\&\^FS/);
+});
+
+test('the packing label carries the same oval when the product needs it', () => {
+  const zpl = buildPackingLabel({
+    name: 'Chicken Broth', shortCode: 'ABCDEF', batch: '1609GA1', useBy: '2027-09-01',
+    packed: '2026-09-16', healthMark: true,
+  });
+  assert.match(zpl, /\^GE150,58,3\^FS/);
+  assert.match(zpl, /\^FDGB\\&\^FS/);
+  assert.match(zpl, /\^FDGA121\\&\^FS/);
+});
+
+test('the packing label mirrors labels/gui\'s product layout, not the case label\'s', () => {
+  const zpl = buildPackingLabel({
+    name: 'Chicken Broth', shortCode: 'ABCDEF', batch: '1609GA1',
+    useBy: '2027-09-01', packed: '2026-09-16', healthMark: true,
+  });
+  // CODE is a small caption under the QR, not the 72pt block letters the
+  // Goods In case label uses, and it does not occupy either of Packed/Qty's
+  // rows.
+  assert.match(zpl, /\^FO622,264\^A0N,20\^FB150,1,0,C\^FDABCDEF\^FS/);
+  assert.doesNotMatch(zpl, /A0N,72,72/);
+  assert.doesNotMatch(zpl, /\^FT180,256\^A0N,30\^FDABCDEF\^FS/);
+  // USE BY and BATCH sit side by side near the top, matching labels/gui's
+  // positions exactly, not the lower band the case label uses.
+  assert.match(zpl, /\^FO40,112\^A0N,20\^FDUSE BY\^FS/);
+  assert.match(zpl, /\^FO450,112\^A0N,20\^FDBATCH\^FS/);
+  // The QR sits in the same corner labels/gui's SKU QR does.
+  assert.match(zpl, /\^FO622,110\^BQN,2,6\^FDQA,ABCDEF\^FS/);
+  // The oval takes the same no-barcode slot labels/gui's does.
+  assert.match(zpl, /\^FO450,196\^GE150,58,3\^FS/);
+  // Chicken Broth's real pack size, in labels/gui's own Qty slot.
+  assert.match(zpl, /\^FT40,256\^A0N,22\^FDQty\^FS/);
+  assert.match(zpl, /\^FT180,256\^A0N,30\^FD1\.8 Litres\^FS/);
+});
+
+test('a product with no known pack size leaves the Qty row out rather than showing it empty', () => {
+  const zpl = buildPackingLabel({
+    name: 'Something Nobody Has Checked', shortCode: 'ABCDEF', batch: '1609GA', useBy: null, packed: '2026-09-16',
+  });
+  assert.doesNotMatch(zpl, /FDQty/);
+});
+
+// -------------------------------------------------------- allergens/producer
+
+test('a known product prints its declared allergens and disclaimer', () => {
+  const zpl = buildPackingLabel({
+    name: 'Chicken Broth', shortCode: 'ABCDEF', batch: '1609GA1', useBy: '2027-09-01', packed: '2026-09-16',
+  });
+  assert.match(zpl, /ALLERGENS: Gluten, Sesame, Soya/);
+  assert.match(zpl, /May contain Peanuts and other allergens/);
+});
+
+test('an unlisted product says "Not recorded" rather than guessing', () => {
+  const zpl = buildPackingLabel({
+    name: 'Something Nobody Has Checked', shortCode: 'ABCDEF', batch: '1609GA', useBy: null, packed: '2026-09-16',
+  });
+  assert.match(zpl, /ALLERGENS: Not recorded/);
+  assert.match(zpl, /May contain other allergens/);
+});
+
+test('every packing label carries the producer line', () => {
+  const zpl = buildPackingLabel({
+    name: 'X', shortCode: 'ABCDEF', batch: '1609GA', useBy: null, packed: '2026-09-16',
+  });
+  assert.match(zpl, /Produced by: AAHQ LTD, 90 Renfield Street, Glasgow/);
+});
+
+test('the allergen box sits below everything the label already draws', () => {
+  const zpl = buildPackingLabel({
+    name: 'Chicken Broth', shortCode: 'ABCDEF', batch: '1609GA1', useBy: '2027-09-01',
+    packed: '2026-09-16', healthMark: true,
+  });
+  assert.match(zpl, /\^FO40,292\^GB732,52,2\^FS/);
 });

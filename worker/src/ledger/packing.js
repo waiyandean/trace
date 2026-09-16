@@ -1,6 +1,7 @@
 import { BadRequest } from '../http.js';
 import { validateEnvelope, requireQuantity, payloadHash, alreadyAccepted, eventRow, lookupRow } from './envelope.js';
 import { toBaseUnit } from './units.js';
+import { mintCode } from './codes.js';
 
 // Packing a batch out: how much it made, into how many packets, and the mass
 // balance that makes it worth recording.
@@ -19,6 +20,40 @@ import { toBaseUnit } from './units.js';
 // It happens after the batch and sometimes by somebody else, so it is its own
 // submission rather than a field on the batch form nobody is standing at.
 
+// Products cooked several times in a day need the pot in their code, because
+// otherwise two pots packed the same day are indistinguishable — the same
+// reasoning goods-in's batch scheme exists to avoid for deliveries. Held as a
+// name list rather than a catalog flag because that is where it already
+// lives, in labels/gui's label-data.json ("Broths" category, pot_numbers):
+// trace's own catalog has nothing to hang a "cooked several times a day"
+// fact on yet, and inventing a column for two items is worse than naming
+// them (PLAN.md open item 2 — this kind of fact belongs in the catalog
+// eventually, not sooner than it needs to).
+export const POT_ITEMS = new Set(['Chicken Broth', 'Tonkotsu Broth']);
+
+// The code itself is computed on the device, the same as goods-in's ddmmyy
+// (lib/offline.js batchCodeFor) — local wall-clock date components, not
+// parsed here from an ISO instant, which would put the wrong day on a label
+// packed either side of a UTC midnight that is not the kitchen's midnight.
+// So this only validates the shape rather than deriving it: ddmm, the GA
+// suffix, then a pot 1-8 where the item needs one and nothing where it does
+// not (HANDOFF.md, "Batch codes").
+export function checkBatchCode(code, itemName) {
+  if (typeof code !== 'string' || !code) {
+    throw new BadRequest('batch_code is required for a produced lot');
+  }
+  const needsPot = POT_ITEMS.has(itemName);
+  const pattern = needsPot ? /^\d{4}GA[1-8]$/ : /^\d{4}GA$/;
+  if (!pattern.test(code)) {
+    throw new BadRequest(
+      needsPot
+        ? `${itemName} is cooked several pots a day: batch_code must be ddmm followed by GA and a pot 1-8, `
+          + `got ${JSON.stringify(code)}`
+        : `batch_code must be ddmm followed by GA, got ${JSON.stringify(code)}`,
+    );
+  }
+}
+
 // Every batch that is not finished, and what each is waiting for.
 //
 // One list rather than three. A batch needs its temperatures taken, then
@@ -30,7 +65,7 @@ export async function openBatches(db) {
   const { results } = await db
     .prepare(
       `SELECT b.lot_id, b.yield_quantity, b.multiplier, b.packed_at, b.created_at,
-              i.name AS product_name, i.base_unit, l.short_code, l.use_by, l.status,
+              i.name AS product_name, i.base_unit, i.needs_health_mark, l.short_code, l.batch_code, l.use_by, l.status,
               l.originated_at, s.name AS started_by,
               (SELECT COUNT(*) FROM checkpoint_readings r
                 WHERE r.lot_id = b.lot_id AND r.recorded_at IS NULL) AS checks_outstanding,
@@ -58,7 +93,7 @@ export async function batchDetail(db, lotId) {
   const [batch, checks, inputs] = await Promise.all([
     db
       .prepare(
-        `SELECT b.*, i.name AS product_name, i.base_unit, l.short_code, l.use_by, l.status
+        `SELECT b.*, i.name AS product_name, i.base_unit, i.needs_health_mark, l.short_code, l.batch_code, l.use_by, l.status
            FROM batch_records b JOIN lots l ON l.id = b.lot_id JOIN items i ON i.id = l.item_id
           WHERE b.lot_id = ?`,
       )
@@ -95,7 +130,7 @@ export async function recordPacking(db, payload) {
 
   const record = await db
     .prepare(
-      `SELECT b.lot_id, b.packed_at, b.event_id, i.id AS item_id, i.name AS item_name, i.base_unit
+      `SELECT b.lot_id, b.packed_at, b.event_id, i.id AS item_id, i.name AS item_name, i.base_unit, l.short_code
          FROM batch_records b JOIN lots l ON l.id = b.lot_id JOIN items i ON i.id = l.item_id
         WHERE b.lot_id = ?`,
     )
@@ -120,6 +155,34 @@ export async function recordPacking(db, payload) {
   }
   if (typeof payload.label_check !== 'boolean') {
     throw new BadRequest('label_check must be true or false: it says the packets carry their label');
+  }
+
+  // Set here rather than at produce() time (PLAN.md's own scheme says
+  // "packing date", not the day the batch started — a batch that runs
+  // overnight, like the twelve-hour cool checkpoints already built for,
+  // would otherwise carry the wrong day on its label). No batch had ever
+  // actually been given one before this — produce.js accepted a batch_code
+  // but nothing sent it, so every produced lot's code was silently null.
+  checkBatchCode(payload.batch_code, record.item_name);
+
+  // A produced lot has no device to draw a short code from — batching has
+  // no device at all, being online-only (PLAN.md, "Where the iPad actually
+  // is") — so unlike goods-in's pool, this mints and binds one directly,
+  // here, in the same breath as packing it out. migrations/0016 is what
+  // makes a device-less short_codes row valid. A lot given one already
+  // (nothing sends this today, but produce.js has always accepted it) keeps
+  // that code rather than being issued a second.
+  let shortCode = record.short_code;
+  if (!shortCode) {
+    for (let attempt = 0; !shortCode && attempt < 5; attempt += 1) {
+      const candidate = mintCode();
+      const result = await db
+        .prepare('INSERT INTO short_codes (code, lot_id, bound_at) VALUES (?, ?, datetime(\'now\')) ON CONFLICT (code) DO NOTHING')
+        .bind(candidate, record.lot_id)
+        .run();
+      if (result.meta?.changes) shortCode = candidate;
+    }
+    if (!shortCode) throw new Error(`could not mint a short code for lot ${record.lot_id}: the code space is exhausted`);
   }
 
   await db.batch([
@@ -151,9 +214,14 @@ export async function recordPacking(db, payload) {
       )
       .bind(converted.quantity, packets, payload.label_check ? 1 : 0, envelope.occurred_at,
             envelope.staff_id, envelope.event_id, record.lot_id),
+    db.prepare('UPDATE lots SET batch_code = ?, short_code = ? WHERE id = ?')
+      .bind(payload.batch_code, shortCode, record.lot_id),
   ]);
 
-  return { duplicate: false, event_id: envelope.event_id, ...(await massBalance(db, record.lot_id)) };
+  return {
+    duplicate: false, event_id: envelope.event_id, short_code: shortCode,
+    batch_code: payload.batch_code, ...(await massBalance(db, record.lot_id)),
+  };
 }
 
 // What went in against what came out.
