@@ -56,7 +56,15 @@ nssm stop trace-label-app >nul 2>nul
 nssm remove trace-label-app confirm >nul 2>nul
 
 nssm install trace-label-app "%PY%"
-nssm set trace-label-app AppDirectory "%~dp0"
+REM The trailing dot matters: %~dp0 always ends in a backslash, and a
+REM quoted argument ending "\" immediately before the closing quote is
+REM read by a real program's own argv parsing (not a cmd builtin -- nssm
+REM is a normal .exe) as an escaped literal quote character, not "end of
+REM path". Without it NSSM is handed a directory with a stray trailing "
+REM baked into the name, which does not exist, and the service dies on
+REM every start with no more explanation than "unexpected SERVICE_STOPPED"
+REM (found the hard way installing trace-print-relay, 2026-09-16).
+nssm set trace-label-app AppDirectory "%~dp0."
 REM --no-browser: nothing under a service has a desktop session to open one
 REM in, and webbrowser.open would otherwise error or silently do nothing.
 nssm set trace-label-app AppParameters "server.py --no-browser"

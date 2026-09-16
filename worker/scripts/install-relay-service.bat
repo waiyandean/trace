@@ -60,7 +60,14 @@ nssm stop trace-print-relay >nul 2>nul
 nssm remove trace-print-relay confirm >nul 2>nul
 
 nssm install trace-print-relay "%PY%"
-nssm set trace-print-relay AppDirectory "%~dp0"
+REM The trailing dot matters: %~dp0 always ends in a backslash, and a
+REM quoted argument ending "\" immediately before the closing quote is
+REM read by a real program's own argv parsing (not a cmd builtin -- nssm
+REM is a normal .exe) as an escaped literal quote character, not "end of
+REM path". Without it NSSM was handed a directory with a stray trailing
+REM " baked into the name, which does not exist, and the service died on
+REM every start with no more explanation than "unexpected SERVICE_STOPPED".
+nssm set trace-print-relay AppDirectory "%~dp0."
 nssm set trace-print-relay AppParameters "print-relay.py --printer %PRINTER_IP%"
 nssm set trace-print-relay Start SERVICE_AUTO_START
 nssm set trace-print-relay AppStdout "%~dp0print-relay.log"
