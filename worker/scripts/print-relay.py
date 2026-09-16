@@ -4,6 +4,10 @@ moment a line is added.
 
     python3 print-relay.py --printer 192.168.0.166
 
+For it to survive a reboot or a closed terminal window on the kitchen
+laptop, `install-relay-service.bat` in this same folder wraps it as an
+actual Windows service instead.
+
 Why this exists rather than reusing labels/gui: a browser has no way to open
 a raw TCP socket (PLAN.md, "is it possible to host this on GitHub Pages" —
 no; fetch/XHR only speak HTTP, and nothing else is exposed to page script).
