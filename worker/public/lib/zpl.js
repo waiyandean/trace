@@ -63,7 +63,7 @@ function ukDate(iso) {
 // than threaded through from the ledger — editable in one place, deliberately,
 // not buried in the drawing code below (Dean, 2026-09-16).
 const HEALTH_MARK_COUNTRY = 'GB';
-const HEALTH_MARK_CODE = 'GA121';
+const HEALTH_MARK_CODE = 'GA 121';
 
 // The address on every label, whoever made it — a genuinely global fact,
 // unlike allergens below, so one hardcoded constant is honest rather than a
@@ -103,6 +103,18 @@ function packSize(name) {
   return PACK_SIZES[name] || '';
 }
 
+// Wording for the Date Opened label's banner and footer, keyed by the
+// item's after-opening storage requirement — the same two lookups
+// labels/gui's own date_opened() uses (STORAGE_BANNER, OPENED_FOOTER in
+// zpl.py). Plain vocabulary, not per-product data, so unlike ALLERGENS and
+// PACK_SIZES these are complete rather than a lookup filled in over time.
+const STORAGE_BANNER = { ambient: 'AMBIENT', chill: 'CHILLED', freezer: 'FROZEN' };
+const OPENED_FOOTER = {
+  ambient: 'KEEP SEALED — STORE IN A COOL DRY PLACE',
+  chill: 'REFRIGERATE AFTER OPENING — KEEP SEALED',
+  freezer: 'KEEP FROZEN — DO NOT REFREEZE',
+};
+
 // The ellipse and its two lines of text, mirroring labels/gui's product()
 // (zpl.py) — same dimensions, same two-line layout, country above the
 // approval number. Placed under the QR here rather than beside the batch,
@@ -111,8 +123,10 @@ function packSize(name) {
 function healthMarkOval(x, y) {
   return [
     `^FO${x},${y}^GE150,58,3^FS`,
-    `^FO${x},${y + 6}^A0N,19^FB150,1,0,C^FD${HEALTH_MARK_COUNTRY}\\&^FS`,
-    `^FO${x},${y + 28}^A0N,19^FB150,1,0,C^FD${HEALTH_MARK_CODE}\\&^FS`,
+    // More top padding than labels/gui's own y+6 — checked against a real
+    // print, the country line was touching the oval's border there.
+    `^FO${x},${y + 12}^A0N,19^FB150,1,0,C^FD${HEALTH_MARK_COUNTRY}\\&^FS`,
+    `^FO${x},${y + 34}^A0N,19^FB150,1,0,C^FD${HEALTH_MARK_CODE}\\&^FS`,
   ];
 }
 
@@ -274,6 +288,83 @@ export function buildPackingLabel({
   lines.push(
     '',
     `^FO${MARGIN},350^A0N,16^FB${WIDTH - 2 * MARGIN},1,0,C^FDProduced by: ${escapeZpl(PRODUCER)}^FS`,
+    '',
+    `^PQ${Math.max(1, Math.round(quantity))}`,
+    '^XZ',
+  );
+  return lines.join('\n');
+}
+
+// The Date Opened label — applied when a container is opened or its
+// contents decanted, so a part-used pack on the shelf carries its own
+// use-by rather than relying on someone remembering when it was opened.
+// PLAN.md's open item 4 settled the rule in P0 (items.opening_rule,
+// days_after_opening) and named the event itself — recording that a pack
+// was opened, and printing something to put on it — as the piece still
+// missing; nothing had built it (Dean, 2026-09-17).
+//
+// Laid out to match labels/gui's own date_opened(), the same way the P3
+// packet label matches product(): the border around the whole label, USE
+// BY/BATCH in the big row, the opened date underneath, the storage banner
+// and footer instruction. Code and QR are new — labels/gui's version
+// carries neither, from before lots existed to carry a QR to — placed in
+// the same corner Goods In and the packet label use, for the same family
+// resemblance the border already gives this pair across a room.
+export function buildDateOpenedLabel({
+  name, shortCode, batch, opened, useBy, storageOpened, quantity = 1,
+}) {
+  const safeName = escapeZpl(name);
+  const safeCode = escapeZpl(shortCode).toUpperCase();
+  const safeBatch = escapeZpl(batch);
+  const safeOpened = escapeZpl(ukDate(opened));
+  const useByText = useBy ? escapeZpl(ukDate(useBy)) : '';
+  const banner = STORAGE_BANNER[storageOpened] || '';
+  const footer = OPENED_FOOTER[storageOpened] || 'KEEP SEALED';
+
+  const lines = [
+    '^XA',
+    `^PW${WIDTH}`,
+    `^LL${HEIGHT}`,
+    '^CI28',
+    '^BY2,3,10',
+    '',
+    // The border is what tells this apart from Goods In across a room — the
+    // two sit on the same shelves on the same containers and are the pair
+    // that actually gets confused (labels/gui's own reasoning, unchanged).
+    `^FO0,0^GB${WIDTH},${HEIGHT},8^FS`,
+    '',
+    `^FO${MARGIN},42^A0N,20^FDOPENED^FS`,
+    `^FO500,42^A0N,20^FB272,1,0,R^FD${banner}^FS`,
+    `^FO${MARGIN},72^A0N,44^FD${safeName}^FS`,
+    `^FO${MARGIN},126^GB${WIDTH - 2 * MARGIN},0,4^FS`,
+    '',
+    `^FO${MARGIN},142^A0N,20^FDUSE BY^FS`,
+  ];
+  if (useByText) {
+    lines.push(`^FO${MARGIN},166^A0N,42^FD${useByText}^FS`);
+  } else {
+    lines.push(`^FO${MARGIN},172^A0N,24^FDNo shelf life recorded^FS`);
+  }
+  lines.push(
+    '',
+    '^FO420,142^A0N,20^FDBATCH^FS',
+    `^FO420,166^A0N,42^FD${safeBatch}^FS`,
+    '',
+    `^FT${MARGIN},244^A0N,20^FDOpened^FS`,
+    `^FT190,244^A0N,28^FD${safeOpened}^FS`,
+    '',
+    // Shifted right of where the packet label's QR sits (622 vs 600): a
+    // ddmmyy ingredient batch code at this font size runs close enough to
+    // x560 that labels/gui's own QR corner would overlap it, checked by
+    // measuring the widest real batch code this label prints.
+    //
+    // Below the divider (y126) rather than above it, at y140 to match where
+    // the USE BY row starts — the first print put the QR at y98, which the
+    // divider line at y96-126 cut straight through (Dean, 2026-09-17).
+    `^FO600,140^BQN,2,${QR_MAGNIFICATION}^FDQA,${safeCode}^FS`,
+    `^FO600,296^A0N,20^FB172,1,0,C^FD${safeCode}^FS`,
+    '',
+    `^FO${MARGIN},344^A0N,20^FB${WIDTH - 2 * MARGIN},1,0,C^FD${footer}^FS`,
     '',
     `^PQ${Math.max(1, Math.round(quantity))}`,
     '^XZ',

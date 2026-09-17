@@ -1,4 +1,5 @@
 import { ulid, makeStore } from './lib/offline.js';
+import { buildDateOpenedLabel } from './lib/zpl.js';
 
 // The stock screen: what is in each area, and the three things that can be
 // done to it — move it, throw it away, hold it.
@@ -12,6 +13,7 @@ const $ = (id) => document.getElementById(id);
 const store = makeStore(window.localStorage);
 const STAFF_KEY = 'trace.intake.staff';
 const DEVICE_KEY = 'trace.intake.device';
+const RELAY_KEY = 'trace.intake.relay';
 
 const state = { catalog: null, rows: [], holds: [], chosen: null, action: null };
 
@@ -126,7 +128,8 @@ function render() {
     detail.className = 'detail';
     const days = daysLeft(row.use_by);
     const useBy = row.use_by ? `use by ${row.use_by}` : 'no use-by recorded';
-    detail.textContent = `${row.short_code || 'no code'} · ${row.location_name} · ${useBy}`;
+    detail.textContent = `${row.short_code || 'no code'} · ${row.location_name} · ${useBy}`
+      + (row.opened_at ? ` · opened ${row.opened_at.slice(0, 10)}` : '');
     if (days !== null && days <= 7) {
       const soon = document.createElement('span');
       soon.className = 'soon';
@@ -183,6 +186,10 @@ function openActions(row) {
   $('do-waste').hidden = held;
   $('do-hold').hidden = held;
   $('do-release').hidden = !heldBy.length;
+  // Only where the item can actually be opened (not whole_pack, and not
+  // already opened — recordOpening refuses a second opening of the same
+  // lot rather than silently repeating it).
+  $('do-open').hidden = held || !row.opening_rule || row.opening_rule === 'whole_pack' || Boolean(row.opened_at);
 
   if (held && !heldBy.length) {
     notify('This lot is held by a temperature reading. Clear it on the goods-in screen.', 'warn');
@@ -223,6 +230,64 @@ function showForm(action) {
     );
   }
   if (isWaste) fillSelect($('reason'), state.catalog.wasteReasons, { placeholder: 'Choose a reason' });
+}
+
+// Fires straight away, no form: opening a lot needs nobody to type anything
+// in, only who and when, both already known. Prints after the server
+// confirms — this screen is online-only, same reasoning batches.js's
+// packet-label print already follows (PLAN.md, "Where the iPad actually
+// is") — using the response's own values rather than the pre-open row,
+// since use_by can change here and the row in hand is the pre-open figure.
+async function markOpened(row) {
+  const response = await api('/api/open', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      ...envelope(),
+      idempotency_key: `open-${ulid()}`,
+      lot_id: row.lot_id,
+      opened_on: new Date().toISOString().slice(0, 10),
+    }),
+  });
+  if (!response.ok) {
+    const div = document.createElement('div');
+    div.className = 'banner bad';
+    div.textContent = response.body.error || `Refused with ${response.status}`;
+    $('action-error').replaceChildren(div);
+    return;
+  }
+  $('action-dialog').close();
+  notify(`${row.item_name} marked opened. Use by ${response.body.use_by || 'unchanged'}.`, 'ok');
+  await printOpened(response.body);
+  await load();
+}
+
+async function printOpened(opened) {
+  const relay = $('relay-url').value.trim();
+  if (!relay || !opened.short_code) return;
+
+  const zpl = buildDateOpenedLabel({
+    name: opened.item_name,
+    shortCode: opened.short_code,
+    batch: opened.batch_code,
+    opened: opened.opened_on,
+    useBy: opened.use_by,
+    storageOpened: opened.storage_opened,
+  });
+
+  try {
+    const printed = await fetch(`${relay.replace(/\/$/, '')}/print`, {
+      method: 'POST',
+      headers: { 'content-type': 'text/plain' },
+      body: zpl,
+    });
+    const body = await printed.json().catch(() => ({}));
+    if (!printed.ok || !body.ok) {
+      notify(`Date Opened label did not print: ${body.error || printed.status}. Write it on the box by hand.`, 'warn');
+    }
+  } catch {
+    notify(`Could not reach the print relay at ${relay}. Write it on the box by hand.`, 'warn');
+  }
 }
 
 function envelope() {
@@ -308,6 +373,7 @@ async function boot() {
 
   fillSelect($('staff'), staff, { placeholder: 'Choose your name', selected: store.read(STAFF_KEY, null) });
   fillSelect($('where'), locations, { placeholder: 'Everywhere' });
+  $('relay-url').value = store.read(RELAY_KEY, 'https://print-relay.deanops.uk');
 
   $('net').textContent = online() ? 'online' : 'offline';
   $('net').className = `pill ${online() ? 'ok' : 'warn'}`;
@@ -322,6 +388,8 @@ $('do-move').addEventListener('click', () => showForm('move'));
 $('do-waste').addEventListener('click', () => showForm('waste'));
 $('do-hold').addEventListener('click', () => showForm('hold'));
 $('do-release').addEventListener('click', () => showForm('release'));
+$('do-open').addEventListener('click', () => markOpened(state.chosen));
+$('relay-url').addEventListener('change', (event) => store.write(RELAY_KEY, event.target.value.trim()));
 $('action-save').addEventListener('click', save);
 $('action-back').addEventListener('click', () => {
   $('action-pick').hidden = false;

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildGoodsInLabel, buildPackingLabel } from '../public/lib/zpl.js';
+import { buildGoodsInLabel, buildPackingLabel, buildDateOpenedLabel } from '../public/lib/zpl.js';
 
 // This is the one label goods-in.js prints on its own, separate from
 // labels/gui (Dean, 2026-09-16). See public/lib/zpl.js for why.
@@ -135,7 +135,7 @@ test('the oval prints only when the item needs it', () => {
   });
   assert.match(withMark, /\^GE150,58,3\^FS/);
   assert.match(withMark, /\^FDGB\\&\^FS/);
-  assert.match(withMark, /\^FDGA121\\&\^FS/);
+  assert.match(withMark, /\^FDGA 121\\&\^FS/);
 });
 
 test('the packing label carries the same oval when the product needs it', () => {
@@ -145,7 +145,7 @@ test('the packing label carries the same oval when the product needs it', () => 
   });
   assert.match(zpl, /\^GE150,58,3\^FS/);
   assert.match(zpl, /\^FDGB\\&\^FS/);
-  assert.match(zpl, /\^FDGA121\\&\^FS/);
+  assert.match(zpl, /\^FDGA 121\\&\^FS/);
 });
 
 test('the packing label mirrors labels/gui\'s product layout, not the case label\'s', () => {
@@ -210,4 +210,59 @@ test('the allergen box sits below everything the label already draws', () => {
     packed: '2026-09-16', healthMark: true,
   });
   assert.match(zpl, /\^FO40,292\^GB732,52,2\^FS/);
+});
+
+// ----------------------------------------------------- buildDateOpenedLabel
+
+test('carries the short code as both text and the QR payload', () => {
+  const zpl = buildDateOpenedLabel({
+    name: 'Hoi Sin Sauce 20kg', shortCode: 'abcdef', batch: '160926',
+    opened: '2026-09-17', useBy: '2026-10-29', storageOpened: 'chill',
+  });
+  assert.match(zpl, /\^FDABCDEF\^FS/);
+  assert.match(zpl, /\^BQN,2,6\^FDQA,ABCDEF\^FS/);
+});
+
+test('the whole-label border is what tells it apart from Goods In', () => {
+  const zpl = buildDateOpenedLabel({
+    name: 'X', shortCode: 'ABCDEF', batch: '160926', opened: '2026-09-17', useBy: null, storageOpened: 'ambient',
+  });
+  assert.match(zpl, /\^FO0,0\^GB812,406,8\^FS/);
+});
+
+test('the storage banner and footer follow the after-opening requirement', () => {
+  const chilled = buildDateOpenedLabel({
+    name: 'X', shortCode: 'ABCDEF', batch: '1', opened: '2026-09-17', useBy: null, storageOpened: 'chill',
+  });
+  assert.match(chilled, /FDCHILLED\^FS/);
+  assert.match(chilled, /REFRIGERATE AFTER OPENING/);
+
+  const frozen = buildDateOpenedLabel({
+    name: 'X', shortCode: 'ABCDEF', batch: '1', opened: '2026-09-17', useBy: null, storageOpened: 'freezer',
+  });
+  assert.match(frozen, /FDFROZEN\^FS/);
+  assert.match(frozen, /DO NOT REFREEZE/);
+});
+
+test('an unrecorded storage requirement still prints a safe default footer', () => {
+  const zpl = buildDateOpenedLabel({
+    name: 'X', shortCode: 'ABCDEF', batch: '1', opened: '2026-09-17', useBy: null, storageOpened: null,
+  });
+  assert.match(zpl, /KEEP SEALED/);
+});
+
+test('opened date and use-by both print dd/mm/yyyy', () => {
+  const zpl = buildDateOpenedLabel({
+    name: 'X', shortCode: 'ABCDEF', batch: '1', opened: '2026-09-17', useBy: '2026-10-29', storageOpened: 'chill',
+  });
+  assert.match(zpl, /\^FD17\/09\/2026\^FS/);
+  assert.match(zpl, /\^FD29\/10\/2026\^FS/);
+});
+
+test('opens and closes exactly one label', () => {
+  const zpl = buildDateOpenedLabel({
+    name: 'X', shortCode: 'ABCDEF', batch: '1', opened: '2026-09-17', useBy: null, storageOpened: 'ambient',
+  });
+  assert.equal((zpl.match(/\^XA/g) || []).length, 1);
+  assert.equal((zpl.match(/\^XZ/g) || []).length, 1);
 });

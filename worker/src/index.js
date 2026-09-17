@@ -11,6 +11,7 @@ import { openBatches, batchDetail, recordPacking, massBalance } from './ledger/p
 import { openUnproven, reviewUnproven } from './ledger/unproven.js';
 import { dispatch, dispatchResult, recentDispatches } from './ledger/dispatch.js';
 import { recordCount, countResult, recentCounts, openCountLines, resolveCountLine } from './ledger/count.js';
+import { recordOpening } from './ledger/opening.js';
 
 // The `trace` Worker.
 //
@@ -50,6 +51,7 @@ import { recordCount, countResult, recentCounts, openCountLines, resolveCountLin
 //   GET  /api/counts?event=…      one count: its lines, variances and outcomes
 //   GET  /api/counts?open         count lines with stock but no lot to carry it
 //   POST /api/counts              resolve one such line: {line_id, staff_id, note}
+//   POST /api/open                 record a pack opened: {lot_id, opened_on}
 //
 // The old `forms` system stays authoritative until Dean cuts over, so nothing
 // here is yet the kitchen's record of anything.
@@ -91,6 +93,7 @@ const ROUTES = {
   '/api/dispatches': ['GET'],
   '/api/count': ['POST'],
   '/api/counts': ['GET', 'POST'],
+  '/api/open': ['POST'],
 };
 
 async function readBody(request) {
@@ -191,6 +194,10 @@ async function route(request, env, url) {
     }
     if (url.pathname === '/api/counts') {
       return json(await resolveCountLine(db, await readBody(request)));
+    }
+    if (url.pathname === '/api/open') {
+      const result = await recordOpening(db, await readBody(request));
+      return json(result, { status: result.duplicate ? 200 : 201 });
     }
     if (url.pathname === '/api/receive') {
       const result = await receive(db, await readBody(request));

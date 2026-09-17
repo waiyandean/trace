@@ -62,6 +62,20 @@
     <ul class="lines" id="lots"></ul>
     <p class="empty" id="lots-empty">Loading…</p>
   </section>
+
+  <!-- Same field, same localStorage key as the other screens — set it once
+       anywhere and it applies everywhere. Prints the Date Opened label the
+       moment a lot is marked opened. -->
+  <section id="printer-section" class="footnote">
+    <h2>Label printer</h2>
+    <div class="row">
+      <div class="field">
+        <label for="relay-url">Print relay address</label>
+        <input id="relay-url" placeholder="https://print-relay.deanops.uk" autocomplete="off" />
+      </div>
+    </div>
+    <p class="note">Leave this blank to mark a lot opened without printing.</p>
+  </section>
 </main>
 
 <dialog id="action-dialog">
@@ -78,6 +92,10 @@
     <button class="secondary" id="do-hold">Hold it</button>
     <button class="secondary" id="do-release">Release the hold</button>
     <button class="secondary" id="do-move">Move it to another area</button>
+    <!-- Only shown for a lot that can actually be opened — items.opening_rule
+         is not whole_pack, and it has not been opened already. Fires
+         straight away, no form: nothing needs typing in, only when. -->
+    <button class="secondary" id="do-open" hidden>Mark opened &amp; print label</button>
   </div>
 
   <div id="action-form" hidden>
