@@ -444,12 +444,19 @@ class Data:
                       derive="ddmmyy",
                       hint="The delivery date as ddmmyy. Type over it to use "
                            "the supplier's own code instead."),
+                # Always typed, never locked -- the catalog's supplier is the
+                # usual one, but a delivery from a substitute or a new
+                # supplier still needs a label, and the catalog is not the
+                # place to record a one-off. Prefilled with what the catalog
+                # does say, so the common case is still nothing to type.
                 field("supplier", "Supplier",
                       item["suppliers"][0] if item["suppliers"] else "",
-                      kind="select" if len(item["suppliers"]) > 1 else "text",
-                      editable=len(item["suppliers"]) != 1,
-                      options=item["suppliers"],
-                      missing=not item["suppliers"]),
+                      missing=not item["suppliers"],
+                      hint=(f"Also delivered by {', '.join(item['suppliers'][1:])}. "
+                            "Type over it for a different supplier entirely."
+                            if len(item["suppliers"]) > 1 else
+                            "Type over it if this delivery is from a "
+                            "different supplier." if item["suppliers"] else "")),
                 field("delivered", "Delivered", today, kind="date"),
                 field("allergens", "Allergens", allergens,
                       missing=not allergens,

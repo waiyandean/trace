@@ -285,11 +285,18 @@ export class Data {
           derive: 'ddmmyy',
           hint: "The delivery date as ddmmyy. Type over it to use the supplier's own code instead.",
         }),
+        // Always typed, never locked -- the catalog's supplier is the usual
+        // one, but a delivery from a substitute or a new supplier still
+        // needs a label, and the catalog is not the place to record a
+        // one-off. Prefilled with what the catalog does say, so the common
+        // case is still nothing to type.
         field('supplier', 'Supplier', item.suppliers[0] || '', {
-          kind: item.suppliers.length > 1 ? 'select' : 'text',
-          editable: item.suppliers.length !== 1,
-          options: item.suppliers,
           missing: !item.suppliers.length,
+          hint: item.suppliers.length > 1
+            ? `Also delivered by ${item.suppliers.slice(1).join(', ')}. Type over it for a different supplier entirely.`
+            : item.suppliers.length
+              ? 'Type over it if this delivery is from a different supplier.'
+              : '',
         }),
         field('delivered', 'Delivered', today, { kind: 'date' }),
         field('allergens', 'Allergens', allergens, {
