@@ -511,10 +511,16 @@ function wrappedLines(words, height, width = INNER) {
 // no catalog behind it and nothing derived -- somebody types what it should
 // say. Deliberately no border, even though a warning is the obvious case for
 // one -- see zpl.py.
+//
+// A line break typed into the textarea is kept as a forced break rather than
+// being folded into ^FB's own word-wrap: `\&` inside a ^FB field is ZPL's own
+// escape for a manual line break, so "one line, then another" prints as two
+// lines even when the first would otherwise have room for more words.
 export function notice({ text, quantity = 1 }) {
   const warnings = [];
-  const words = escape(text);
-  if (!words) warnings.push('There is nothing to print on this label.');
+  const raw = escape(text);
+  if (!raw) warnings.push('There is nothing to print on this label.');
+  const paragraphs = raw.split('\n');
 
   const available = HEIGHT - 2 * MARGIN;
   let height;
@@ -527,15 +533,18 @@ export function notice({ text, quantity = 1 }) {
     gap = Math.max(2, Math.floor(height / 8));
     // ^FB wraps on whole words, so a long word can leave a line short and
     // push the count up.
-    const wordWidths = words.split(/\s+/).filter(Boolean).map((word) => textWidth(word, height));
+    const wordWidths = paragraphs.flatMap((p) => p.split(/\s+/).filter(Boolean))
+      .map((word) => textWidth(word, height));
     const longest = wordWidths.length ? Math.max(...wordWidths) : 0;
     if (longest > INNER) continue;
     // Two counts, for two different jobs. The cautious one decides how many
     // lines ^FB is allowed, so an under-estimate cannot overprint. The
     // likely one decides where the block is centred, because centring on a
-    // line that usually is not there leaves every notice sitting high.
-    lines = wrappedLines(words, height);
-    likely = wrappedLines(words, height, INNER / NOTICE_FIT);
+    // line that usually is not there leaves every notice sitting high. Each
+    // typed line is wrapped and counted on its own, then summed, so a forced
+    // break always costs at least one line even if it is short.
+    lines = paragraphs.reduce((sum, p) => sum + wrappedLines(p, height), 0);
+    likely = paragraphs.reduce((sum, p) => sum + wrappedLines(p, height, INNER / NOTICE_FIT), 0);
     block = lines * height + (lines - 1) * gap;
     if (block <= available) {
       found = true;
@@ -545,8 +554,8 @@ export function notice({ text, quantity = 1 }) {
   if (!found) {
     height = NOTICE_SIZES[NOTICE_SIZES.length - 1];
     gap = 4;
-    lines = 1;
-    likely = 1;
+    lines = paragraphs.length;
+    likely = paragraphs.length;
     warnings.push('That does not fit on a label even at the smallest size, so it will be cut off. Say it in fewer words.');
     block = height;
   }
@@ -556,6 +565,7 @@ export function notice({ text, quantity = 1 }) {
   // If it does take the cautious number of lines after all, it still has to
   // stay above the bottom margin.
   top = Math.min(top, MARGIN + available - block);
+  const words = paragraphs.join('\\&');
   const out = [
     ...head(),
     `^FO${MARGIN},${top}^A0N,${height},0^FB${INNER},${lines},${gap},C^FD${words}^FS`,

@@ -253,7 +253,7 @@ export class Data {
         fields: [
           field('text', 'What it should say', '', {
             kind: 'lines',
-            hint: 'Set as large as it will go and centred. Keep it short: a label read across a room is a few words, not a paragraph.',
+            hint: 'Set as large as it will go and centred. A line break here prints as one, instead of being reflowed. Keep it short: a label read across a room is a few words, not a paragraph.',
           }),
         ],
       };

@@ -606,11 +606,18 @@ def notice(*, text, quantity=1):
     The border round the whole label is what tells Date Opened from Goods In
     across a room, and spending it on a second thing takes that distinction
     away from the pair that actually gets confused.
+
+    A line break typed into the textarea is kept as a forced break rather
+    than being folded into ^FB's own word-wrap: \\& inside a ^FB field is
+    ZPL's own escape for a manual line break, so "one line, then another"
+    prints as two lines even when the first would otherwise have room for
+    more words.
     """
     warnings = []
-    words = escape(text)
-    if not words:
+    raw = escape(text)
+    if not raw:
         warnings.append("There is nothing to print on this label.")
+    paragraphs = raw.split("\n")
 
     available = HEIGHT - 2 * MARGIN
     for height in NOTICE_SIZES:
@@ -619,22 +626,25 @@ def notice(*, text, quantity=1):
         # push the count up. Estimating from the total width alone would then
         # under-count, and a block that needs one more line than it is allowed
         # draws the overflow on top of the line above rather than truncating.
-        longest = max((text_width(word, height) for word in words.split()),
-                      default=0)
+        longest = max((text_width(word, height)
+                       for p in paragraphs for word in p.split()), default=0)
         if longest > INNER:
             continue
         # Two counts, for two different jobs. The cautious one decides how
         # many lines ^FB is allowed, so an under-estimate cannot overprint.
         # The likely one decides where the block is centred, because
         # centring on a line that usually is not there leaves every notice
-        # sitting high on the label.
-        lines = wrapped_lines(words, height)
-        likely = wrapped_lines(words, height, INNER / NOTICE_FIT)
+        # sitting high on the label. Each typed line is wrapped and counted
+        # on its own, then summed, so a forced break always costs at least
+        # one line even if it is short.
+        lines = sum(wrapped_lines(p, height) for p in paragraphs)
+        likely = sum(wrapped_lines(p, height, INNER / NOTICE_FIT) for p in paragraphs)
         block = lines * height + (lines - 1) * gap
         if block <= available:
             break
     else:
-        height, gap, lines, likely = NOTICE_SIZES[-1], 4, 1, 1
+        height, gap = NOTICE_SIZES[-1], 4
+        lines = likely = len(paragraphs)
         warnings.append(
             "That does not fit on a label even at the smallest size, so it "
             "will be cut off. Say it in fewer words.")
@@ -645,6 +655,7 @@ def notice(*, text, quantity=1):
     # If it does take the cautious number of lines after all, it still has to
     # stay above the bottom margin.
     top = min(top, MARGIN + available - block)
+    words = "\\&".join(paragraphs)
     return "\n".join(_head(quantity) + [
         f"^FO{MARGIN},{top}^A0N,{height},0^FB{INNER},{lines},{gap},C"
         f"^FD{words}^FS",

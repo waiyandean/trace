@@ -74,6 +74,18 @@ test('preparation can skip the external preview and still return exact ZPL', asy
   assert.equal(result.preview_error, '');
 });
 
+test('a line break typed into a notice prints as a forced break, not a reflow', () => {
+  const [oneLine] = build('notice', '-', { text: 'wash hands before returning to the floor' }, 1);
+  const [twoLines] = build('notice', '-', { text: 'wash hands\nbefore returning to the floor' }, 1);
+  assert.doesNotMatch(oneLine, /\\&/);
+  assert.match(twoLines, /wash hands\\&before returning to the floor/);
+});
+
+test('a blank line typed into a notice still costs a line of space', () => {
+  const [zpl] = build('notice', '-', { text: 'line one\n\nline two' }, 1);
+  assert.match(zpl, /line one\\&\\&line two/);
+});
+
 test('browser derivations cover Date Opened and existing product rules', () => {
   const source = readFileSync(new URL('../public/labels/logic.js', import.meta.url), 'utf8');
   const context = { module: { exports: {} } };
