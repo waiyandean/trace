@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Labels — trace</title>
+<!-- Installed as an app from Chrome's menu, so it gets its own window with no
+     address bar and its own icon on the taskbar. There is deliberately no
+     service worker: a stale one would quietly go on serving the previous
+     version of the label formats after a deploy, which is exactly the wrong
+     thing for a compliance label. -->
+<link rel="manifest" href="/labels/manifest.webmanifest" />
+<meta name="theme-color" content="#0a6b3d" />
+<link rel="icon" href="/labels/icon-192.png" />
+<link rel="apple-touch-icon" href="/labels/icon-192.png" />
+<link rel="stylesheet" href="/labels/app.css" />
+</head>
+<body>
+
+<header>
+  <button class="back" id="back" hidden aria-label="Back">&#8592;</button>
+  <h1 id="title">Labels</h1>
+  <button class="ghost" id="open-settings">Print relay</button>
+</header>
+
+<main>
+
+  <!-- 1. which kind of label -->
+  <section id="screen-types">
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <!-- 2. which item -->
+  <section id="screen-items" hidden>
+    <input id="search" class="search" type="search" autocomplete="off"
+           placeholder="Type to narrow the list" />
+    <div id="items"></div>
+    <p class="empty" id="items-empty" hidden>Nothing matches that.</p>
+  </section>
+
+  <!-- 3. the label itself -->
+  <section id="screen-label" hidden>
+    <div class="label-layout">
+      <div class="pane">
+        <h2>Label</h2>
+        <div class="preview" id="preview">
+          <p class="muted">Rendering…</p>
+        </div>
+        <div id="messages"></div>
+        <div class="print-row">
+          <label class="qty">
+            <span>Copies</span>
+            <input id="quantity" type="number" min="1" max="200" value="1" />
+          </label>
+          <button id="print" class="primary">Print</button>
+        </div>
+        <p class="note" id="print-note">
+          One label per physical box. Ten cases of the same delivery line take
+          ten labels.
+        </p>
+        <details class="raw">
+          <summary>ZPL sent to the printer</summary>
+          <pre id="zpl"></pre>
+        </details>
+      </div>
+      <div class="pane">
+        <h2>Details</h2>
+        <form id="fields" autocomplete="off"></form>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Where the ZPL goes: the print relay on the kitchen laptop, fronted by
+     the Cloudflare Tunnel at print-relay.deanops.uk (PLAN.md, "getting the
+     browser to the printer needed its own small piece of infrastructure").
+     No password on it yet — anyone with this URL can print to the kitchen
+     printer, same as goods-in.js today. -->
+<dialog id="settings">
+  <form method="dialog">
+    <h2>Print relay</h2>
+    <div class="field">
+      <label for="relay-url">Relay URL</label>
+      <input id="relay-url" placeholder="https://print-relay.deanops.uk" />
+      <p class="hint">The tunnel in front of the relay on the kitchen
+        laptop. Shared with the other trace forms — set it once and every
+        page on this device remembers it.</p>
+    </div>
+    <div class="actions">
+      <button value="cancel" class="ghost">Cancel</button>
+      <button value="save" class="primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="/labels/app.js"></script>
+</body>
+</html>
