@@ -507,15 +507,42 @@ function wrappedLines(words, height, width = INNER) {
   return lines;
 }
 
+// The same greedy wrap as wrappedLines(), but returning the actual line
+// strings rather than just how many there are.
+function wrapText(words, height, width = INNER) {
+  const wrapWidth = Math.floor(width * NOTICE_FIT);
+  const space = textWidth(' ', height);
+  const pieces = words.split(/\s+/).filter(Boolean);
+  if (!pieces.length) return [''];
+  const lines = [];
+  let current = [];
+  let currentWidth = 0;
+  for (const word of pieces) {
+    const wordWidth = textWidth(word, height);
+    if (current.length && currentWidth + space + wordWidth > wrapWidth) {
+      lines.push(current.join(' '));
+      current = [word];
+      currentWidth = wordWidth;
+    } else {
+      current.push(word);
+      currentWidth += (current.length > 1 ? space : 0) + wordWidth;
+    }
+  }
+  lines.push(current.join(' '));
+  return lines;
+}
+
 // A label that is nothing but words, set as large as they will go. There is
 // no catalog behind it and nothing derived -- somebody types what it should
 // say. Deliberately no border, even though a warning is the obvious case for
 // one -- see zpl.py.
 //
-// A line break typed into the textarea is kept as a forced break rather than
-// being folded into ^FB's own word-wrap: `\&` inside a ^FB field is ZPL's own
-// escape for a manual line break, so "one line, then another" prints as two
-// lines even when the first would otherwise have room for more words.
+// A line break typed into the textarea prints as one. The obvious way to do
+// that is ZPL's own `\&` line-break escape inside a single multi-line ^FB --
+// but that left every line after the first centred around a different point
+// than the first (measured, on identical text, a visible few dots off).
+// Giving each visual line its own single-line ^FB instead means each one is
+// centred with nothing before it to throw the justification off.
 export function notice({ text, quantity = 1 }) {
   const warnings = [];
   const raw = escape(text);
@@ -528,6 +555,7 @@ export function notice({ text, quantity = 1 }) {
   let lines;
   let likely;
   let block;
+  let visualLines;
   let found = false;
   for (height of NOTICE_SIZES) {
     gap = Math.max(2, Math.floor(height / 8));
@@ -538,12 +566,13 @@ export function notice({ text, quantity = 1 }) {
     const longest = wordWidths.length ? Math.max(...wordWidths) : 0;
     if (longest > INNER) continue;
     // Two counts, for two different jobs. The cautious one decides how many
-    // lines ^FB is allowed, so an under-estimate cannot overprint. The
-    // likely one decides where the block is centred, because centring on a
-    // line that usually is not there leaves every notice sitting high. Each
-    // typed line is wrapped and counted on its own, then summed, so a forced
-    // break always costs at least one line even if it is short.
-    lines = paragraphs.reduce((sum, p) => sum + wrappedLines(p, height), 0);
+    // lines are drawn, so an under-estimate cannot overprint. The likely one
+    // decides where the block is centred, because centring on a line that
+    // usually is not there leaves every notice sitting high. Each typed line
+    // is wrapped on its own, then summed, so a forced break always costs at
+    // least one line even if it is short.
+    visualLines = paragraphs.flatMap((p) => wrapText(p, height));
+    lines = visualLines.length;
     likely = paragraphs.reduce((sum, p) => sum + wrappedLines(p, height, INNER / NOTICE_FIT), 0);
     block = lines * height + (lines - 1) * gap;
     if (block <= available) {
@@ -554,10 +583,11 @@ export function notice({ text, quantity = 1 }) {
   if (!found) {
     height = NOTICE_SIZES[NOTICE_SIZES.length - 1];
     gap = 4;
-    lines = paragraphs.length;
-    likely = paragraphs.length;
+    visualLines = paragraphs.flatMap((p) => wrapText(p, height));
+    lines = visualLines.length;
+    likely = lines;
     warnings.push('That does not fit on a label even at the smallest size, so it will be cut off. Say it in fewer words.');
-    block = height;
+    block = lines * height + (lines - 1) * gap;
   }
 
   const centred = likely * height + (likely - 1) * gap;
@@ -565,14 +595,11 @@ export function notice({ text, quantity = 1 }) {
   // If it does take the cautious number of lines after all, it still has to
   // stay above the bottom margin.
   top = Math.min(top, MARGIN + available - block);
-  const words = paragraphs.join('\\&');
-  const out = [
-    ...head(),
-    `^FO${MARGIN},${top}^A0N,${height},0^FB${INNER},${lines},${gap},C^FD${words}^FS`,
-    '',
-    `^PQ${Math.trunc(quantity)}`,
-    '^XZ',
-  ];
+  const out = [...head()];
+  visualLines.forEach((lineText, i) => {
+    out.push(`^FO${MARGIN},${top + i * (height + gap)}^A0N,${height},0^FB${INNER},1,0,C^FD${lineText}^FS`);
+  });
+  out.push('', `^PQ${Math.trunc(quantity)}`, '^XZ');
   return [`${out.join('\n')}\n`, warnings];
 }
 

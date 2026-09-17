@@ -74,16 +74,37 @@ test('preparation can skip the external preview and still return exact ZPL', asy
   assert.equal(result.preview_error, '');
 });
 
-test('a line break typed into a notice prints as a forced break, not a reflow', () => {
-  const [oneLine] = build('notice', '-', { text: 'wash hands before returning to the floor' }, 1);
-  const [twoLines] = build('notice', '-', { text: 'wash hands\nbefore returning to the floor' }, 1);
-  assert.doesNotMatch(oneLine, /\\&/);
-  assert.match(twoLines, /wash hands\\&before returning to the floor/);
+test('a line break typed into a notice starts a new field, independent of word-wrap', () => {
+  // How many fields "wash hands before" auto-wraps into on its own depends
+  // on the font size the label happens to fit at, so this checks the one
+  // thing the typed break is meant to guarantee: "hands" and "before" never
+  // land in the same field once there is a break between them, however the
+  // surrounding words wrap.
+  const [withBreak] = build('notice', '-', { text: 'wash hands\nbefore' }, 1);
+  const texts = [...withBreak.matchAll(/\^FD([^^]*)\^FS/g)].map((m) => m[1]);
+  assert.equal(texts.join(' '), 'wash hands before');
+  assert.ok(texts.every((line) => !(line.includes('hands') && line.includes('before'))));
 });
 
 test('a blank line typed into a notice still costs a line of space', () => {
   const [zpl] = build('notice', '-', { text: 'line one\n\nline two' }, 1);
-  assert.match(zpl, /line one\\&\\&line two/);
+  assert.deepEqual(
+    [...zpl.matchAll(/\^FD([^^]*)\^FS/g)].map((m) => m[1]),
+    ['line one', '', 'line two'],
+  );
+});
+
+test('each notice line is its own single-line ^FB, not one block with a forced break', () => {
+  // A multi-line ^FB with ZPL's own \& forced break measurably throws off
+  // centring on the lines after the first (checked against a real Labelary
+  // render). Each visual line getting its own single-line, independently
+  // centred ^FB avoids that -- so there must be one ^FB per line, none of
+  // them spanning more than one line, and none of them relying on \&.
+  const [zpl] = build('notice', '-', { text: 'test\ntest' }, 1);
+  const blocks = [...zpl.matchAll(/\^FB(\d+),(\d+),\d+,C\^FD([^^]*)\^FS/g)];
+  assert.equal(blocks.length, 2);
+  for (const [, , lineCount] of blocks) assert.equal(lineCount, '1');
+  assert.doesNotMatch(zpl, /\\&/);
 });
 
 test('browser derivations cover Date Opened and existing product rules', () => {
