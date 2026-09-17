@@ -300,8 +300,9 @@ export class Data {
         }),
         field('delivered', 'Delivered', today, { kind: 'date' }),
         field('allergens', 'Allergens', allergens, {
+          editable: !allergens,
           missing: !allergens,
-          hint: 'Nothing in the catalog records these yet. Fill label-data.json to stop retyping them.',
+          hint: allergens ? '' : 'Nothing in the catalog records these yet. Fill label-data.json to stop retyping them.',
         }),
       );
     } else if (typeId === 'date-opened') {
@@ -322,7 +323,7 @@ export class Data {
           hint: days ? `${days} days from opening, the kitchen's rule for this item. The pack's own date wins if it is sooner.` : '',
         }),
         field('batch', 'Batch number', ''),
-        field('allergens', 'Allergens', allergens, { missing: !allergens }),
+        field('allergens', 'Allergens', allergens, { editable: !allergens, missing: !allergens }),
       );
     } else {
       const product = this.extra.products?.[item.name] || {};
@@ -372,7 +373,7 @@ export class Data {
           missing: mark === undefined || mark === null,
           hint: mark === undefined || mark === null ? 'Follows animal origin. Nobody has decided this one yet.' : '',
         }),
-        field('allergens', 'Allergens', allergens, { missing: !allergens }),
+        field('allergens', 'Allergens', allergens, { editable: !allergens, missing: !allergens }),
       );
       if (usesPots) {
         // These are cooked several times a day and every pot is its own

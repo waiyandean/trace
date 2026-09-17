@@ -459,8 +459,9 @@ class Data:
                             "different supplier." if item["suppliers"] else "")),
                 field("delivered", "Delivered", today, kind="date"),
                 field("allergens", "Allergens", allergens,
-                      missing=not allergens,
-                      hint="Nothing in the catalog records these yet. Fill "
+                      editable=not allergens, missing=not allergens,
+                      hint="" if allergens else
+                           "Nothing in the catalog records these yet. Fill "
                            "label-data.json to stop retyping them."),
             ]
         elif type_id == "date-opened":
@@ -481,7 +482,8 @@ class Data:
                             f"this item. The pack's own date wins if it is "
                             f"sooner." if days else "")),
                 field("batch", "Batch number", ""),
-                field("allergens", "Allergens", allergens, missing=not allergens),
+                field("allergens", "Allergens", allergens,
+                      editable=not allergens, missing=not allergens),
             ]
         else:
             product = self.extra.get("products", {}).get(item["name"], {})
@@ -532,8 +534,8 @@ class Data:
                       missing=mark is None,
                       hint="Follows animal origin. Nobody has decided this "
                            "one yet." if mark is None else ""),
-                field("allergens", "Allergens",
-                      allergens, missing=not allergens),
+                field("allergens", "Allergens", allergens,
+                      editable=not allergens, missing=not allergens),
             ]
             if uses_pots:
                 # These are cooked several times a day and every pot is its own
