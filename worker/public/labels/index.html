@@ -94,6 +94,19 @@
   </form>
 </dialog>
 
+<!-- The five label types, baked into the page instead of fetched from
+     /api/labels/bootstrap: they never change without a deploy, so a round
+     trip to fetch them on every load bought nothing. Keep in step with
+     TYPES in worker/src/labels/data.js. -->
+<script>
+window.LABEL_TYPES = [
+  { id: 'goods-in', name: 'Goods In', blurb: 'Stuck on a delivery as it comes through the door.', source: 'ingredient' },
+  { id: 'date-opened', name: 'Date Opened', blurb: 'Stuck on a pack when it is opened or decanted.', source: 'opening' },
+  { id: 'packet', name: 'Product Packet', blurb: 'The pouch or tub a finished product goes out in.', source: 'product' },
+  { id: 'box', name: 'Product Box', blurb: 'The case the packets are shipped in.', source: 'product' },
+  { id: 'notice', name: 'Notice', blurb: 'Anything else: a warning, a note, a sign. Big words, centred.', source: 'free' },
+];
+</script>
 <script src="/labels/logic.js"></script>
 <script src="/labels/app.js"></script>
 </body>

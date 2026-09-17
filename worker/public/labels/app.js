@@ -423,14 +423,28 @@ function render() {
 
 async function prepareLabel(revision) {
   const snapshot = labelPayload(false);
-  const controller = new AbortController();
-  state.prepareController = controller;
+  const prepareController = new AbortController();
+  const previewController = new AbortController();
+  state.prepareController = prepareController;
+  state.previewController = previewController;
+  // Fired together rather than chained: the preview needs no result from the
+  // fast call, only the same snapshot, so waiting for the fast round trip
+  // to finish before starting the one that also waits on Labelary only adds
+  // a second full round trip to every keystroke for nothing.
+  const previewPromise = api('/api/labels/render', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...snapshot, preview: true }),
+    signal: previewController.signal,
+  });
+
+  let zpl;
   try {
     const result = await api('/api/labels/render', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(snapshot),
-      signal: controller.signal,
+      signal: prepareController.signal,
     });
     if (revision !== state.revision) return;
     el('zpl').textContent = result.zpl;
@@ -442,25 +456,22 @@ async function prepareLabel(revision) {
       itemName: state.item.name,
     };
     el('print').disabled = false;
-    loadPreview(revision, snapshot, result.zpl);
+    zpl = result.zpl;
   } catch (error) {
+    previewController.abort();
     if (error.name === 'AbortError' || revision !== state.revision) return;
     el('preview').setAttribute('aria-busy', 'false');
     previewNote('The label could not be prepared.');
     setMessages([['bad', error.message]]);
+    return;
   }
+
+  await loadPreview(revision, previewPromise, zpl);
 }
 
-async function loadPreview(revision, snapshot, zpl) {
-  const controller = new AbortController();
-  state.previewController = controller;
+async function loadPreview(revision, previewPromise, zpl) {
   try {
-    const result = await api('/api/labels/render', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...snapshot, preview: true }),
-      signal: controller.signal,
-    });
+    const result = await previewPromise;
     if (revision !== state.revision) return;
     if (result.zpl !== zpl) {
       render();
@@ -593,7 +604,7 @@ el('settings').addEventListener('close', () => {
 
 (async function start() {
   loadRelaySetting();
-  const boot = await api('/api/labels/bootstrap');
+  const boot = { types: window.LABEL_TYPES };
   drawTypes(boot.types);
   show('types');
   const [hashPath, hashQuery = ''] = location.hash.slice(1).split('?');
