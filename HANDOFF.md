@@ -13,6 +13,51 @@ records, it goes away.
 
 ---
 
+## Update, 2026-09-16 (Dean)
+
+Two things changed since this handoff was written, and the second is the one
+that matters more than it looks.
+
+**The Ethernet cable arrived and the printer is on the kitchen LAN**, at
+`192.168.0.166`, port 9100. Raw ZPL sent straight there — no USB, no Windows
+spooler, no bridge machine — printed correctly. `printers.py`'s `tcp` backend
+had been written and waiting for this since before this handoff; it had never
+actually been exercised until now. The Windows laptop's own copy still needs
+its Settings screen pointed at `tcp` / `192.168.0.166` rather than whatever it
+is on today, and the printer itself still needs a DHCP reservation — not done,
+same open item as before, now more urgent since more things depend on the
+address staying put.
+
+**Three of the five label types are now *also* printed by trace itself,
+separately from this tool** — Goods In, P3's packet label, and Date Opened.
+`worker/public/lib/zpl.js` builds them and prints the moment the matching
+form action happens (a line added, a batch packed out, a lot marked opened),
+carrying the lot's real short code and a QR, which this tool's own versions
+of those three have never carried (`labels/gui`'s Goods In and Date Opened
+were built before lots existed to give them one — see "No lot codes or QR on
+Goods In and Date Opened" below, now stale for those two specifically).
+`lib/zpl.js`'s own header explains why this is a separate module rather than
+calling into `server.py`/`zpl.py` here even where Dean asked the packet label
+to be laid out the same as this tool's product label. **Product Packet,
+Product Box and Notice remain this tool's alone** — trace has no allergen
+data and no SKU concept to build a customer-facing compliance label from.
+
+Getting a browser to the printer needed a small new piece that has nothing to
+do with this tool: `worker/scripts/print-relay.py`, a stdlib-only relay doing
+for the browser what `printers.py`'s `print_tcp` already does for this app,
+fronted by a Cloudflare Tunnel (`print-relay.deanops.uk`) because the form is
+served over HTTPS and a browser refuses outright to call an HTTP endpoint
+from there. Both it and this app are now installed as real Windows services
+(`install-relay-service.bat`, `install-app-service.bat`) rather than needing
+a terminal window left open, with an opt-in 4-hourly auto-update
+(`install-auto-update.bat`) pulling from the same Drive folder `update.bat`
+always has.
+
+See `PLAN.md`, open question 1, for the fuller writeup — printing now spans
+both this tool and trace's own forms, so it no longer fits in this file alone.
+
+---
+
 ## Where things stand
 
 Working and in daily reach: the app runs on the Windows laptop the Zebra ZT231
@@ -170,10 +215,10 @@ They still work for putting a one-off specimen in front of the printer.
    the concentrate rather than given.
 5. **The frozen ramen print the catalog's internal name**, `Frozen Ramen :
    Hell Ramen`, which reads oddly on a retail box. A `label_name` fixes it.
-6. **An Ethernet cable is on order for the printer.** Once it has an address,
-   Settings to Network on port 9100 takes Windows out of the printing path
-   entirely, and any machine can run the tool. Give it a DHCP reservation: a
-   printer whose address moves is a printer that silently stops working.
+6. **Done, 2026-09-16 — see the Update section at the top.** The Ethernet
+   cable arrived and is proven; the one piece of this still open is the DHCP
+   reservation, which matters more now than it did when this was written,
+   since trace's own forms depend on that address too.
 7. **Three ingredient photographs still fail to import** — Apple Juice, Ground
    White Pepper, Japanese Soy Sauce — because their sources are Google Drive
    links that are not publicly readable. Re-uploading them in stockcheck fixes
