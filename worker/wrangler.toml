@@ -3,7 +3,26 @@
 name = "trace"
 main = "src/index.js"
 compatibility_date = "2026-08-31"
-workers_dev = true
+
+# Off deliberately (2026-09-17). The ledger routes have no authentication yet
+# (PLAN.md, open question "Authentication"), and trace.waiyandean.workers.dev
+# would reach every one of them from the open internet. The label GUI needs
+# none of that -- it only reaches this Worker through the zone route below,
+# which exposes exactly the paths named in it and nothing else.
+workers_dev = false
+
+# The label GUI, the one piece of this Worker that is meant to be public
+# today, at forms.deanops.uk/labels -- a route on the old forms system's zone
+# rather than a domain of trace's own, since trace has none yet (PLAN.md, "is
+# it possible to host this on Cloudflare"). Three patterns because the page,
+# its own /api/labels/* calls and the shared /photos/* images are not all
+# under one path; each pattern reaches only what it names, so nothing else on
+# this Worker -- the ledger above all -- becomes reachable from that zone.
+routes = [
+  { pattern = "forms.deanops.uk/labels*", zone_name = "deanops.uk" },
+  { pattern = "forms.deanops.uk/api/labels*", zone_name = "deanops.uk" },
+  { pattern = "forms.deanops.uk/photos*", zone_name = "deanops.uk" },
+]
 
 # The forms themselves, served as static assets from the same origin as the
 # API. Same origin matters: the iPad is on kitchen wifi with no certificate of
