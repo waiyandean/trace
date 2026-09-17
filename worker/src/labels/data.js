@@ -144,6 +144,7 @@ export class Data {
         // same row appears twice on the screen.
         members = members.map((row) => ({
           ...row,
+          supplier,
           detail: row.suppliers.length > 1 ? `also ${row.suppliers.filter((s) => s !== supplier).join(', ')}` : '',
         }));
       }
@@ -242,7 +243,7 @@ export class Data {
   // only where nothing has recorded it, so a field that is open is a signal
   // that something needs filling in rather than an invitation to retype
   // what is already known.
-  form(typeId, itemId) {
+  form(typeId, itemId, supplier = null) {
     if (typeId === 'notice') {
       return {
         type: typeId,
@@ -259,6 +260,9 @@ export class Data {
     }
 
     const item = this.items[itemId];
+    if (supplier !== null && !item.suppliers.includes(supplier)) {
+      throw new Error(`${JSON.stringify(supplier)} is not a recorded supplier for ${item.name}.`);
+    }
     const today = new Date().toISOString().slice(0, 10);
     const allergens = this.extra.allergens?.[item.name] || '';
     const fields = [];
@@ -290,7 +294,7 @@ export class Data {
         // needs a label, and the catalog is not the place to record a
         // one-off. Prefilled with what the catalog does say, so the common
         // case is still nothing to type.
-        field('supplier', 'Supplier', item.suppliers[0] || '', {
+        field('supplier', 'Supplier', supplier || item.suppliers[0] || '', {
           missing: !item.suppliers.length,
           hint: item.suppliers.length > 1
             ? `Also delivered by ${item.suppliers.slice(1).join(', ')}. Type over it for a different supplier entirely.`
@@ -300,9 +304,9 @@ export class Data {
         }),
         field('delivered', 'Delivered', today, { kind: 'date' }),
         field('allergens', 'Allergens', allergens, {
-          editable: !allergens,
+          editable: false,
           missing: !allergens,
-          hint: allergens ? '' : 'Nothing in the catalog records these yet. Fill label-data.json to stop retyping them.',
+          hint: 'Maintained in label-data.json from the allergen matrix; it cannot be changed while printing.',
         }),
       );
     } else if (typeId === 'date-opened') {
@@ -320,10 +324,15 @@ export class Data {
         field('opened', 'Opened', today, { kind: 'date' }),
         field('use_by', 'Use by', useBy, {
           kind: 'date',
+          derive: days ? `days:${days}` : null,
           hint: days ? `${days} days from opening, the kitchen's rule for this item. The pack's own date wins if it is sooner.` : '',
         }),
         field('batch', 'Batch number', ''),
-        field('allergens', 'Allergens', allergens, { editable: !allergens, missing: !allergens }),
+        field('allergens', 'Allergens', allergens, {
+          editable: false,
+          missing: !allergens,
+          hint: 'Maintained in label-data.json from the allergen matrix; it cannot be changed while printing.',
+        }),
       );
     } else {
       const product = this.extra.products?.[item.name] || {};
@@ -373,7 +382,11 @@ export class Data {
           missing: mark === undefined || mark === null,
           hint: mark === undefined || mark === null ? 'Follows animal origin. Nobody has decided this one yet.' : '',
         }),
-        field('allergens', 'Allergens', allergens, { editable: !allergens, missing: !allergens }),
+        field('allergens', 'Allergens', allergens, {
+          editable: false,
+          missing: !allergens,
+          hint: 'Maintained in label-data.json from the allergen matrix; it cannot be changed while printing.',
+        }),
       );
       if (usesPots) {
         // These are cooked several times a day and every pot is its own

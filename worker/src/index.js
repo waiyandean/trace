@@ -169,7 +169,10 @@ async function route(request, env, url) {
     let match = url.pathname.match(/^\/api\/labels\/items\/([\w-]+)$/);
     if (match) return json(await labelsItems(match[1]));
     match = url.pathname.match(/^\/api\/labels\/form\/([\w-]+)\/([\w:%-]+)$/);
-    if (match) return json(await labelsForm(match[1], decodeURIComponent(match[2])));
+    if (match) {
+      return json(await labelsForm(
+        match[1], decodeURIComponent(match[2]), url.searchParams.get('supplier')));
+    }
     return null;
   }
 

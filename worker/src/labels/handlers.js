@@ -14,10 +14,14 @@ const LABELARY = 'http://api.labelary.com/v1/printers/8dpmm/labels/4x2/0/';
 const data = new Data();
 
 // Turn form values into ZPL.
-function build(typeId, itemId, values, quantity) {
+export function build(typeId, itemId, values, quantity) {
   if (typeId === 'notice') return BUILDERS.notice({ text: values.text || '', quantity });
   const item = data.items[itemId];
   if (!item) throw new BadRequest('unknown item');
+  const allergens = data.extra.allergens?.[item.name] || '';
+  if (!allergens) {
+    throw new BadRequest(`No allergen declaration is recorded for ${item.name}. Update label-data.json before printing this label.`);
+  }
 
   if (typeId === 'goods-in') {
     return BUILDERS['goods-in']({
@@ -26,7 +30,7 @@ function build(typeId, itemId, values, quantity) {
       batch: values.batch || '',
       supplier: values.supplier || '',
       delivered: uk(values.delivered),
-      allergens: values.allergens || '',
+      allergens,
       storage: values.storage || item.storage_unopened,
       quantity,
     });
@@ -37,7 +41,7 @@ function build(typeId, itemId, values, quantity) {
       opened: uk(values.opened),
       useBy: uk(values.use_by),
       batch: values.batch || '',
-      allergens: values.allergens || '',
+      allergens,
       storageOpened: values.storage_opened || item.storage_opened,
       quantity,
     });
@@ -50,7 +54,7 @@ function build(typeId, itemId, values, quantity) {
     packed: uk(values.packed),
     qty: values.qty || '',
     sku: values.sku || '',
-    allergens: values.allergens || '',
+    allergens,
     mayContain: values.may_contain || '',
     barcode: values.barcode || '',
     tag: values.tag || '',
@@ -94,22 +98,30 @@ export async function items(typeId) {
   return { groups: data.listing(typeId) };
 }
 
-export async function form(typeId, itemId) {
+export async function form(typeId, itemId, supplier = null) {
   if (!TYPES.some((t) => t.id === typeId)) throw new BadRequest(`unknown label type: ${typeId}`);
   if (typeId !== 'notice' && !data.items[itemId]) throw new BadRequest('unknown item');
-  return data.form(typeId, itemId);
+  try {
+    return data.form(typeId, itemId, supplier);
+  } catch (err) {
+    throw new BadRequest(err.message);
+  }
 }
 
 export async function render(payload) {
-  const quantity = Number(payload.quantity || 1) || 1;
+  const quantity = Number(payload.quantity);
+  if (!Number.isInteger(quantity)) throw new BadRequest('Quantity has to be a whole number.');
+  if (quantity < 1 || quantity > 200) throw new BadRequest('Quantity has to be between 1 and 200.');
   const [source, warnings] = build(payload.type, payload.item, payload.values || {}, quantity);
 
   let png = null;
   let previewError = '';
-  try {
-    png = await renderPng(source);
-  } catch (err) {
-    previewError = `No preview: ${err.message}. The label itself is unaffected -- rendering needs Labelary to be reachable, printing does not.`;
+  if (payload.preview !== false) {
+    try {
+      png = await renderPng(source);
+    } catch (err) {
+      previewError = `No preview: ${err.message}. The label itself is unaffected -- rendering needs Labelary to be reachable, printing does not.`;
+    }
   }
   return { zpl: source, warnings, png, preview_error: previewError };
 }

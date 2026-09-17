@@ -46,13 +46,13 @@
         <div class="preview" id="preview">
           <p class="muted">Rendering…</p>
         </div>
-        <div id="messages"></div>
+        <div id="messages" aria-live="polite" aria-atomic="true"></div>
         <div class="print-row">
           <label class="qty">
             <span>Copies</span>
             <input id="quantity" type="number" min="1" max="200" value="1" />
           </label>
-          <button id="print" class="primary">Print</button>
+          <button id="print" class="primary" disabled>Print</button>
         </div>
         <p class="note" id="print-note">
           One label per physical box. Ten cases of the same delivery line take
@@ -94,6 +94,7 @@
   </form>
 </dialog>
 
+<script src="/labels/logic.js"></script>
 <script src="/labels/app.js"></script>
 </body>
 </html>

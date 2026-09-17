@@ -15,7 +15,9 @@
        <img> just falls back to an initial if it 404s. */
 
 const el = (id) => document.getElementById(id);
-const state = { type: null, item: null, form: null, timer: null, today: null };
+const state = { type: null, item: null, form: null, timer: null, today: null,
+                revision: 0, prepared: null, prepareController: null,
+                previewController: null };
 
 const RELAY_KEY = 'trace.intake.relay';
 
@@ -57,7 +59,11 @@ const ICONS = {
 async function api(path, options) {
   const response = await fetch(path, options);
   const payload = await response.json();
-  if (!response.ok) throw new Error(payload.error || `HTTP ${response.status}`);
+  if (!response.ok) {
+    const error = new Error(payload.error || `HTTP ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
   return payload;
 }
 
@@ -207,13 +213,18 @@ function itemRow(item) {
 async function openLabel(item, type) {
   if (type) state.type = type;
   state.item = item;
-  location.hash = `${state.type.id}/${item.id}`;
+  const supplier = state.type.id === 'goods-in' && item.supplier
+    ? `?supplier=${encodeURIComponent(item.supplier)}` : '';
+  location.hash = `${state.type.id}/${encodeURIComponent(item.id)}${supplier}`;
   el('title').textContent = state.type.source === 'free'
     ? state.type.name : `${state.type.name} — ${item.name}`;
   show('label');
   el('quantity').value = 1;
-  el('messages').replaceChildren();
-  state.form = await api(`/api/labels/form/${state.type.id}/${encodeURIComponent(item.id)}`);
+  beginRevision();
+  const formSupplier = state.type.id === 'goods-in' && item.supplier
+    ? `?supplier=${encodeURIComponent(item.supplier)}` : '';
+  state.form = await api(
+    `/api/labels/form/${state.type.id}/${encodeURIComponent(item.id)}${formSupplier}`);
   state.today = todayISO();
   drawFields(state.form.fields);
   render();
@@ -230,6 +241,7 @@ function drawFields(fields) {
     wrap.append(label);
 
     let input;
+    let reset;
     if (field.kind === 'choice') {
       /* A row of buttons rather than a dropdown: the pot number is picked on
          every print, often several times in a row, and a dropdown costs two
@@ -287,19 +299,34 @@ function drawFields(fields) {
     input.id = `f-${field.key}`;
     input.dataset.key = field.key;
     input.disabled = !field.editable;
-    input.addEventListener('input', () => {
-      recompute();
-      scheduleRender();
-    });
     if (field.derive) {
       /* A derived field keeps working itself out until somebody types into it.
          After that it is theirs: the batch number is the date most of the
          time and a supplier's own code the rest of the time, and the second
          case must not be undone by touching the date afterwards. */
       input.dataset.derive = field.derive;
-      input.addEventListener('input', () => { input.dataset.own = 'yes'; });
+      reset = document.createElement('button');
+      reset.type = 'button';
+      reset.className = 'derive-reset';
+      reset.textContent = 'Use automatic value';
+      reset.hidden = true;
+      reset.onclick = () => {
+        delete input.dataset.own;
+        recompute();
+        reset.hidden = true;
+        scheduleRender();
+      };
     }
+    input.addEventListener('input', () => {
+      if (input.dataset.derive) {
+        input.dataset.own = 'yes';
+        reset.hidden = false;
+      }
+      recompute();
+      scheduleRender();
+    });
     wrap.append(input);
+    if (reset) wrap.append(reset);
 
     if (field.hint) {
       const hint = document.createElement('p');
@@ -315,41 +342,8 @@ function recompute() {
   const current = values();
   for (const input of el('fields').querySelectorAll('[data-derive]')) {
     if (input.dataset.own === 'yes') continue;
-    input.value = derive(input.dataset.derive, current);
+    input.value = LabelLogic.derive(input.dataset.derive, current);
   }
-}
-
-/* The suffix on a production batch code, matching the server's. */
-const BATCH_SUFFIX = 'GA';
-
-/* An empty or half-typed date gives an empty string rather than something
-   that looks like a batch number or a use-by and is not. The rules here have
-   to agree with worker/src/labels/data.js, which computes the same values
-   for the first render; they are duplicated because the field has to update
-   as it is typed in without a round trip. */
-function derive(kind, current) {
-  const source = kind === 'ddmmyy' ? current.delivered : current.packed;
-  const parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(source || '');
-  if (!parts) return '';
-  const [, year, month, day] = parts;
-
-  if (kind === 'ddmmyy') return `${day}${month}${year.slice(2)}`;
-  /* The pot is part of the code, not a note beside it: the broths are cooked
-     several times a day and each pot is its own batch. A product cooked once
-     a day has no pot and the code ends at the suffix. */
-  if (kind === 'batch') {
-    return `${day}${month}${BATCH_SUFFIX}${current.pot || ''}`;
-  }
-
-  const months = kind && kind.startsWith('months:') ? Number(kind.slice(7)) : 0;
-  if (!months) return '';
-  /* Whole months on, landing on the first of the month. Counting in total
-     months avoids the end-of-month problem entirely: there is no 31st to fall
-     off, because the answer is always a 1st. */
-  const total = Number(year) * 12 + (Number(month) - 1) + months;
-  const onward = String(Math.floor(total / 12));
-  const at = String((total % 12) + 1).padStart(2, '0');
-  return `${onward}-${at}-01`;
 }
 
 /* A machine left on the list all day can sit open across midnight. The dates
@@ -386,43 +380,107 @@ function values() {
   return out;
 }
 
-function scheduleRender() {
-  /* Every keystroke would be a round trip to Labelary, so wait for a pause.
-     Long enough not to fire mid-word, short enough that the preview feels
-     like it belongs to the field being typed in. */
-  clearTimeout(state.timer);
-  state.timer = setTimeout(render, 450);
+function labelPayload(preview) {
+  return {
+    type: state.type.id,
+    item: state.item.id,
+    values: values(),
+    quantity: Number(el('quantity').value),
+    preview,
+  };
 }
 
-let lastZpl = '';
+function previewNote(text) {
+  const note = document.createElement('p');
+  note.className = 'muted';
+  note.textContent = text;
+  el('preview').replaceChildren(note);
+}
 
-async function render() {
-  const preview = el('preview');
+function beginRevision() {
+  state.revision += 1;
+  state.prepared = null;
+  state.prepareController?.abort();
+  state.previewController?.abort();
+  el('print').disabled = true;
+  el('preview').setAttribute('aria-busy', 'true');
+  el('messages').replaceChildren();
+  previewNote('Updating preview…');
+  return state.revision;
+}
+
+function scheduleRender() {
+  clearTimeout(state.timer);
+  const revision = beginRevision();
+  state.timer = setTimeout(() => prepareLabel(revision), 450);
+}
+
+function render() {
+  clearTimeout(state.timer);
+  const revision = beginRevision();
+  prepareLabel(revision);
+}
+
+async function prepareLabel(revision) {
+  const snapshot = labelPayload(false);
+  const controller = new AbortController();
+  state.prepareController = controller;
   try {
     const result = await api('/api/labels/render', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: state.type.id, item: state.item.id,
-        values: values(), quantity: Number(el('quantity').value) || 1,
-      }),
+      body: JSON.stringify(snapshot),
+      signal: controller.signal,
     });
-    lastZpl = result.zpl;
+    if (revision !== state.revision) return;
     el('zpl').textContent = result.zpl;
+    setMessages(result.warnings.map((text) => ['warn', text]));
+    state.prepared = {
+      revision,
+      payload: snapshot,
+      zpl: result.zpl,
+      itemName: state.item.name,
+    };
+    el('print').disabled = false;
+    loadPreview(revision, snapshot, result.zpl);
+  } catch (error) {
+    if (error.name === 'AbortError' || revision !== state.revision) return;
+    el('preview').setAttribute('aria-busy', 'false');
+    previewNote('The label could not be prepared.');
+    setMessages([['bad', error.message]]);
+  }
+}
+
+async function loadPreview(revision, snapshot, zpl) {
+  const controller = new AbortController();
+  state.previewController = controller;
+  try {
+    const result = await api('/api/labels/render', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...snapshot, preview: true }),
+      signal: controller.signal,
+    });
+    if (revision !== state.revision) return;
+    if (result.zpl !== zpl) {
+      render();
+      return;
+    }
     if (result.png) {
       const image = document.createElement('img');
       image.src = `data:image/png;base64,${result.png}`;
       image.alt = 'The label as it will print';
-      preview.replaceChildren(image);
+      el('preview').replaceChildren(image);
     } else {
-      const note = document.createElement('p');
-      note.className = 'muted';
-      note.textContent = result.preview_error || 'No preview available. The ZPL below is what will be sent.';
-      preview.replaceChildren(note);
+      previewNote(result.preview_error || 'No preview available. The prepared ZPL is ready to print.');
     }
-    setMessages(result.warnings.map((text) => ['warn', text]));
   } catch (error) {
-    setMessages([['bad', error.message]]);
+    if (error.name === 'AbortError' || revision !== state.revision) return;
+    previewNote(`No visual preview: ${error.message}. The prepared label is ready.`);
+  } finally {
+    if (revision === state.revision) {
+      el('preview').setAttribute('aria-busy', 'false');
+    }
   }
 }
 
@@ -435,11 +493,10 @@ function setMessages(entries) {
   }));
 }
 
-/* Printing posts the ZPL straight to the print relay on the kitchen laptop --
-   there is no backend route for it any more, because the Worker has no
-   route to the printer either (PLAN.md, "the obstacle"). Re-renders first
-   rather than reusing the last preview, so a value changed after the debounce
-   but before Print was pressed is not silently dropped. */
+/* Printing posts the prepared ZPL straight to the print relay on the kitchen
+   laptop. The Worker cannot reach the printer, and the relay accepts raw ZPL,
+   so sending the prepared snapshot is what keeps the reviewed and printed
+   labels identical. */
 async function print() {
   const relay = el('relay-url').value.trim();
   if (!relay) {
@@ -447,27 +504,41 @@ async function print() {
     return;
   }
   const button = el('print');
+  const prepared = state.prepared;
+  if (!prepared || prepared.revision !== state.revision) {
+    setMessages([['bad', 'Wait for the current label to be prepared.']]);
+    return;
+  }
+  const controls = [...el('fields').elements, el('quantity'), el('back'),
+                    el('open-settings')];
+  const disabledBefore = controls.map((control) => control.disabled);
+  controls.forEach((control) => { control.disabled = true; });
   button.disabled = true;
   button.textContent = 'Printing…';
   try {
-    await render();
     const response = await fetch(`${relay.replace(/\/$/, '')}/print`, {
       method: 'POST',
       headers: { 'content-type': 'text/plain' },
-      body: lastZpl,
+      body: prepared.zpl,
     });
     const body = await response.json().catch(() => ({}));
-    const copies = Number(el('quantity').value) || 1;
+    const copies = prepared.payload.quantity;
     if (!response.ok || !body.ok) {
       throw new Error(body.error || `HTTP ${response.status}`);
     }
+    const batch = prepared.payload.values.batch
+      ? `, batch ${prepared.payload.values.batch}` : '';
     setMessages([
-      ['ok', `Sent. ${copies} ${copies === 1 ? 'label' : 'labels'}.`],
+      ['ok', `Sent ${copies} ${copies === 1 ? 'label' : 'labels'} for ` +
+             `${prepared.itemName}${batch}.`],
     ]);
   } catch (error) {
     setMessages([['bad', `Nothing printed. Could not reach the print relay at ${relay}: ${error.message}`]]);
   } finally {
-    button.disabled = false;
+    controls.forEach((control, index) => {
+      control.disabled = disabledBefore[index];
+    });
+    button.disabled = !state.prepared || state.prepared.revision !== state.revision;
     button.textContent = 'Print';
   }
 }
@@ -525,7 +596,10 @@ el('settings').addEventListener('close', () => {
   const boot = await api('/api/labels/bootstrap');
   drawTypes(boot.types);
   show('types');
-  const [typeId, itemId] = location.hash.slice(1).split('/');
+  const [hashPath, hashQuery = ''] = location.hash.slice(1).split('?');
+  const [typeId, encodedItemId] = hashPath.split('/');
+  const itemId = encodedItemId ? decodeURIComponent(encodedItemId) : '';
+  const supplier = new URLSearchParams(hashQuery).get('supplier');
   const wanted = boot.types.find((t) => t.id === typeId);
   if (!wanted) return;
   await openType(wanted);
@@ -533,7 +607,8 @@ el('settings').addEventListener('close', () => {
     const item = state.groups
       .flatMap((group) => group.sections)
       .flatMap((section) => section.items)
-      .find((candidate) => candidate.id === itemId);
+      .find((candidate) => candidate.id === itemId &&
+        (!supplier || candidate.supplier === supplier));
     if (item) await openLabel(item);
   }
 })();

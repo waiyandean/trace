@@ -16,6 +16,7 @@ built yet, and a printed code that resolves to nothing is worse than no code.
 See ../README.md and ../../PLAN.md.
 """
 import base64
+import hashlib
 import json
 import os
 import re
@@ -298,7 +299,7 @@ class Data:
                 # repeating it on every row says nothing. What is worth saying
                 # is that an item also comes from the other supplier, which is
                 # why the same row appears twice on the screen.
-                members = [dict(row, detail=(
+                members = [dict(row, supplier=supplier, detail=(
                     "also " + ", ".join(s for s in row["suppliers"] if s != supplier)
                     if len(row["suppliers"]) > 1 else "")) for row in members]
             groups.append({
@@ -402,7 +403,7 @@ class Data:
                 gaps.append("storage")
         return gaps
 
-    def form(self, type_id, item_id):
+    def form(self, type_id, item_id, supplier=None):
         if type_id == "notice":
             return {"type": type_id, "item": item_id, "title": "Notice",
                     "gaps": [], "fields": [field(
@@ -420,6 +421,9 @@ class Data:
         invitation to retype what is already known.
         """
         item = self.items[item_id]
+        if supplier is not None and supplier not in item["suppliers"]:
+            raise ValueError(
+                f"{supplier!r} is not a recorded supplier for {item['name']}.")
         today = date.today().isoformat()
         allergens = self.extra.get("allergens", {}).get(item["name"], "")
         fields = []
@@ -450,7 +454,8 @@ class Data:
                 # place to record a one-off. Prefilled with what the catalog
                 # does say, so the common case is still nothing to type.
                 field("supplier", "Supplier",
-                      item["suppliers"][0] if item["suppliers"] else "",
+                      supplier or (item["suppliers"][0]
+                                   if item["suppliers"] else ""),
                       missing=not item["suppliers"],
                       hint=(f"Also delivered by {', '.join(item['suppliers'][1:])}. "
                             "Type over it for a different supplier entirely."
@@ -459,10 +464,9 @@ class Data:
                             "different supplier." if item["suppliers"] else "")),
                 field("delivered", "Delivered", today, kind="date"),
                 field("allergens", "Allergens", allergens,
-                      editable=not allergens, missing=not allergens,
-                      hint="" if allergens else
-                           "Nothing in the catalog records these yet. Fill "
-                           "label-data.json to stop retyping them."),
+                      editable=False, missing=not allergens,
+                      hint="Maintained in label-data.json from the allergen "
+                           "matrix; it cannot be changed while printing."),
             ]
         elif type_id == "date-opened":
             days = item["days_after_opening"]
@@ -478,12 +482,15 @@ class Data:
                       hint="Sets both the banner and the instruction at the foot."),
                 field("opened", "Opened", today, kind="date"),
                 field("use_by", "Use by", use_by, kind="date",
+                      derive=f"days:{days}" if days else None,
                       hint=(f"{days} days from opening, the kitchen's rule for "
                             f"this item. The pack's own date wins if it is "
                             f"sooner." if days else "")),
                 field("batch", "Batch number", ""),
                 field("allergens", "Allergens", allergens,
-                      editable=not allergens, missing=not allergens),
+                      editable=False, missing=not allergens,
+                      hint="Maintained in label-data.json from the allergen "
+                           "matrix; it cannot be changed while printing."),
             ]
         else:
             product = self.extra.get("products", {}).get(item["name"], {})
@@ -535,7 +542,9 @@ class Data:
                       hint="Follows animal origin. Nobody has decided this "
                            "one yet." if mark is None else ""),
                 field("allergens", "Allergens", allergens,
-                      editable=not allergens, missing=not allergens),
+                      editable=False, missing=not allergens,
+                      hint="Maintained in label-data.json from the allergen "
+                           "matrix; it cannot be changed while printing."),
             ]
             if uses_pots:
                 # These are cooked several times a day and every pot is its own
@@ -586,6 +595,11 @@ def build(data, type_id, item_id, values, quantity):
     if type_id == "notice":
         return zpl.notice(text=values.get("text", ""), quantity=quantity)
     item = data.items[item_id]
+    allergens = data.extra.get("allergens", {}).get(item["name"], "")
+    if not allergens:
+        raise ValueError(
+            f"No allergen declaration is recorded for {item['name']}. "
+            "Update label-data.json before printing this label.")
     if type_id == "goods-in":
         return zpl.goods_in(
             name=values.get("name") or item["name"],
@@ -593,7 +607,7 @@ def build(data, type_id, item_id, values, quantity):
             batch=values.get("batch", ""),
             supplier=values.get("supplier", ""),
             delivered=uk(values.get("delivered")),
-            allergens=values.get("allergens", ""),
+            allergens=allergens,
             storage=values.get("storage") or item["storage_unopened"],
             quantity=quantity)
     if type_id == "date-opened":
@@ -602,7 +616,7 @@ def build(data, type_id, item_id, values, quantity):
             opened=uk(values.get("opened")),
             use_by=uk(values.get("use_by")),
             batch=values.get("batch", ""),
-            allergens=values.get("allergens", ""),
+            allergens=allergens,
             storage_opened=values.get("storage_opened") or item["storage_opened"],
             quantity=quantity)
     return zpl.product(
@@ -612,7 +626,7 @@ def build(data, type_id, item_id, values, quantity):
         packed=uk(values.get("packed")),
         qty=values.get("qty", ""),
         sku=values.get("sku", ""),
-        allergens=values.get("allergens", ""),
+        allergens=allergens,
         may_contain=values.get("may_contain", ""),
         barcode=values.get("barcode", ""),
         tag=values.get("tag", ""),
@@ -623,6 +637,29 @@ def build(data, type_id, item_id, values, quantity):
         hm_code=data.extra.get("health_mark_code", ""),
         is_case=type_id == "box",
         quantity=quantity)
+
+
+def prepare(data, payload):
+    """Build one immutable print candidate and identify its exact ZPL."""
+    raw_quantity = payload.get("quantity", 1)
+    if isinstance(raw_quantity, bool):
+        raise ValueError("Quantity has to be a whole number.")
+    if isinstance(raw_quantity, float) and not raw_quantity.is_integer():
+        raise ValueError("Quantity has to be a whole number.")
+    if isinstance(raw_quantity, str) and not re.fullmatch(
+            r"[0-9]+", raw_quantity.strip()):
+        raise ValueError("Quantity has to be a whole number.")
+    try:
+        quantity = int(raw_quantity)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("Quantity has to be a whole number.") from exc
+    if not 1 <= quantity <= 200:
+        raise ValueError("Quantity has to be between 1 and 200.")
+    source, warnings = build(
+        data, payload["type"], payload["item"],
+        payload.get("values", {}), quantity)
+    fingerprint = hashlib.sha256(source.encode("utf-8")).hexdigest()
+    return source, warnings, fingerprint, quantity
 
 
 def render_png(source):
@@ -686,7 +723,9 @@ class Handler(BaseHTTPRequestHandler):
     # -- routes --------------------------------------------------------------
 
     def do_GET(self):
-        path = self.path.split("?")[0]
+        request = urllib.parse.urlsplit(self.path)
+        path = request.path
+        query = urllib.parse.parse_qs(request.query)
         data = self.data.fresh()
 
         if path in ("/", "/index.html"):
@@ -719,7 +758,12 @@ class Handler(BaseHTTPRequestHandler):
             item_id = urllib.parse.unquote(match.group(2))
             if match.group(1) != "notice" and item_id not in data.items:
                 return self.send_json({"error": "unknown item"}, 404)
-            return self.send_json(data.form(match.group(1), item_id))
+            supplier = query.get("supplier", [None])[0]
+            try:
+                form = data.form(match.group(1), item_id, supplier=supplier)
+            except ValueError as exc:
+                return self.send_json({"error": str(exc)}, 400)
+            return self.send_json(form)
         return self.send_json({"error": "not found"}, 404)
 
     def do_POST(self):
@@ -740,32 +784,36 @@ class Handler(BaseHTTPRequestHandler):
 
     def _render(self, data, payload):
         try:
-            source, warnings = build(
-                data, payload["type"], payload["item"],
-                payload.get("values", {}), int(payload.get("quantity", 1) or 1))
-        except (KeyError, ValueError) as exc:
+            source, warnings, fingerprint, _ = prepare(data, payload)
+        except (KeyError, TypeError, ValueError) as exc:
             return self.send_json({"error": str(exc)}, 400)
 
         png, error = None, ""
-        if read_config().get("preview", True):
+        if payload.get("preview", True) and read_config().get("preview", True):
             try:
                 png = render_png(source)
             except (urllib.error.URLError, OSError, TimeoutError) as exc:
                 error = (f"No preview: {exc}. The label itself is unaffected "
                          f"-- rendering needs the internet, printing does not.")
         return self.send_json({"zpl": source, "warnings": warnings,
-                               "png": png, "preview_error": error})
+                               "png": png, "preview_error": error,
+                               "fingerprint": fingerprint})
 
     def _print(self, data, payload):
-        quantity = int(payload.get("quantity", 1) or 1)
-        if not 1 <= quantity <= 200:
-            return self.send_json(
-                {"error": "Quantity has to be between 1 and 200."}, 400)
         try:
-            source, warnings = build(data, payload["type"], payload["item"],
-                                     payload.get("values", {}), quantity)
-        except (KeyError, ValueError) as exc:
+            source, warnings, fingerprint, quantity = prepare(data, payload)
+        except (KeyError, TypeError, ValueError) as exc:
             return self.send_json({"error": str(exc)}, 400)
+
+        expected = payload.get("fingerprint")
+        if not expected:
+            return self.send_json(
+                {"error": "Review the prepared label before printing."}, 409)
+        if expected != fingerprint:
+            return self.send_json({
+                "error": "The label changed after it was prepared. "
+                         "Review the refreshed preview and print again."
+            }, 409)
 
         config = read_config()
         try:
@@ -779,9 +827,14 @@ class Handler(BaseHTTPRequestHandler):
         # describes -- there are no lots to tie it to yet -- but it answers
         # "how many of those did we print, and when", which is the question
         # asked the moment a roll of labels goes missing.
+        logged_values = dict(payload.get("values", {}))
+        if payload["type"] != "notice":
+            item = data.items[payload["item"]]
+            logged_values["allergens"] = data.extra.get(
+                "allergens", {}).get(item["name"], "")
         log_print({"at": datetime.now().isoformat(timespec="seconds"),
                    "type": payload["type"], "item": payload["item"],
-                   "quantity": quantity, "values": payload.get("values", {}),
+                   "quantity": quantity, "values": logged_values,
                    "result": message})
         return self.send_json({"ok": True, "message": message,
                                "warnings": warnings})
