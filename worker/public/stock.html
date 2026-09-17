@@ -21,6 +21,11 @@
 .lot.is-held { background: var(--warn-soft); }
 .lot .flag { font-size: 12px; font-weight: 700; color: var(--warn); text-transform: uppercase; letter-spacing: 0.5px; }
 .lot .soon { color: var(--bad); font-weight: 600; }
+/* Bigger and on its own row: opening a pack is what this screen is mostly
+   used for, day to day, so it should read as the obvious thing to tap
+   rather than sit level with waste/hold/move, which are all rarer
+   (Dean, 2026-09-17). */
+.primary-big { min-height: 60px; font-size: 19px; }
 </style>
 </head>
 <body>
@@ -83,19 +88,27 @@
   <div class="chosen" id="action-chosen"></div>
   <p class="note" id="action-where"></p>
 
+  <!-- On its own, bigger row: for the fifteen ingredients that get opened,
+       this is what stock actually gets used for most, day to day (Dean,
+       2026-09-17) — throwing away, holding and moving are all the rare
+       exception by comparison. Only shown for a lot that can actually be
+       opened (items.opening_rule is not whole_pack, and it has not been
+       opened already). Fires straight away, no form: nothing needs typing
+       in, only when. -->
+  <div class="actions" id="action-open-row" hidden>
+    <button id="do-open" class="primary-big">Mark opened &amp; print label</button>
+  </div>
+
   <!-- Ordered by how often each is actually used. Stock is not routinely
        moved: frozen goes from the freezer to batching, chilled from the
        fridge to batching (Dean, 2026-08-31). A move is the exception, so it
-       is last rather than first. -->
+       is last rather than first. All three secondary now that opening a
+       pack is the common case on this screen. -->
   <div class="actions" id="action-pick">
-    <button id="do-waste">Throw it away</button>
+    <button class="secondary" id="do-waste">Throw it away</button>
     <button class="secondary" id="do-hold">Hold it</button>
     <button class="secondary" id="do-release">Release the hold</button>
     <button class="secondary" id="do-move">Move it to another area</button>
-    <!-- Only shown for a lot that can actually be opened — items.opening_rule
-         is not whole_pack, and it has not been opened already. Fires
-         straight away, no form: nothing needs typing in, only when. -->
-    <button class="secondary" id="do-open" hidden>Mark opened &amp; print label</button>
   </div>
 
   <div id="action-form" hidden>

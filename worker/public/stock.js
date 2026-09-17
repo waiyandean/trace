@@ -189,7 +189,8 @@ function openActions(row) {
   // Only where the item can actually be opened (not whole_pack, and not
   // already opened — recordOpening refuses a second opening of the same
   // lot rather than silently repeating it).
-  $('do-open').hidden = held || !row.opening_rule || row.opening_rule === 'whole_pack' || Boolean(row.opened_at);
+  $('action-open-row').hidden =
+    held || !row.opening_rule || row.opening_rule === 'whole_pack' || Boolean(row.opened_at);
 
   if (held && !heldBy.length) {
     notify('This lot is held by a temperature reading. Clear it on the goods-in screen.', 'warn');
@@ -239,6 +240,19 @@ function showForm(action) {
 // is") — using the response's own values rather than the pre-open row,
 // since use_by can change here and the row in hand is the pre-open figure.
 async function markOpened(row) {
+  // Checked here rather than left to the server's own refusal, and the
+  // dialog is closed before every notify() below rather than after: a
+  // <dialog> shown with showModal() sits on the top browser layer and
+  // covers #alerts completely, so a message written while it stays open is
+  // invisible — exactly what happened before this fix, on top of
+  // #action-error's own problem (it lives inside #action-form, which is
+  // never shown for this one-tap action either).
+  if (!$('staff').value) {
+    $('action-dialog').close();
+    notify('Choose your name first — opening a lot records who did it.', 'bad');
+    return;
+  }
+
   const response = await api('/api/open', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -250,10 +264,8 @@ async function markOpened(row) {
     }),
   });
   if (!response.ok) {
-    const div = document.createElement('div');
-    div.className = 'banner bad';
-    div.textContent = response.body.error || `Refused with ${response.status}`;
-    $('action-error').replaceChildren(div);
+    $('action-dialog').close();
+    notify(response.body.error || `Refused with ${response.status}`, 'bad');
     return;
   }
   $('action-dialog').close();
