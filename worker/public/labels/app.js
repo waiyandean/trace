@@ -19,7 +19,14 @@ const state = { type: null, item: null, form: null, timer: null, today: null,
                 revision: 0, prepared: null, prepareController: null,
                 previewController: null };
 
-const RELAY_KEY = 'trace.intake.relay';
+/* The tunnel in front of the relay on the kitchen laptop, fronted by
+   Cloudflare (PLAN.md, "getting the browser to the printer needed its own
+   small piece of infrastructure"). Fixed, not a setting: every trace form
+   on this domain prints through this one relay, so there is nothing for
+   somebody to usefully point it elsewhere at, only a way to break printing
+   for everybody by mistyping it. What used to be an editable URL is now
+   just a status of whether this address is answering. */
+const RELAY = 'https://print-relay.deanops.uk';
 
 /* Today, as the value a date input holds. */
 function todayISO() {
@@ -27,24 +34,6 @@ function todayISO() {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-` +
          `${String(now.getDate()).padStart(2, '0')}`;
 }
-
-const store = {
-  read(key, fallback) {
-    try {
-      const value = localStorage.getItem(key);
-      return value === null ? fallback : value;
-    } catch {
-      return fallback;
-    }
-  },
-  write(key, value) {
-    try {
-      localStorage.setItem(key, value);
-    } catch {
-      /* private window, or storage blocked -- the field still works this session */
-    }
-  },
-};
 
 const ICONS = {
   /* Four marks that differ in silhouette rather than in detail, because the
@@ -509,25 +498,19 @@ function setMessages(entries) {
    so sending the prepared snapshot is what keeps the reviewed and printed
    labels identical. */
 async function print() {
-  const relay = el('relay-url').value.trim();
-  if (!relay) {
-    setMessages([['bad', 'Nothing printed. Set the print relay URL first.']]);
-    return;
-  }
   const button = el('print');
   const prepared = state.prepared;
   if (!prepared || prepared.revision !== state.revision) {
     setMessages([['bad', 'Wait for the current label to be prepared.']]);
     return;
   }
-  const controls = [...el('fields').elements, el('quantity'), el('back'),
-                    el('open-settings')];
+  const controls = [...el('fields').elements, el('quantity'), el('back')];
   const disabledBefore = controls.map((control) => control.disabled);
   controls.forEach((control) => { control.disabled = true; });
   button.disabled = true;
   button.textContent = 'Printing…';
   try {
-    const response = await fetch(`${relay.replace(/\/$/, '')}/print`, {
+    const response = await fetch(`${RELAY}/print`, {
       method: 'POST',
       headers: { 'content-type': 'text/plain' },
       body: prepared.zpl,
@@ -544,24 +527,40 @@ async function print() {
              `${prepared.itemName}${batch}.`],
     ]);
   } catch (error) {
-    setMessages([['bad', `Nothing printed. Could not reach the print relay at ${relay}: ${error.message}`]]);
+    setMessages([['bad', `Nothing printed. Could not reach the print relay: ${error.message}`]]);
   } finally {
     controls.forEach((control, index) => {
       control.disabled = disabledBefore[index];
     });
     button.disabled = !state.prepared || state.prepared.revision !== state.revision;
     button.textContent = 'Print';
+    checkRelay();
   }
 }
 
-/* --- settings: just the relay URL now ------------------------------------- */
+/* --- relay status ------------------------------------------------------- */
 
-function loadRelaySetting() {
-  /* Defaults to the standing tunnel in front of the kitchen laptop's relay
-     (deanops.uk, set up 2026-09-16), the same default the other trace forms
-     use, and the same localStorage key -- set it once on any page on this
-     device and every page remembers it. */
-  el('relay-url').value = store.read(RELAY_KEY, 'https://print-relay.deanops.uk');
+/* Not a print itself, so a slow or unreachable relay here can't block or
+   delay the print button -- this only ever updates the header pill. A short
+   timeout rather than none: a relay that is up but hung would otherwise
+   leave the dot reading "checking..." indefinitely instead of going bad. */
+async function checkRelay() {
+  const status = el('relay-status');
+  const text = el('relay-status-text');
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 4000);
+  try {
+    const response = await fetch(`${RELAY}/health`, { signal: controller.signal, cache: 'no-store' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    await response.json();
+    status.dataset.state = 'ok';
+    text.textContent = 'Relay online';
+  } catch {
+    status.dataset.state = 'bad';
+    text.textContent = 'Relay offline';
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 /* --- wiring ---------------------------------------------------------------- */
@@ -593,17 +592,16 @@ el('print').onclick = print;
 window.addEventListener('focus', rollOver);
 document.addEventListener('visibilitychange', rollOver);
 setInterval(rollOver, 60000);
-el('open-settings').onclick = () => el('settings').showModal();
-el('settings').addEventListener('close', () => {
-  if (el('settings').returnValue === 'save') {
-    store.write(RELAY_KEY, el('relay-url').value.trim());
-  } else {
-    loadRelaySetting();
-  }
-});
+/* Same triggers as rollOver, plus its own interval: the relay can drop
+   between one label and the next without the date ever rolling over, and a
+   dot that only updates once a minute would sit wrong for most of an outage
+   if it only shared rollOver's cadence. */
+window.addEventListener('focus', checkRelay);
+document.addEventListener('visibilitychange', checkRelay);
+setInterval(checkRelay, 30000);
 
 (async function start() {
-  loadRelaySetting();
+  checkRelay();
   const boot = { types: window.LABEL_TYPES };
   drawTypes(boot.types);
   show('types');

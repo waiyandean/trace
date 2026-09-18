@@ -20,7 +20,10 @@
 <header>
   <button class="back" id="back" hidden aria-label="Back">&#8592;</button>
   <h1 id="title">Labels</h1>
-  <button class="ghost" id="open-settings">Print relay</button>
+  <span class="relay-status" id="relay-status" role="status">
+    <span class="dot" aria-hidden="true"></span>
+    <span id="relay-status-text">Checking relay…</span>
+  </span>
 </header>
 
 <main>
@@ -71,28 +74,6 @@
   </section>
 
 </main>
-
-<!-- Where the ZPL goes: the print relay on the kitchen laptop, fronted by
-     the Cloudflare Tunnel at print-relay.deanops.uk (PLAN.md, "getting the
-     browser to the printer needed its own small piece of infrastructure").
-     No password on it yet — anyone with this URL can print to the kitchen
-     printer, same as goods-in.js today. -->
-<dialog id="settings">
-  <form method="dialog">
-    <h2>Print relay</h2>
-    <div class="field">
-      <label for="relay-url">Relay URL</label>
-      <input id="relay-url" placeholder="https://print-relay.deanops.uk" />
-      <p class="hint">The tunnel in front of the relay on the kitchen
-        laptop. Shared with the other trace forms — set it once and every
-        page on this device remembers it.</p>
-    </div>
-    <div class="actions">
-      <button value="cancel" class="ghost">Cancel</button>
-      <button value="save" class="primary">Save</button>
-    </div>
-  </form>
-</dialog>
 
 <!-- The five label types, baked into the page instead of fetched from
      /api/labels/bootstrap: they never change without a deploy, so a round

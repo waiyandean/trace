@@ -47,6 +47,22 @@ header h1 { font-size: 19px; margin: 0; flex: 1; letter-spacing: -0.2px; }
 .pill.ok { background: var(--tint-soft); color: var(--tint); }
 .pill.bad { background: var(--bad-soft); color: var(--bad); }
 
+/* A read-only status, not a control -- there is exactly one relay and typing
+   a different address into it only breaks printing, so this replaced what
+   used to be an editable settings dialog. */
+.relay-status {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 13px; color: var(--muted); white-space: nowrap;
+}
+.relay-status .dot {
+  width: 8px; height: 8px; border-radius: 50%; flex: none;
+  background: var(--muted);
+}
+.relay-status[data-state="ok"] { color: var(--tint); }
+.relay-status[data-state="ok"] .dot { background: var(--tint); }
+.relay-status[data-state="bad"] { color: var(--bad); }
+.relay-status[data-state="bad"] .dot { background: var(--bad); }
+
 main { padding: 24px 20px 60px; max-width: 1120px; margin: 0 auto; }
 
 button {
