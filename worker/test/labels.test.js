@@ -34,6 +34,22 @@ test('Date Opened tells the browser which opening rule drives use-by', async () 
   assert.equal(useBy.derive, `days:${item.days_after_opening}`);
 });
 
+test('storage stays editable even once the catalog has an answer, unlike allergens', async () => {
+  const item = data.catalog.items.find((candidate) => candidate.storage_unopened && candidate.storage_unopened !== 'freezer');
+  const goodsIn = await form('goods-in', item.id);
+  const storage = goodsIn.fields.find((field) => field.key === 'storage');
+  assert.equal(storage.editable, true);
+  assert.equal(storage.value, item.storage_unopened);
+
+  const [zpl] = build('goods-in', item.id, { storage: 'freezer' }, 1);
+  assert.match(zpl, /FROZEN/);
+
+  const opening = data.catalog.items.find((candidate) => candidate.storage_opened);
+  const dateOpened = await form('date-opened', opening.id);
+  const storageOpened = dateOpened.fields.find((field) => field.key === 'storage_opened');
+  assert.equal(storageOpened.editable, true);
+});
+
 test('allergens are locked and rebuilt from deployed label data', async () => {
   const item = data.catalog.items.find((candidate) => data.extra.allergens[candidate.name]);
   const result = await form('goods-in', item.id);

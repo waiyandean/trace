@@ -180,7 +180,11 @@ real today.
 ## What can be edited
 
 Batch, the dates and the number of copies are always editable — they change on
-every print and no catalog will ever hold them.
+every print and no catalog will ever hold them. Supplier and storage are also
+always editable even once the catalog has an answer: the catalog's answer is
+the usual one, but a one-off delivery or pack sometimes needs a different
+supplier or storage instruction, and typing over it prints a correct label
+without touching the catalog.
 
 On Goods In the use-by is **left empty by default** and the label prints
 "See product packaging" in its place. Most deliveries arrive with a date

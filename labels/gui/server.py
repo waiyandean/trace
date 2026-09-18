@@ -433,11 +433,20 @@ class Data:
         if type_id == "goods-in":
             fields += [
                 field("name", "Ingredient", item["name"], editable=False),
+                # Always typed, never locked -- same as supplier below. The
+                # catalog's answer is the usual one, but a delivery that
+                # needs different handling just this once still needs a
+                # label, and the catalog is not the place to record a
+                # one-off.
                 field("storage", "Storage", item["storage_unopened"] or "",
-                      kind="select", editable=not item["storage_unopened"],
+                      kind="select",
                       options=["ambient", "chill", "freezer"],
                       missing=not item["storage_unopened"],
-                      hint="Prints as the banner in the top right."),
+                      hint=("Prints as the banner in the top right. Type "
+                            "over it if this delivery needs different "
+                            "storage." if item["storage_unopened"] else
+                            "Prints as the banner in the top right. "
+                            "Nothing in the catalog records this yet.")),
                 field("use_by", "Use by", "", kind="date",
                       hint="Off the supplier's own box, where there is one. "
                            "Left empty, the label says \"See product "
@@ -476,12 +485,17 @@ class Data:
                       if days else "")
             fields += [
                 field("name", "Ingredient", item["name"], editable=False),
+                # Always typed, never locked -- see storage above.
                 field("storage_opened", "Storage once opened",
                       item["storage_opened"] or "", kind="select",
-                      editable=not item["storage_opened"],
                       options=["ambient", "chill", "freezer"],
                       missing=not item["storage_opened"],
-                      hint="Sets both the banner and the instruction at the foot."),
+                      hint=("Sets both the banner and the instruction at "
+                            "the foot. Type over it if this pack needs "
+                            "different storage." if item["storage_opened"]
+                            else "Sets both the banner and the instruction "
+                            "at the foot. Nothing in the catalog records "
+                            "this yet.")),
                 field("opened", "Opened", today, kind="date"),
                 field("use_by", "Use by", use_by, kind="date",
                       derive=f"days:{days}" if days else None,

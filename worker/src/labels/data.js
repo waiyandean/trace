@@ -270,12 +270,17 @@ export class Data {
     if (typeId === 'goods-in') {
       fields.push(
         field('name', 'Ingredient', item.name, { editable: false }),
+        // Always typed, never locked -- same as supplier below. The
+        // catalog's answer is the usual one, but a delivery that needs
+        // different handling just this once still needs a label, and the
+        // catalog is not the place to record a one-off.
         field('storage', 'Storage', item.storage_unopened || '', {
           kind: 'select',
-          editable: !item.storage_unopened,
           options: ['ambient', 'chill', 'freezer'],
           missing: !item.storage_unopened,
-          hint: 'Prints as the banner in the top right.',
+          hint: item.storage_unopened
+            ? 'Prints as the banner in the top right. Type over it if this delivery needs different storage.'
+            : 'Prints as the banner in the top right. Nothing in the catalog records this yet.',
         }),
         field('use_by', 'Use by', '', {
           kind: 'date',
@@ -314,12 +319,14 @@ export class Data {
       const useBy = days ? new Date(Date.now() + days * 86400000).toISOString().slice(0, 10) : '';
       fields.push(
         field('name', 'Ingredient', item.name, { editable: false }),
+        // Always typed, never locked -- see storage above.
         field('storage_opened', 'Storage once opened', item.storage_opened || '', {
           kind: 'select',
-          editable: !item.storage_opened,
           options: ['ambient', 'chill', 'freezer'],
           missing: !item.storage_opened,
-          hint: 'Sets both the banner and the instruction at the foot.',
+          hint: item.storage_opened
+            ? 'Sets both the banner and the instruction at the foot. Type over it if this pack needs different storage.'
+            : 'Sets both the banner and the instruction at the foot. Nothing in the catalog records this yet.',
         }),
         field('opened', 'Opened', today, { kind: 'date' }),
         field('use_by', 'Use by', useBy, {
