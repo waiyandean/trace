@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fakeDb } from './fakeDb.js';
 import worker from '../src/index.js';
+import { login, makePinRow } from '../src/auth.js';
+import { sqliteDb } from './sqliteDb.js';
 
 const get = (path) => new Request(`https://trace.example${path}`);
 
@@ -66,8 +68,18 @@ test('a code that matches nothing says so rather than guessing', async () => {
 });
 
 test('a body that is not JSON is a 400, not a crash', async () => {
-  const env = { DB: fakeDb(() => []) };
-  const request = new Request('https://trace.example/api/receive', { method: 'POST', body: 'not json' });
+  // Signed in first: a write with no token is refused as a 401 before its body
+  // is looked at, which is its own test in auth.test.js.
+  const db = sqliteDb();
+  db.sqlite.exec("INSERT INTO staff (id, name) VALUES ('s1', 'Dean')");
+  const env = { DB: db, AUTH_SECRET: 'a'.repeat(40), PIN_PEPPER: 'b'.repeat(40) };
+  const pin = await makePinRow(env, '4821');
+  db.sqlite.prepare('INSERT INTO staff_pins (staff_id, pin_hash, salt) VALUES (?, ?, ?)').run('s1', pin.pin_hash, pin.salt);
+  const { token } = await login(db, env, { staff_id: 's1', pin: '4821' });
+
+  const request = new Request('https://trace.example/api/receive', {
+    method: 'POST', headers: { authorization: `Bearer ${token}` }, body: 'not json',
+  });
   const res = await worker.fetch(request, env);
   assert.equal(res.status, 400);
   assert.match((await res.json()).error, /valid JSON/);

@@ -1515,6 +1515,54 @@ These need Dean's answer before the phase that depends on them.
 9. **Authentication.** The current forms use a staff picker with no real login.
    An audit trail naming who recorded and who approved an amendment is weaker
    if anyone can pick any name. Whether that changes, and to what, is open.
+
+   **Backend built 2026-09-21, on `worker/auth`; the forms are not yet
+   changed to use it.** Two separate problems were folded into the one
+   question, and they have separate answers. *Who can reach the app at all*
+   is a gate in front of the whole Worker, Cloudflare Access on a hostname of
+   trace's own (it has none yet; the label routes on `forms.deanops.uk` stay
+   public and outside it), with the kitchen iPad signing in through a shared
+   kitchen email. *Who is recording* is what the audit trail depends on, and
+   Access alone does not answer it, so that is a PIN per person.
+
+   A person signs in with a fixed four-digit PIN (`POST /api/login`) and gets a
+   signed token good for a shift. From then on the server takes the person
+   from the token and **ignores `staff_id` in the request body**, refusing one
+   that names somebody else, so the dropdown stops being a source of truth.
+   `src/auth.js` holds all of it, and every write is authenticated except the
+   public label routes. Decisions it enforces:
+
+   - **A four-digit PIN is only as strong as its guard rails, so it has them.**
+     Five wrong tries lock that person out for ten minutes, doubling on each
+     repeat up to a day; a locked person is refused before the PIN is looked
+     at, so guessing during a lockout learns nothing and does not extend it.
+   - **A copy of the database reveals no PIN.** With only 10,000 possibilities
+     a plain hash is cracked instantly, so the stored value is an HMAC keyed
+     with `PIN_PEPPER`, a Worker secret held outside the database, plus a
+     per-row salt. Tokens are signed with a separate `AUTH_SECRET`, so signing
+     everybody out does not invalidate every PIN. Both are required; with
+     either missing every write is refused, since an unconfigured server must
+     not be an open one.
+   - **The kitchen's existing clock-in codes can be reused as PINs (Dean,
+     2026-09-21).** `scripts/set-pin.mjs` takes each person's code typed hidden
+     in a terminal, twice, and stores only the hash, so the codes are never
+     printed, logged or seen by anybody else. An administrator may set a weak
+     code with a warning; a person changing their own PIN in the app may not.
+     The costs of reusing a code that belongs to another system are that
+     trace's attribution is only as private as that code is (a code shared
+     for clocking someone else in is shared here too), and that a code changed
+     in the clock-in system is not changed here until it is set again.
+   - **A submission is judged by when it was made, not when it arrived.** A
+     delivery keyed at the van with no signal and sent hours later was made
+     with a token that was valid, and is accepted. What is refused is use
+     before sign-in, after expiry, or more than seven days after expiry. A
+     time claimed in the future is treated as now, so it cannot stretch a
+     token's life.
+
+   Still to do: the forms need a sign-in screen in place of the dropdown, the
+   offline queue must hold a submission whose token has expired rather than
+   drop it, Access needs setting up on a hostname, and the two secrets have to
+   be put on the Worker. Nothing here has been deployed.
 10. **Packaging — resolved 2026-09-04 (Dean).** Stays out of scope, same as
    the old rebuild. Nothing in the join failures this project exists to fix —
    not the 12,731 recorded uses, not the 2,675 delivery rows — ever pointed at

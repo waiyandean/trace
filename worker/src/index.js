@@ -1,4 +1,5 @@
-import { json, error, BadRequest } from './http.js';
+import { json, error, BadRequest, AuthError } from './http.js';
+import { login, authenticate, whoami, changePin } from './auth.js';
 import { handleCatalog, CATALOG_ACTIONS } from './catalog/handlers.js';
 import { handleLedger, LEDGER_ACTIONS, lookupCode } from './ledger/reads.js';
 import { issueCodes, poolFor } from './ledger/codes.js';
@@ -56,6 +57,12 @@ import { bootstrap as labelsBootstrap, items as labelsItems, form as labelsForm,
 //   GET  /api/labels/bootstrap         the five label types
 //   GET  /api/labels/items/<type>      the catalog, grouped, for one label type
 //   GET  /api/labels/form/<type>/<item>  the editable fields for one item's label
+//   POST /api/login                {staff_id, pin} -> a signed token good for a shift
+//   GET  /api/whoami               who a token names (Authorization: Bearer …)
+//   POST /api/pin                  change your own PIN: {old_pin, new_pin}
+//        Every other POST needs the token. The server takes the person from it and
+//        ignores any staff_id in the body, refusing one that names somebody else.
+//        The label routes below are the exception, being public by design.
 //   POST /api/labels/render            {type, item, values, quantity} -> zpl + preview
 //   GET  /api/labels/seal-info?item=…  barcode + health mark, for the Brother box-seal label
 //   POST /api/labels/seal-render       {item, values} -> the Box Seal's data, for its canvas preview
@@ -103,25 +110,42 @@ const ROUTES = {
   '/api/count': ['POST'],
   '/api/counts': ['GET', 'POST'],
   '/api/open': ['POST'],
+  '/api/login': ['POST'],
+  '/api/pin': ['POST'],
+  '/api/whoami': ['GET'],
   '/api/labels/bootstrap': ['GET'],
   '/api/labels/render': ['POST'],
   '/api/labels/seal-info': ['GET'],
   '/api/labels/seal-render': ['POST'],
 };
 
+// Read once and remembered, because authentication has to look inside the body
+// (and set who sent it) before the handler reads it again; a request body can
+// only be consumed the one time.
+const bodies = new WeakMap();
+
 async function readBody(request) {
+  if (bodies.has(request)) return bodies.get(request);
+  let body;
   try {
-    return await request.json();
+    body = await request.json();
   } catch {
     throw new BadRequest('the body must be valid JSON');
   }
+  bodies.set(request, body);
+  return body;
 }
+
+// Public by design: the label GUI renders labels for anybody who can reach it
+// and writes nothing to the ledger.
+const isPublicPost = (path) => path.startsWith('/api/labels/');
 
 async function route(request, env, url) {
   const db = env.DB;
 
   if (request.method === 'GET') {
     if (url.pathname === '/api/health') return json(await health(db));
+    if (url.pathname === '/api/whoami') return json(await whoami(db, env, request));
     if (url.pathname === '/api/catalog') return json(await handleCatalog(db, url));
     if (url.pathname === '/api/ledger') return json(await handleLedger(db, url));
     if (url.pathname === '/api/lookup') return json(await lookupCode(db, url.searchParams.get('code')));
@@ -182,6 +206,9 @@ async function route(request, env, url) {
   }
 
   if (request.method === 'POST') {
+    if (url.pathname === '/api/login') return json(await login(db, env, await readBody(request)));
+    if (!isPublicPost(url.pathname)) await authenticate(db, env, request, () => readBody(request));
+    if (url.pathname === '/api/pin') return json(await changePin(db, env, await readBody(request)));
     if (url.pathname === '/api/codes') {
       const body = await readBody(request);
       return json(await issueCodes(db, body.device_id, body.want));
@@ -254,6 +281,12 @@ export default {
       if (response) return response;
     } catch (err) {
       if (err instanceof BadRequest) return error(400, err.message);
+      if (err instanceof AuthError) {
+        return json({ error: err.message }, {
+          status: err.status,
+          headers: err.retryAfter ? { 'retry-after': String(err.retryAfter) } : {},
+        });
+      }
       throw err;
     }
 

@@ -1,0 +1,8 @@
+# Copy to .dev.vars (gitignored) for `wrangler dev`. Both must be 32+ characters.
+# Generate each with:  openssl rand -base64 48
+#
+# In production they are Worker secrets, never files:
+#   npx wrangler secret put AUTH_SECRET   (signs the sign-in tokens; rotating it signs everybody out)
+#   npx wrangler secret put PIN_PEPPER    (keys the PIN hashes; rotating it invalidates every PIN)
+AUTH_SECRET=
+PIN_PEPPER=
