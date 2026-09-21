@@ -1339,11 +1339,13 @@ These need Dean's answer before the phase that depends on them.
    automatic Drive sync" call on purpose, since restarting the service right
    after a sync is what makes that safe now.
 
-   **Still open:** a DHCP reservation for the printer's address (HANDOFF.md
-   said so before the cable even arrived, and it still is not done), and no
-   password on the relay or the tunnel hostname — anyone on the tunnel URL
-   can print to the kitchen printer right now, fine for the testing this
-   session did, not fine to leave once this is relied on daily.
+   **The DHCP reservation for the printer's address is made (Dean,
+   2026-09-21)**, so `192.168.0.166` is stable and the relay and every label
+   form that depends on it can rely on that.
+
+   **Still open:** no password on the relay or the tunnel hostname — anyone
+   on the tunnel URL can print to the kitchen printer right now, fine for the
+   testing this session did, not fine to leave once this is relied on daily.
 
    **Correction to an earlier version of this plan, which said
    scannable labels block P1 and P3: they do not.** The lot picker works
