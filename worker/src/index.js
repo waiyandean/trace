@@ -1,5 +1,6 @@
 import { json, error, BadRequest, AuthError } from './http.js';
 import { login, authenticate, whoami, changePin } from './auth.js';
+import { verifyAccess, isLocalHost, isPublicApi } from './access.js';
 import { handleCatalog, CATALOG_ACTIONS } from './catalog/handlers.js';
 import { handleLedger, LEDGER_ACTIONS, lookupCode } from './ledger/reads.js';
 import { issueCodes, poolFor } from './ledger/codes.js';
@@ -277,6 +278,9 @@ export default {
     if (!['GET', 'POST'].includes(request.method)) return error(405, 'method not allowed');
 
     try {
+      // Everything but the public label routes must have come through
+      // Cloudflare Access, checked here as well as at the edge (access.js).
+      if (!isLocalHost(url.hostname) && !isPublicApi(url.pathname)) await verifyAccess(request, env);
       const response = await route(request, env, url);
       if (response) return response;
     } catch (err) {

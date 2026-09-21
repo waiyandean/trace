@@ -24,6 +24,18 @@ routes = [
   { pattern = "forms.deanops.uk/photos*", zone_name = "deanops.uk" },
 ]
 
+# Cloudflare Access, the door in front of everything but the public label
+# routes (PLAN.md, open question 9). The Worker verifies Access's signed token
+# itself rather than trusting that the edge did its job; see src/access.js.
+# With either value empty every non-label request is refused, so a deploy
+# before the Access application exists fails closed. ACCESS_AUD is the Audience
+# tag of the `trace` application for trace.deanops.uk (Zero Trust > Access >
+# Applications > trace > Overview). It is not a secret, since it is in every
+# token Access issues.
+[vars]
+ACCESS_TEAM_DOMAIN = "waiyandean.cloudflareaccess.com"
+ACCESS_AUD = "277f9ff4746ca8697f790fa33e33cb670f2609310699d4672645d7b64adcd2a2"
+
 # The forms themselves, served as static assets from the same origin as the
 # API. Same origin matters: the iPad is on kitchen wifi with no certificate of
 # its own, and a cross-origin form would need CORS and a second thing to keep

@@ -26,7 +26,7 @@ async function world() {
   return { db, env };
 }
 
-const request = (token, body = {}, path = '/x') => new Request(`https://t.example${path}`, {
+const request = (token, body = {}, path = '/x') => new Request(`https://localhost${path}`, {
   method: 'POST',
   headers: token ? { authorization: `Bearer ${token}` } : {},
   body: JSON.stringify(body),
@@ -137,9 +137,9 @@ test('repeats and straight runs are weak, ordinary PINs are not', () => {
 test('a write with no token, or a bad one, is refused before its body is read', async () => {
   const { db, env } = await world();
   const noBody = () => { throw new Error('body must not be read'); };
-  const bare = new Request('https://t.example/x', { method: 'POST' });
+  const bare = new Request('https://localhost/x', { method: 'POST' });
   await assert.rejects(() => authenticate(db, env, bare, noBody, T0), refused(401, /sign in first/));
-  const junk = new Request('https://t.example/x', { method: 'POST', headers: { authorization: 'Bearer not.a.token' } });
+  const junk = new Request('https://localhost/x', { method: 'POST', headers: { authorization: 'Bearer not.a.token' } });
   await assert.rejects(() => authenticate(db, env, junk, noBody, T0), refused(401, /not valid/));
 });
 
@@ -253,21 +253,21 @@ test('a wrong old PIN counts against the lockout, and a weak new one is refused'
 
 test('through the Worker: a ledger write with no token is a 401, and a read is still open', async () => {
   const { db, env } = await world();
-  const write = await worker.fetch(new Request('https://t.example/api/waste', { method: 'POST', body: '{}' }), env);
+  const write = await worker.fetch(new Request('https://localhost/api/waste', { method: 'POST', body: '{}' }), env);
   assert.equal(write.status, 401);
-  const read = await worker.fetch(new Request('https://t.example/api/health'), env);
+  const read = await worker.fetch(new Request('https://localhost/api/health'), env);
   assert.equal(read.status, 200);
 });
 
 test('through the Worker: sign in, then change your PIN as the person the token names', async () => {
   const { db, env } = await world();
-  const signedIn = await worker.fetch(new Request('https://t.example/api/login', {
+  const signedIn = await worker.fetch(new Request('https://localhost/api/login', {
     method: 'POST', body: JSON.stringify({ staff_id: 'dean', pin: '4821' }),
   }), env);
   assert.equal(signedIn.status, 200);
   const { token } = await signedIn.json();
 
-  const changed = await worker.fetch(new Request('https://t.example/api/pin', {
+  const changed = await worker.fetch(new Request('https://localhost/api/pin', {
     method: 'POST', headers: { authorization: `Bearer ${token}` },
     body: JSON.stringify({ old_pin: '4821', new_pin: '9153' }),
   }), env);
@@ -278,7 +278,7 @@ test('through the Worker: sign in, then change your PIN as the person the token 
 test('through the Worker: naming somebody else in the body is a 403', async () => {
   const { db, env } = await world();
   const token = await signIn(env, db, Date.now());
-  const res = await worker.fetch(new Request('https://t.example/api/waste', {
+  const res = await worker.fetch(new Request('https://localhost/api/waste', {
     method: 'POST', headers: { authorization: `Bearer ${token}` }, body: JSON.stringify({ staff_id: 'nikin' }),
   }), env);
   assert.equal(res.status, 403);
@@ -288,7 +288,7 @@ test('through the Worker: a lockout is a 429 with Retry-After', async () => {
   const { db, env } = await world();
   let res;
   for (let i = 0; i < MAX_ATTEMPTS; i += 1) {
-    res = await worker.fetch(new Request('https://t.example/api/login', {
+    res = await worker.fetch(new Request('https://localhost/api/login', {
       method: 'POST', body: JSON.stringify({ staff_id: 'dean', pin: '0000' }),
     }), env);
   }
@@ -298,7 +298,7 @@ test('through the Worker: a lockout is a 429 with Retry-After', async () => {
 
 test('through the Worker: the public label routes need no token', async () => {
   const { env } = await world();
-  const res = await worker.fetch(new Request('https://t.example/api/labels/render', { method: 'POST', body: '{}' }), env);
+  const res = await worker.fetch(new Request('https://localhost/api/labels/render', { method: 'POST', body: '{}' }), env);
   assert.notEqual(res.status, 401);
   assert.notEqual(res.status, 403);
 });

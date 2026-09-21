@@ -5,7 +5,7 @@ import worker from '../src/index.js';
 import { login, makePinRow } from '../src/auth.js';
 import { sqliteDb } from './sqliteDb.js';
 
-const get = (path) => new Request(`https://trace.example${path}`);
+const get = (path) => new Request(`https://localhost${path}`);
 
 test('health reports what the database holds', async () => {
   const env = { DB: fakeDb(() => [{ items: 42, lots: 3 }]) };
@@ -32,7 +32,7 @@ test('a bad action is a 400 with the reason', async () => {
 
 test('the catalog is read-only: a write to it is refused and says what to use', async () => {
   const env = { DB: fakeDb(() => []) };
-  const res = await worker.fetch(new Request('https://trace.example/api/catalog', { method: 'POST' }), env);
+  const res = await worker.fetch(new Request('https://localhost/api/catalog', { method: 'POST' }), env);
   assert.equal(res.status, 405);
   assert.equal(res.headers.get('allow'), 'GET');
 });
@@ -77,7 +77,7 @@ test('a body that is not JSON is a 400, not a crash', async () => {
   db.sqlite.prepare('INSERT INTO staff_pins (staff_id, pin_hash, salt) VALUES (?, ?, ?)').run('s1', pin.pin_hash, pin.salt);
   const { token } = await login(db, env, { staff_id: 's1', pin: '4821' });
 
-  const request = new Request('https://trace.example/api/receive', {
+  const request = new Request('https://localhost/api/receive', {
     method: 'POST', headers: { authorization: `Bearer ${token}` }, body: 'not json',
   });
   const res = await worker.fetch(request, env);

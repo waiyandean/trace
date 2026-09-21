@@ -1595,9 +1595,47 @@ These need Dean's answer before the phase that depends on them.
    "until" time on screen is there so it can be seen coming, and the lifetime
    is one constant, `TOKEN_TTL_S`, if that ever changes.
 
-   Still to do: Access needs setting up on a hostname of trace's own, and the
-   two secrets have to be put on the Worker before anything is deployed.
-   Nothing here has been deployed.
+   **Access, 2026-09-21.** The account already has Zero Trust
+   (`waiyandean.cloudflareaccess.com`) with one-time PIN enabled, and no
+   applications. The plan is one application for `trace.deanops.uk` with a
+   thirty-day session and a single allow policy for three addresses: the shared
+   kitchen inbox, Dean's own, and the account owner's. A one-time PIN goes to
+   whichever signs in, so the kitchen iPad signs in through the shared inbox.
+   The application is created before the hostname exists, so the door is up
+   before the room is and the ledger is never briefly open.
+
+   **The Worker checks Access for itself** (`src/access.js`) rather than
+   trusting that the edge did. Every request except the public label routes
+   must carry the signed token Access adds, verified against Access's published
+   keys, for this team and this application's audience tag. Without that, a
+   deleted or edited application would turn every read (the catalog, the
+   ledger, every lot and customer) quietly public with nothing here noticing.
+   It fails closed: with the team domain or `ACCESS_AUD` unset the API refuses
+   everything but the label routes, so a deploy made before the application
+   exists is safe, and the label GUI is unaffected. Only the algorithm Access
+   uses is accepted, keys are cached and refetched at most once a minute so a
+   stranger cannot turn requests into fetches, and if Access cannot be reached
+   to check, the answer is no. Localhost skips it, being `wrangler dev` and the
+   tests, and cannot be reached from outside since Cloudflare routes on the
+   hostname it was sent.
+
+   **The application exists (created in the dashboard, 2026-09-21).** The
+   Cloudflare connection used in the session can read Access but not write it
+   (creating failed with error 1010 even with a minimal body), so it was made by
+   hand and then read back through the API to check it against the plan rather
+   than taken on trust. `trace` for `trace.deanops.uk`, self-hosted, one-time
+   PIN as the only login method with auto-redirect, and one allow policy for
+   the three addresses and nothing else; its Audience tag is in
+   `wrangler.toml`. It was first made with a 24-hour session, which would have
+   meant an emailed code to the shared inbox every day on the kitchen iPad, and
+   was changed to one month (730 hours, the dashboard's preset) on the same day
+   and confirmed by reading it back.
+
+   Still to do: the two Worker secrets, `trace.deanops.uk` added to
+   `wrangler.toml` as a custom domain, the remote database migrated (it holds
+   only the first migration), and the print relay, which no Access application
+   covers and which cannot easily be covered because the browser calls it
+   cross-origin. Nothing here has been deployed.
 10. **Packaging — resolved 2026-09-04 (Dean).** Stays out of scope, same as
    the old rebuild. Nothing in the join failures this project exists to fix —
    not the 12,731 recorded uses, not the 2,675 delivery rows — ever pointed at
