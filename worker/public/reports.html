@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Reports — trace</title>
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Reports" />
+<meta name="theme-color" content="#f2f2f7" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="stylesheet" href="/app.css" />
+<style>
+/* P6: the finished operational views over what P1–P5 already write. Nothing
+   here writes anything — it is all read from the ledger, live. */
+.alert-row {
+  border-top: 1px solid var(--line); padding: 12px 16px; display: flex; gap: 12px;
+  align-items: center; text-decoration: none; color: inherit;
+}
+.alert-row .grow { flex: 1; min-width: 0; }
+.alert-row .name { font-weight: 600; }
+.alert-row .detail { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.alert-row .count {
+  font: 700 16px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  padding: 4px 10px; border-radius: 999px; background: var(--sunk); color: var(--muted);
+}
+.alert-row .count.warn { background: var(--warn-soft); color: var(--warn); }
+.alert-row.expandable { cursor: pointer; }
+.alert-detail { border-top: 1px solid var(--line); background: var(--sunk); }
+.alert-detail .item { padding: 10px 16px; font-size: 14px; }
+.alert-detail .item + .item { border-top: 1px solid var(--line); }
+.alert-detail .item b { display: block; font-size: 15px; margin-bottom: 2px; }
+
+/* Lot trace: one lot in the middle, what fed it above, what it fed below —
+   the genealogy read top to bottom the way stock actually flows. */
+.trace-lot { padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.trace-lot .name { font-size: 18px; font-weight: 700; }
+.trace-lot .detail { font-size: 14px; color: var(--muted); margin-top: 4px; }
+.trace-edges h3 {
+  font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted);
+  margin: 0; padding: 10px 16px 4px;
+}
+.trace-edges .empty { padding: 4px 16px 12px; font-size: 14px; color: var(--muted); }
+.recall-actions { display: flex; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.recall-actions button { flex: 1 1 200px; }
+#recall h3, #balance h3 {
+  font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted);
+  margin: 0; padding: 14px 16px 4px;
+}
+#recall .empty, #balance .empty { padding: 4px 16px 12px; font-size: 14px; color: var(--muted); }
+#recall .headline { padding: 14px 16px; font-size: 16px; font-weight: 600; border-top: 1px solid var(--line); }
+#recall .rows, #balance .rows { list-style: none; margin: 0; padding: 0; }
+#recall .rows li, #balance .rows li { border-top: 1px solid var(--line); padding: 10px 16px; }
+#recall .rows .name, #balance .rows .name { font-weight: 600; }
+#recall .rows .detail, #balance .rows .detail { font-size: 14px; color: var(--muted); margin-top: 2px; }
+#recall .rows .flag, #balance .rows .flag { color: var(--warn); font-weight: 600; }
+.picker-row {
+  border-top: 1px solid var(--line); padding: 10px 16px; display: flex; gap: 10px;
+  align-items: center; cursor: pointer; background: none; width: 100%; text-align: left; font: inherit;
+}
+.picker-row b { display: block; }
+.picker-row .detail { font-size: 13px; color: var(--muted); }
+#balance .rows .detail { white-space: pre-line; }
+#balance .rows .tag {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+  margin-left: 8px; padding: 2px 6px; border-radius: 6px; background: var(--sunk); color: var(--muted);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Reports</h1>
+  <span class="pill" id="net">checking</span>
+  <a href="/" class="pill" style="text-decoration:none">Goods In</a>
+  <a href="/stock" class="pill" style="text-decoration:none">Stock</a>
+  <a href="/batches" class="pill" style="text-decoration:none">Batches</a>
+  <a href="/dispatch" class="pill" style="text-decoration:none">Dispatch</a>
+  <a href="/count" class="pill" style="text-decoration:none">Count</a>
+</header>
+
+<main>
+  <div id="banner"></div>
+
+  <section>
+    <h2>Alerts</h2>
+    <p class="note">Everything the ledger can flag on its own, in one place. The first four already have a
+      screen of their own — tap through to act on one. The last two have no screen yet, so their detail sits
+      right here.</p>
+    <div id="alert-list"></div>
+  </section>
+
+  <section>
+    <h2>Trace a lot</h2>
+    <div class="row">
+      <div class="field">
+        <label for="search">Short code, batch code, or lot id</label>
+        <input id="search" type="search" autocomplete="off" placeholder="K7M4QP…" />
+      </div>
+      <div class="field" style="flex: 0 0 auto; align-self: flex-end;">
+        <button id="search-go" type="button">Find it</button>
+      </div>
+    </div>
+    <div id="search-error"></div>
+    <div id="picker" hidden></div>
+    <div id="trace" hidden>
+      <div class="trace-lot" id="trace-lot"></div>
+      <div class="trace-edges">
+        <h3>Fed by — one step back</h3>
+        <div id="trace-back"></div>
+      </div>
+      <div class="trace-edges">
+        <h3>Fed into — one step forward</h3>
+        <div id="trace-forward"></div>
+      </div>
+      <div class="recall-actions">
+        <button id="recall-forward" type="button">Recall: who did this reach?</button>
+        <button id="recall-back" type="button" class="secondary">Recall: what is it made from?</button>
+      </div>
+    </div>
+    <div id="recall" hidden>
+    </div>
+  </section>
+
+  <section>
+    <h2>Mass balance</h2>
+    <p class="note">Per item over a period: what was there, what came in, where it went, and what the weekly
+      counts had to correct. Biggest correction first. A correction is where a short delivery, a recipe using
+      more than it states, or a miscounted shelf would show up.</p>
+    <div class="row">
+      <div class="field"><label for="bal-from">From</label><input id="bal-from" type="date" /></div>
+      <div class="field"><label for="bal-to">To</label><input id="bal-to" type="date" /></div>
+      <div class="field">
+        <label for="bal-kind">Show</label>
+        <select id="bal-kind">
+          <option value="ingredient">Ingredients</option>
+          <option value="product">Products</option>
+          <option value="">Both</option>
+        </select>
+      </div>
+      <div class="field" style="flex: 0 0 auto; align-self: flex-end;">
+        <button id="bal-go" type="button">Show</button>
+      </div>
+    </div>
+    <div id="bal-error"></div>
+    <div id="balance"></div>
+  </section>
+</main>
+
+<script type="module" src="/reports.js"></script>
+</body>
+</html>

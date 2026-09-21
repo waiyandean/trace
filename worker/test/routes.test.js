@@ -73,6 +73,61 @@ test('a body that is not JSON is a 400, not a crash', async () => {
   assert.match((await res.json()).error, /valid JSON/);
 });
 
+test('tracing with no lot is a 400', async () => {
+  const env = { DB: fakeDb(() => []) };
+  const res = await worker.fetch(get('/api/trace'), env);
+  assert.equal(res.status, 400);
+  assert.match((await res.json()).error, /lot is required/);
+});
+
+test('tracing is a read, so a POST to it is refused', async () => {
+  const env = { DB: fakeDb(() => []) };
+  const res = await worker.fetch(new Request('https://trace.example/api/trace', { method: 'POST' }), env);
+  assert.equal(res.status, 405);
+  assert.equal(res.headers.get('allow'), 'GET');
+});
+
+test('a recall with no lot is a 400, and with a bad direction is a 400', async () => {
+  const env = { DB: fakeDb(() => []) };
+  const none = await worker.fetch(get('/api/recall'), env);
+  assert.equal(none.status, 400);
+  assert.match((await none.json()).error, /lot is required/);
+  const bad = await worker.fetch(get('/api/recall?lot=x&direction=sideways'), env);
+  assert.equal(bad.status, 400);
+  assert.match((await bad.json()).error, /direction must be one of/);
+});
+
+test('a recall is a read, so a POST to it is refused', async () => {
+  const env = { DB: fakeDb(() => []) };
+  const res = await worker.fetch(new Request('https://trace.example/api/recall', { method: 'POST' }), env);
+  assert.equal(res.status, 405);
+  assert.equal(res.headers.get('allow'), 'GET');
+});
+
+test('a balance with no dates is a 400 that says which', async () => {
+  const env = { DB: fakeDb(() => []) };
+  const res = await worker.fetch(get('/api/period-balance'), env);
+  assert.equal(res.status, 400);
+  assert.match((await res.json()).error, /from must be a date/);
+});
+
+test('a balance is a read, so a POST to it is refused', async () => {
+  const env = { DB: fakeDb(() => []) };
+  const res = await worker.fetch(new Request('https://trace.example/api/period-balance', { method: 'POST' }), env);
+  assert.equal(res.status, 405);
+  assert.equal(res.headers.get('allow'), 'GET');
+});
+
+test('the bundled alert view answers with every category, even with nothing open', async () => {
+  const env = { DB: fakeDb(() => []) };
+  const res = await worker.fetch(get('/api/alerts'), env);
+  assert.equal(res.status, 200);
+  assert.deepEqual(await res.json(), {
+    deviations: [], holds: [], unproven: [], unresourced: [],
+    negative_balances: [], conflicting_dates: [], total: 0,
+  });
+});
+
 test('an unknown path is a 404 that names the endpoints', async () => {
   const env = { DB: fakeDb(() => []) };
   const res = await worker.fetch(get('/api/nope'), env);

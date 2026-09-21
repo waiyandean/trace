@@ -24,9 +24,10 @@ spooler, no bridge machine — printed correctly. `printers.py`'s `tcp` backend
 had been written and waiting for this since before this handoff; it had never
 actually been exercised until now. The Windows laptop's own copy still needs
 its Settings screen pointed at `tcp` / `192.168.0.166` rather than whatever it
-is on today, and the printer itself still needs a DHCP reservation — not done,
-same open item as before, now more urgent since more things depend on the
-address staying put.
+is on today. The printer's DHCP reservation, which this note originally
+listed as still to do, has since been made (Dean, 2026-09-21), so
+`192.168.0.166` is now the address it keeps and everything that depends on
+it can rely on that.
 
 **Three of the five label types are now *also* printed by trace itself,
 separately from this tool** — Goods In, P3's packet label, and Date Opened.
@@ -216,9 +217,9 @@ They still work for putting a one-off specimen in front of the printer.
 5. **The frozen ramen print the catalog's internal name**, `Frozen Ramen :
    Hell Ramen`, which reads oddly on a retail box. A `label_name` fixes it.
 6. **Done, 2026-09-16 — see the Update section at the top.** The Ethernet
-   cable arrived and is proven; the one piece of this still open is the DHCP
-   reservation, which matters more now than it did when this was written,
-   since trace's own forms depend on that address too.
+   cable arrived and is proven. The DHCP reservation, the one piece still
+   open then, was made on 2026-09-21 (Dean), so the address trace's own forms
+   depend on will not move.
 7. **Three ingredient photographs still fail to import** — Apple Juice, Ground
    White Pepper, Japanese Soy Sauce — because their sources are Google Drive
    links that are not publicly readable. Re-uploading them in stockcheck fixes
