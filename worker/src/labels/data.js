@@ -23,6 +23,9 @@ export const TYPES = [
   // No catalog behind this one, so it has no list to pick from and the tile
   // opens the label itself.
   { id: 'notice', name: 'Notice', blurb: 'Anything else: a warning, a note, a sign. Big words, centred.', source: 'free' },
+  // Prints on the Brother QL-600, not the Zebra -- see the 'seal' branches
+  // in Data.listing/Data.form and handlers.js's sealRender().
+  { id: 'box-seal', name: 'Box Seal', blurb: 'The small Brother-printed seal that also closes a Frozen Ramen case.', source: 'seal' },
 ];
 
 const STORAGE_LABELS = { chill: 'Chilled', freezer: 'Frozen', ambient: 'Ambient' };
@@ -79,6 +82,20 @@ function monthsOn(iso, months) {
   return `${onward}-${at}-01`;
 }
 
+// `years` after `iso`, same day and month. Unlike shelf life on the other
+// products, the box seal's best-before isn't rounded to the start of a
+// month -- one year from the pack date, exactly. The one day that can't
+// exist -- 29 Feb landing on a non-leap year -- falls back to 28 Feb.
+function yearsOn(iso, years) {
+  const parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  if (!parts) return '';
+  const [, year, month, day] = parts;
+  const wanted = Date.UTC(Number(year) + years, Number(month) - 1, Number(day));
+  const landed = new Date(wanted);
+  if (landed.getUTCMonth() !== Number(month) - 1) landed.setUTCDate(0);
+  return landed.toISOString().slice(0, 10);
+}
+
 // One row of the form. `missing` marks a value the catalog should hold but
 // does not. Those fields are editable so a label can still be printed today,
 // and are shown as a gap rather than as an ordinary blank, because the fix
@@ -108,7 +125,8 @@ export class Data {
     const rows = [];
     for (const item of this.catalog.items) {
       if (source === 'ingredient' && item.kind !== 'ingredient') continue;
-      if (source === 'product' && item.kind !== 'product') continue;
+      if ((source === 'product' || source === 'seal') && item.kind !== 'product') continue;
+      if (source === 'seal' && this.extra.products?.[item.name]?.category !== 'Frozen Ramen') continue;
       // Some catalog rows are real stock that simply never gets a label of
       // this kind printed. They stay active in the catalog -- this is a
       // statement about labelling, not about whether the kitchen holds the
@@ -128,7 +146,7 @@ export class Data {
       });
     }
 
-    if (source === 'product') return this.byCategory(rows);
+    if (source === 'product' || source === 'seal') return this.byCategory(rows);
 
     const groups = [];
     // A trailing null stands for the ingredients nobody has recorded a
@@ -211,6 +229,7 @@ export class Data {
       return days ? `${days} days once opened` : 'no period recorded';
     }
     const product = this.extra.products?.[item.name] || {};
+    if (typeId === 'box-seal') return product.barcode || '';
     const variant = product[typeId === 'box' ? 'box' : 'packet'] || {};
     if (variant.qty) return variant.qty;
     // A pack size nobody states is not a pack size nobody has got round to.
@@ -219,6 +238,10 @@ export class Data {
 
   // Which values this label needs that nothing has recorded yet.
   gaps(item, typeId) {
+    // The seal prints no allergen declaration, no pack size, no SKU -- its
+    // four items are catalog-complete by construction (see listing()'s
+    // Frozen Ramen filter), so there is nothing to flag.
+    if (typeId === 'box-seal') return [];
     const gaps = [];
     if (!this.extra.allergens?.[item.name]) gaps.push('allergens');
     if (typeId === 'packet' || typeId === 'box') {
@@ -341,6 +364,28 @@ export class Data {
           hint: 'Maintained in label-data.json from the allergen matrix; it cannot be changed while printing.',
         }),
       );
+    } else if (typeId === 'box-seal') {
+      const product = this.extra.products?.[item.name] || {};
+      const mark = product.health_mark;
+      fields.push(
+        field('name', 'Product', product.label_name || item.name, { editable: false }),
+        field('packed', 'Packed', today, { kind: 'date', hint: 'The batch code and the best-before both follow this.' }),
+        field('use_by', 'Best before', yearsOn(today, 1), {
+          kind: 'date',
+          derive: 'years:1',
+          hint: 'One year from packing. Type over it to set a different date.',
+        }),
+        field('batch', 'Batch code', batchCode(today), {
+          derive: 'batch',
+          hint: `The packing date as ddmm, then the run suffix ${BATCH_SUFFIX}.`,
+        }),
+        field('barcode', 'Barcode', product.barcode || '', {
+          editable: false,
+          hint: "The product's registered EAN-13, printed as the seal's own barcode.",
+        }),
+        field('health_mark', 'Health mark', mark ? 'yes' : 'no', { editable: false }),
+      );
+      return { type: typeId, item: itemId, title: this.labelName(item), gaps: [], fields };
     } else {
       const product = this.extra.products?.[item.name] || {};
       const variant = product[typeId === 'box' ? 'box' : 'packet'] || {};

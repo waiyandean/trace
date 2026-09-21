@@ -108,6 +108,49 @@ export async function form(typeId, itemId, supplier = null) {
   }
 }
 
+// What the Brother box-seal label needs for one product: the fields already
+// live in label-data.json for the ZPL health-mark oval and EAN-13 (see
+// build() above), keyed by product name rather than catalog id, so this
+// reads data.extra.products directly instead of going through data.items.
+export async function sealInfo(name) {
+  if (!name) throw new BadRequest('item is required');
+  const product = data.extra.products?.[name] || {};
+  return {
+    barcode: product.barcode || '',
+    healthMark: product.health_mark === true,
+    hmCountry: data.extra.health_mark_country || 'GB',
+    hmCode: data.extra.health_mark_code || '',
+    category: product.category || '',
+  };
+}
+
+// The JSON brother_seal.render_and_print (or print-relay.py's /print-seal)
+// expects, resolved server-side from the form's submitted values plus
+// label-data.json. Barcode and health mark come from the catalog rather
+// than the submitted values -- both are locked fields on the form, but a
+// request forged straight against the API should still get the catalog's
+// answer, not whatever it typed into a disabled input.
+export async function sealRender(payload) {
+  const item = data.items[payload.item];
+  if (!item) throw new BadRequest('unknown item');
+  const product = data.extra.products?.[item.name] || {};
+  if (product.category !== 'Frozen Ramen') {
+    throw new BadRequest(`${item.name} has no box seal -- Frozen Ramen only.`);
+  }
+  const values = payload.values || {};
+  return {
+    seal: {
+      name: product.label_name || item.name,
+      batch: values.batch || '',
+      useBy: uk(values.use_by),
+      barcode: product.barcode || '',
+      healthMark: product.health_mark === true,
+      hmCountry: data.extra.health_mark_country || 'GB',
+      hmCode: data.extra.health_mark_code || '',
+    },
+  };
+}
+
 export async function render(payload) {
   const quantity = Number(payload.quantity);
   if (!Number.isInteger(quantity)) throw new BadRequest('Quantity has to be a whole number.');

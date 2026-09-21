@@ -171,6 +171,7 @@ h3.section {
   min-height: 210px; display: grid; place-items: center; padding: 10px;
 }
 .preview img { width: 100%; max-width: 620px; display: block; }
+.preview canvas { width: 100%; max-width: 504px; height: auto; display: block; }
 .muted { color: var(--muted); }
 
 .print-row { display: flex; align-items: flex-end; gap: 14px; margin-top: 16px; }

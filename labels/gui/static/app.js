@@ -23,6 +23,7 @@ const ICONS = {
   "packet": '<path d="M6 7h12l-1 13H7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/><path d="M9.5 12h5"/>',
   "box": '<path d="M2 7h20v12H2z"/><path d="M2 7l3-4h14l3 4"/><path d="M12 3v4"/><path d="M8 12h8"/>',
   "notice": '<path d="M3 5h18v14H3z"/><path d="M7 10h10"/><path d="M7 14h6"/>',
+  "box-seal": '<circle cx="12" cy="12" r="8"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
 };
 
 async function api(path, options) {
@@ -367,15 +368,32 @@ function previewNote(text) {
   el("preview").replaceChildren(note);
 }
 
+function isSeal() {
+  return state.type && state.type.source === "seal";
+}
+
 function beginRevision() {
   state.revision += 1;
   state.prepared = null;
   state.prepareController?.abort();
   state.previewController?.abort();
   el("print").disabled = true;
-  el("preview").setAttribute("aria-busy", "true");
   el("messages").replaceChildren();
-  previewNote("Updating preview…");
+  if (isSeal()) {
+    // Its own pane, not the ZPL/Labelary one: there is no PNG round trip to
+    // wait on, so no "Updating preview…" placeholder either.
+    el("preview").hidden = true;
+    el("seal-preview").hidden = false;
+    el("zpl-details").hidden = true;
+    el("seal-details").hidden = false;
+  } else {
+    el("preview").hidden = false;
+    el("seal-preview").hidden = true;
+    el("zpl-details").hidden = false;
+    el("seal-details").hidden = true;
+    el("preview").setAttribute("aria-busy", "true");
+    previewNote("Updating preview…");
+  }
   return state.revision;
 }
 
@@ -392,6 +410,7 @@ function render() {
 }
 
 async function prepareLabel(revision) {
+  if (isSeal()) return prepareSeal(revision);
   const snapshot = labelPayload(false);
   const prepareController = new AbortController();
   const previewController = new AbortController();
@@ -466,6 +485,35 @@ async function loadPreview(revision, previewPromise, fingerprint) {
   }
 }
 
+async function prepareSeal(revision) {
+  const snapshot = labelPayload(false);
+  const controller = new AbortController();
+  state.prepareController = controller;
+  try {
+    const result = await api("/api/seal/render", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(snapshot),
+      signal: controller.signal,
+    });
+    if (revision !== state.revision) return;
+    el("seal-json").textContent = JSON.stringify(result.seal, null, 1);
+    const encoded = SealPreview.draw(el("seal-canvas"), result.seal);
+    if (encoded.error) {
+      setMessages([["bad", encoded.error]]);
+      return;
+    }
+    state.prepared = {
+      revision, seal: result.seal, fingerprint: result.fingerprint,
+      itemName: state.item.name,
+    };
+    el("print").disabled = false;
+  } catch (error) {
+    if (error.name === "AbortError" || revision !== state.revision) return;
+    setMessages([["bad", error.message]]);
+  }
+}
+
 function setMessages(entries) {
   el("messages").replaceChildren(...entries.map(([kind, text]) => {
     const node = document.createElement("div");
@@ -489,17 +537,22 @@ async function print() {
   button.disabled = true;
   button.textContent = "Printing…";
   try {
-    const result = await api("/api/print", {
+    const seal = isSeal();
+    const result = await api(seal ? "/api/seal/print" : "/api/print", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: JSON.stringify(seal ? {
+        type: state.type.id, item: state.item.id,
+        values: values(), quantity: Number(el("quantity").value),
+        fingerprint: prepared.fingerprint,
+      } : {
         ...prepared.payload,
         fingerprint: prepared.fingerprint,
       }),
     });
-    const copies = prepared.payload.quantity;
-    const batch = prepared.payload.values.batch
-      ? `, batch ${prepared.payload.values.batch}` : "";
+    const copies = Number(el("quantity").value);
+    const batch = seal ? (prepared.seal.batch ? `, batch ${prepared.seal.batch}` : "")
+      : (prepared.payload.values.batch ? `, batch ${prepared.payload.values.batch}` : "");
     setMessages([
       ["ok", `Sent ${copies} ${copies === 1 ? "label" : "labels"} for ` +
              `${prepared.itemName}${batch}. ${result.message}`],
@@ -541,6 +594,17 @@ function drawSettings(boot) {
   }));
   if (config.printer) printer.value = config.printer;
 
+  const brotherPrinter = el("brother-printer");
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = "(none selected)";
+  brotherPrinter.replaceChildren(placeholder, ...boot.printers.map((name) => {
+    const node = document.createElement("option");
+    node.value = node.textContent = name;
+    return node;
+  }));
+  brotherPrinter.value = config.brother_printer || "";
+
   const pill = el("printer-pill");
   const route = config.backend === "auto" ? boot.backend : config.backend;
   const target = { winspool: config.printer || boot.printers[0] || "no printer",
@@ -570,6 +634,7 @@ async function saveSettings() {
       // The select shows a placeholder when Windows reports no printers;
       // storing that as a name would fail at print time with a confusing error.
       printer: el("printer").value.startsWith("(") ? "" : el("printer").value,
+      brother_printer: el("brother-printer").value,
       share: el("share").value,
       host: el("host").value,
       folder: el("folder").value,

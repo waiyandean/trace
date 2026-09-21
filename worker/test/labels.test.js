@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { Data } from '../src/labels/data.js';
-import { build, form, render } from '../src/labels/handlers.js';
+import { build, form, render, sealInfo, sealRender } from '../src/labels/handlers.js';
 
 const data = new Data();
 
@@ -134,4 +134,71 @@ test('browser derivations cover Date Opened and existing product rules', () => {
   assert.equal(derive('batch', { packed: '2026-09-17', pot: '3' }), '1709GA3');
   assert.equal(derive('months:6', { packed: '2026-09-17' }), '2027-03-01');
   assert.equal(derive('days:7', { opened: '2026-02-31' }), '');
+  assert.equal(derive('years:1', { packed: '2026-09-18' }), '2027-09-18');
+  // 2028 is a leap year, 2029 is not: 29 Feb falls back to 28 Feb.
+  assert.equal(derive('years:1', { packed: '2028-02-29' }), '2029-02-28');
+});
+
+test('seal-info gives the Brother box seal a frozen ramen product\'s barcode and health mark', async () => {
+  const info = await sealInfo('Frozen Ramen : Hell Ramen');
+  assert.equal(info.barcode, data.extra.products['Frozen Ramen : Hell Ramen'].barcode);
+  assert.equal(info.healthMark, true);
+  assert.equal(info.category, 'Frozen Ramen');
+  assert.equal(info.hmCountry, data.extra.health_mark_country);
+  assert.equal(info.hmCode, data.extra.health_mark_code);
+});
+
+test('seal-info answers something ordinary rather than crashing for a product not in label-data', async () => {
+  const info = await sealInfo('Not A Real Product');
+  assert.equal(info.barcode, '');
+  assert.equal(info.healthMark, false);
+  assert.equal(info.category, '');
+});
+
+test('seal-info requires an item name', async () => {
+  await assert.rejects(() => sealInfo(''), /item is required/);
+});
+
+test('box-seal lists only Frozen Ramen', () => {
+  for (const group of data.listing('box-seal')) {
+    for (const section of group.sections) {
+      for (const row of section.items) {
+        const product = data.extra.products[data.items[row.id].name];
+        assert.equal(product.category, 'Frozen Ramen');
+      }
+    }
+  }
+});
+
+test('box-seal batch and use-by derive ddmmGA and a year ahead, barcode and health mark are locked', async () => {
+  const item = itemNamed('Frozen Ramen : Hell Ramen');
+  const result = await form('box-seal', item.id);
+  const fields = Object.fromEntries(result.fields.map((f) => [f.key, f]));
+  assert.equal(fields.batch.derive, 'batch');
+  assert.equal(fields.use_by.derive, 'years:1');
+  assert.equal(fields.barcode.editable, false);
+  assert.equal(fields.barcode.value, data.extra.products['Frozen Ramen : Hell Ramen'].barcode);
+  assert.equal(fields.health_mark.editable, false);
+  assert.equal(fields.health_mark.value, 'yes');
+  assert.deepEqual(result.gaps, []);
+});
+
+test('seal-render locks barcode and health mark to the catalog, regardless of submitted values', async () => {
+  const item = itemNamed('Frozen Ramen : Hell Ramen');
+  const { seal } = await sealRender({
+    item: item.id,
+    values: { batch: '1809GA', use_by: '2027-09-18', barcode: '000000000000', health_mark: 'no' },
+  });
+  assert.equal(seal.barcode, data.extra.products['Frozen Ramen : Hell Ramen'].barcode);
+  assert.equal(seal.healthMark, true);
+  assert.equal(seal.batch, '1809GA');
+  assert.equal(seal.useBy, '18/09/2027');
+});
+
+test('seal-render refuses a product with no box seal', async () => {
+  const item = data.catalog.items.find((candidate) => candidate.kind === 'ingredient');
+  await assert.rejects(
+    () => sealRender({ item: item.id, values: {} }),
+    /Frozen Ramen only/,
+  );
 });

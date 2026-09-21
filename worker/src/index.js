@@ -12,7 +12,7 @@ import { openUnproven, reviewUnproven } from './ledger/unproven.js';
 import { dispatch, dispatchResult, recentDispatches } from './ledger/dispatch.js';
 import { recordCount, countResult, recentCounts, openCountLines, resolveCountLine } from './ledger/count.js';
 import { recordOpening } from './ledger/opening.js';
-import { bootstrap as labelsBootstrap, items as labelsItems, form as labelsForm, render as labelsRender } from './labels/handlers.js';
+import { bootstrap as labelsBootstrap, items as labelsItems, form as labelsForm, render as labelsRender, sealInfo as labelsSealInfo, sealRender as labelsSealRender } from './labels/handlers.js';
 
 // The `trace` Worker.
 //
@@ -57,6 +57,8 @@ import { bootstrap as labelsBootstrap, items as labelsItems, form as labelsForm,
 //   GET  /api/labels/items/<type>      the catalog, grouped, for one label type
 //   GET  /api/labels/form/<type>/<item>  the editable fields for one item's label
 //   POST /api/labels/render            {type, item, values, quantity} -> zpl + preview
+//   GET  /api/labels/seal-info?item=…  barcode + health mark, for the Brother box-seal label
+//   POST /api/labels/seal-render       {item, values} -> the Box Seal's data, for its canvas preview
 //        Printing is not a Worker route — the page posts the ZPL straight to
 //        the print relay on the kitchen laptop, same as goods-in.js.
 //
@@ -103,6 +105,8 @@ const ROUTES = {
   '/api/open': ['POST'],
   '/api/labels/bootstrap': ['GET'],
   '/api/labels/render': ['POST'],
+  '/api/labels/seal-info': ['GET'],
+  '/api/labels/seal-render': ['POST'],
 };
 
 async function readBody(request) {
@@ -166,6 +170,7 @@ async function route(request, env, url) {
       return json({ count: rows.length, rows });
     }
     if (url.pathname === '/api/labels/bootstrap') return json(await labelsBootstrap());
+    if (url.pathname === '/api/labels/seal-info') return json(await labelsSealInfo(url.searchParams.get('item')));
     let match = url.pathname.match(/^\/api\/labels\/items\/([\w-]+)$/);
     if (match) return json(await labelsItems(match[1]));
     match = url.pathname.match(/^\/api\/labels\/form\/([\w-]+)\/([\w:%-]+)$/);
@@ -224,6 +229,7 @@ async function route(request, env, url) {
       return json(result, { status: result.duplicate ? 200 : 201 });
     }
     if (url.pathname === '/api/labels/render') return json(await labelsRender(await readBody(request)));
+    if (url.pathname === '/api/labels/seal-render') return json(await labelsSealRender(await readBody(request)));
     return null;
   }
 

@@ -35,6 +35,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import printers
 import zpl
 
+# In the packaged bundle (see package.sh), brother_seal.py sits right next to
+# this file, so the line above already puts it on the path. In the repo tree
+# it lives under worker/scripts instead -- added here so `python server.py`
+# still works for local testing without the packaged copy. Guarded the same
+# way PHOTO_DIRS is below: a shallow checkout has no two-levels-up to reach.
+if len(Path(__file__).resolve().parents) >= 3:
+    sys.path.insert(1, str(Path(__file__).resolve().parents[2] / "worker" / "scripts"))
+
 HERE = Path(__file__).resolve().parent
 STATIC = HERE / "static"
 CONFIG_PATH = HERE / "config.json"
@@ -74,11 +82,21 @@ TYPES = [
     {"id": "notice", "name": "Notice",
      "blurb": "Anything else: a warning, a note, a sign. Big words, centred.",
      "source": "free"},
+    # Prints on the Brother QL-600, not the Zebra -- see the "seal" branches
+    # in Data.listing/Data.form and the /api/seal/* routes below.
+    {"id": "box-seal", "name": "Box Seal",
+     "blurb": "The small Brother-printed seal that also closes a Frozen "
+              "Ramen case.",
+     "source": "seal"},
 ]
 
 DEFAULT_CONFIG = {
     "backend": "auto",
     "printer": "",
+    # The Brother QL-600, used only for Box Seal. A separate slot rather than
+    # a second "backend" value: it always prints via GDI (see brother_seal.py)
+    # regardless of what the ZPL backend above is set to.
+    "brother_printer": "",
     "share": "ZEBRA",
     "host": "",
     "port": 9100,
@@ -200,6 +218,25 @@ def months_on(iso, months):
     return date(total // 12, total % 12 + 1, 1).isoformat()
 
 
+def years_on(iso, years):
+    """`years` after `iso`, same day and month.
+
+    Unlike shelf life on the other products, the box seal's best-before
+    isn't rounded to the start of a month -- one year from the pack date,
+    exactly. The one day that can't exist is 29 Feb landing on a non-leap
+    year, which falls back to 28 Feb rather than raising and blocking the
+    label entirely.
+    """
+    try:
+        packed = datetime.strptime(iso, "%Y-%m-%d")
+    except (ValueError, TypeError):
+        return ""
+    try:
+        return packed.replace(year=packed.year + years).date().isoformat()
+    except ValueError:
+        return packed.replace(year=packed.year + years, day=28).date().isoformat()
+
+
 def field(key, label, value="", *, kind="text", editable=True,
           options=None, hint="", missing=False, follows=None, derive=None):
     """One row of the form.
@@ -257,7 +294,10 @@ class Data:
         for item in self.catalog["items"]:
             if source == "ingredient" and item["kind"] != "ingredient":
                 continue
-            if source == "product" and item["kind"] != "product":
+            if source in ("product", "seal") and item["kind"] != "product":
+                continue
+            if source == "seal" and self.extra.get("products", {}).get(
+                    item["name"], {}).get("category") != "Frozen Ramen":
                 continue
             # Some catalog rows are real stock that simply never gets a label
             # of this kind printed. They stay active in the catalog -- this is
@@ -282,7 +322,7 @@ class Data:
                 "suppliers": item["suppliers"],
             })
 
-        if source == "product":
+        if source in ("product", "seal"):
             return self._by_category(rows)
 
         groups = []
@@ -374,6 +414,8 @@ class Data:
             days = item["days_after_opening"]
             return f"{days} days once opened" if days else "no period recorded"
         product = self.extra.get("products", {}).get(item["name"], {})
+        if type_id == "box-seal":
+            return product.get("barcode", "")
         variant = product.get("box" if type_id == "box" else "packet", {})
         if variant.get("qty"):
             return variant["qty"]
@@ -382,6 +424,11 @@ class Data:
 
     def gaps(self, item, type_id):
         """Which values this label needs that nothing has recorded yet."""
+        # The seal prints no allergen declaration, no pack size, no SKU --
+        # its four items are catalog-complete by construction (see
+        # Data.listing's Frozen Ramen filter), so there is nothing to flag.
+        if type_id == "box-seal":
+            return []
         gaps = []
         if not self.extra.get("allergens", {}).get(item["name"]):
             gaps.append("allergens")
@@ -413,6 +460,39 @@ class Data:
                              "being reflowed. Keep it short: a label read "
                              "across a room is a few words, not a "
                              "paragraph.")]}
+
+        if type_id == "box-seal":
+            item = self.items[item_id]
+            product = self.extra.get("products", {}).get(item["name"], {})
+            today = date.today().isoformat()
+            mark = product.get("health_mark")
+            fields = [
+                field("name", "Product",
+                      product.get("label_name") or item["name"],
+                      editable=False),
+                # Batch and use-by both follow this, same as Product
+                # Packet/Box's "packed" field.
+                field("packed", "Packed", today, kind="date",
+                      hint="The batch code and the best-before both follow "
+                           "this."),
+                field("use_by", "Best before", years_on(today, 1),
+                      kind="date", derive="years:1",
+                      hint="One year from packing. Type over it to set a "
+                           "different date."),
+                field("batch", "Batch code", batch_code(today),
+                      derive="batch",
+                      hint=f"The packing date as ddmm, then the run suffix "
+                           f"{BATCH_SUFFIX}."),
+                field("barcode", "Barcode", product.get("barcode", ""),
+                      editable=False,
+                      hint="The product's registered EAN-13, printed as the "
+                           "seal's own barcode."),
+                field("health_mark", "Health mark",
+                      "yes" if mark else "no", editable=False),
+            ]
+            return {"type": type_id, "item": item_id,
+                    "title": self.label_name(item, type_id),
+                    "gaps": [], "fields": fields}
 
         """The editable form for one item and one label type.
 
@@ -655,9 +735,7 @@ def build(data, type_id, item_id, values, quantity):
         quantity=quantity)
 
 
-def prepare(data, payload):
-    """Build one immutable print candidate and identify its exact ZPL."""
-    raw_quantity = payload.get("quantity", 1)
+def validate_quantity(raw_quantity):
     if isinstance(raw_quantity, bool):
         raise ValueError("Quantity has to be a whole number.")
     if isinstance(raw_quantity, float) and not raw_quantity.is_integer():
@@ -671,11 +749,48 @@ def prepare(data, payload):
         raise ValueError("Quantity has to be a whole number.") from exc
     if not 1 <= quantity <= 200:
         raise ValueError("Quantity has to be between 1 and 200.")
+    return quantity
+
+
+def prepare(data, payload):
+    """Build one immutable print candidate and identify its exact ZPL."""
+    quantity = validate_quantity(payload.get("quantity", 1))
     source, warnings = build(
         data, payload["type"], payload["item"],
         payload.get("values", {}), quantity)
     fingerprint = hashlib.sha256(source.encode("utf-8")).hexdigest()
     return source, warnings, fingerprint, quantity
+
+
+def seal_payload(data, item_id, values):
+    """The JSON brother_seal.render_and_print expects, resolved server-side.
+
+    Barcode and health mark come from label-data.json rather than the
+    submitted values -- both are locked fields on the form, but a request
+    forged straight against the API should still get the catalog's answer,
+    not whatever it typed into a disabled input.
+    """
+    item = data.items[item_id]
+    product = data.extra.get("products", {}).get(item["name"], {})
+    if product.get("category") != "Frozen Ramen":
+        raise ValueError(f"{item['name']} has no box seal -- Frozen Ramen only.")
+    return {
+        "name": product.get("label_name") or item["name"],
+        "batch": values.get("batch", ""),
+        "useBy": uk(values.get("use_by")),
+        "barcode": product.get("barcode", ""),
+        "healthMark": bool(product.get("health_mark")),
+        "hmCountry": data.extra.get("health_mark_country", "GB"),
+        "hmCode": data.extra.get("health_mark_code", ""),
+    }
+
+
+def prepare_seal(data, payload):
+    quantity = validate_quantity(payload.get("quantity", 1))
+    seal = seal_payload(data, payload["item"], payload.get("values", {}))
+    fingerprint = hashlib.sha256(
+        json.dumps(seal, sort_keys=True).encode("utf-8")).hexdigest()
+    return seal, fingerprint, quantity
 
 
 def render_png(source):
@@ -794,6 +909,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._render(data, payload)
         if path == "/api/print":
             return self._print(data, payload)
+        if path == "/api/seal/render":
+            return self._seal_render(data, payload)
+        if path == "/api/seal/print":
+            return self._seal_print(data, payload)
         if path == "/api/config":
             return self.send_json({"config": write_config(payload)})
         return self.send_json({"error": "not found"}, 404)
@@ -854,6 +973,55 @@ class Handler(BaseHTTPRequestHandler):
                    "result": message})
         return self.send_json({"ok": True, "message": message,
                                "warnings": warnings})
+
+    def _seal_render(self, data, payload):
+        try:
+            seal, fingerprint, _ = prepare_seal(data, payload)
+        except (KeyError, TypeError, ValueError) as exc:
+            return self.send_json({"error": str(exc)}, 400)
+        # No PNG here -- there is nothing to hand Labelary. The browser draws
+        # its own canvas preview from `seal` (static/seal.js), the same
+        # EAN-13 encoder and layout brother_seal.py itself uses to print.
+        return self.send_json({"seal": seal, "fingerprint": fingerprint})
+
+    def _seal_print(self, data, payload):
+        try:
+            seal, fingerprint, quantity = prepare_seal(data, payload)
+        except (KeyError, TypeError, ValueError) as exc:
+            return self.send_json({"error": str(exc)}, 400)
+
+        expected = payload.get("fingerprint")
+        if not expected:
+            return self.send_json(
+                {"error": "Review the prepared label before printing."}, 409)
+        if expected != fingerprint:
+            return self.send_json({
+                "error": "The label changed after it was prepared. "
+                         "Review the refreshed preview and print again."
+            }, 409)
+
+        printer = read_config().get("brother_printer", "")
+        if not printer:
+            return self.send_json(
+                {"error": "Set the Box Seal printer in Settings."}, 400)
+        try:
+            import brother_seal
+        except ImportError as exc:
+            return self.send_json(
+                {"error": f"brother_seal.py is not available: {exc}"}, 500)
+        for _ in range(quantity):
+            try:
+                brother_seal.render_and_print(printer, seal)
+            except brother_seal.PrintError as exc:
+                return self.send_json({"error": str(exc)}, 500)
+
+        log_print({"at": datetime.now().isoformat(timespec="seconds"),
+                   "type": "box-seal", "item": payload["item"],
+                   "quantity": quantity, "values": seal,
+                   "result": f"printed to {printer}"})
+        return self.send_json({"ok": True,
+                               "message": f"printed to {printer}",
+                               "warnings": []})
 
 
 def main():

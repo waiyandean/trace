@@ -43,6 +43,7 @@ const ICONS = {
   packet: '<path d="M6 7h12l-1 13H7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/><path d="M9.5 12h5"/>',
   box: '<path d="M2 7h20v12H2z"/><path d="M2 7l3-4h14l3 4"/><path d="M12 3v4"/><path d="M8 12h8"/>',
   notice: '<path d="M3 5h18v14H3z"/><path d="M7 10h10"/><path d="M7 14h6"/>',
+  'box-seal': '<circle cx="12" cy="12" r="8"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
 };
 
 async function api(path, options) {
@@ -386,15 +387,32 @@ function previewNote(text) {
   el('preview').replaceChildren(note);
 }
 
+function isSeal() {
+  return state.type?.source === 'seal';
+}
+
 function beginRevision() {
   state.revision += 1;
   state.prepared = null;
   state.prepareController?.abort();
   state.previewController?.abort();
   el('print').disabled = true;
-  el('preview').setAttribute('aria-busy', 'true');
   el('messages').replaceChildren();
-  previewNote('Updating preview…');
+  if (isSeal()) {
+    // Its own pane, not the ZPL/Labelary one: there is no PNG round trip to
+    // wait on, so no "Updating preview…" placeholder either.
+    el('preview').hidden = true;
+    el('seal-preview').hidden = false;
+    el('zpl-details').hidden = true;
+    el('seal-details').hidden = false;
+  } else {
+    el('preview').hidden = false;
+    el('seal-preview').hidden = true;
+    el('zpl-details').hidden = false;
+    el('seal-details').hidden = true;
+    el('preview').setAttribute('aria-busy', 'true');
+    previewNote('Updating preview…');
+  }
   return state.revision;
 }
 
@@ -411,6 +429,7 @@ function render() {
 }
 
 async function prepareLabel(revision) {
+  if (isSeal()) return prepareSeal(revision);
   const snapshot = labelPayload(false);
   const prepareController = new AbortController();
   const previewController = new AbortController();
@@ -484,6 +503,32 @@ async function loadPreview(revision, previewPromise, zpl) {
   }
 }
 
+async function prepareSeal(revision) {
+  const snapshot = labelPayload(false);
+  const controller = new AbortController();
+  state.prepareController = controller;
+  try {
+    const result = await api('/api/labels/seal-render', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ item: snapshot.item, values: snapshot.values }),
+      signal: controller.signal,
+    });
+    if (revision !== state.revision) return;
+    el('seal-json').textContent = JSON.stringify(result.seal, null, 1);
+    const encoded = SealPreview.draw(el('seal-canvas'), result.seal);
+    if (encoded.error) {
+      setMessages([['bad', encoded.error]]);
+      return;
+    }
+    state.prepared = { revision, seal: result.seal, itemName: state.item.name };
+    el('print').disabled = false;
+  } catch (error) {
+    if (error.name === 'AbortError' || revision !== state.revision) return;
+    setMessages([['bad', error.message]]);
+  }
+}
+
 function setMessages(entries) {
   el('messages').replaceChildren(...entries.map(([kind, text]) => {
     const node = document.createElement('div');
@@ -510,21 +555,26 @@ async function print() {
   button.disabled = true;
   button.textContent = 'Printing…';
   try {
-    const response = await fetch(`${RELAY}/print`, {
+    const seal = isSeal();
+    const copies = Number(el('quantity').value);
+    const response = await fetch(`${RELAY}/${seal ? 'print-seal' : 'print'}`, seal ? {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ ...prepared.seal, quantity: copies }),
+    } : {
       method: 'POST',
       headers: { 'content-type': 'text/plain' },
       body: prepared.zpl,
     });
     const body = await response.json().catch(() => ({}));
-    const copies = prepared.payload.quantity;
     if (!response.ok || !body.ok) {
       throw new Error(body.error || `HTTP ${response.status}`);
     }
-    const batch = prepared.payload.values.batch
-      ? `, batch ${prepared.payload.values.batch}` : '';
+    const batch = (seal ? prepared.seal.batch : prepared.payload.values.batch);
+    const batchNote = batch ? `, batch ${batch}` : '';
     setMessages([
       ['ok', `Sent ${copies} ${copies === 1 ? 'label' : 'labels'} for ` +
-             `${prepared.itemName}${batch}.`],
+             `${prepared.itemName}${batchNote}.`],
     ]);
   } catch (error) {
     setMessages([['bad', `Nothing printed. Could not reach the print relay: ${error.message}`]]);

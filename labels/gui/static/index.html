@@ -47,6 +47,13 @@
         <div class="preview" id="preview">
           <p class="muted">Rendering…</p>
         </div>
+        <!-- Sibling of #preview, not nested in it: app.js's ZPL preview path
+             replaces #preview's children wholesale (an <img> or a note), which
+             would otherwise delete this node the first time a ZPL label is
+             opened. -->
+        <div class="preview" id="seal-preview" hidden>
+          <canvas id="seal-canvas" width="504" height="703"></canvas>
+        </div>
         <div id="messages" aria-live="polite" aria-atomic="true"></div>
         <div class="print-row">
           <label class="qty">
@@ -59,9 +66,13 @@
           One label per physical box. Ten cases of the same delivery line take
           ten labels.
         </p>
-        <details class="raw">
+        <details class="raw" id="zpl-details">
           <summary>ZPL sent to the printer</summary>
           <pre id="zpl"></pre>
+        </details>
+        <details class="raw" id="seal-details" hidden>
+          <summary>Data sent to the Brother QL-600</summary>
+          <pre id="seal-json"></pre>
         </details>
       </div>
       <div class="pane">
@@ -92,6 +103,13 @@
     <div class="field" data-for="winspool">
       <label for="printer">Printer</label>
       <select id="printer"></select>
+    </div>
+    <div class="field">
+      <label for="brother-printer">Box seal printer (Brother QL-600)</label>
+      <select id="brother-printer"></select>
+      <p class="hint">Independent of the route above -- the box seal always
+        prints via Windows' own Brother driver, not the raw ZPL routes.
+        Leave the placeholder selected to turn the Box Seal tile off.</p>
     </div>
     <div class="field" data-for="share">
       <label for="share">Share name</label>
@@ -129,6 +147,7 @@
 </dialog>
 
 <script src="/static/logic.js"></script>
+<script src="/static/seal.js"></script>
 <script src="/static/app.js"></script>
 </body>
 </html>

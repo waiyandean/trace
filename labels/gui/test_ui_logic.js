@@ -22,3 +22,10 @@ test("existing batch and month rules remain unchanged", () => {
   assert.equal(
     derive("months:6", { packed: "2026-09-17" }), "2027-03-01");
 });
+
+test("box seal best-before is exactly a year from packing", () => {
+  assert.equal(derive("years:1", { packed: "2026-09-18" }), "2027-09-18");
+  // 2028 is a leap year, 2029 is not: 29 Feb falls back to 28 Feb rather
+  // than rolling into March, mirroring years_on() in server.py.
+  assert.equal(derive("years:1", { packed: "2028-02-29" }), "2029-02-28");
+});

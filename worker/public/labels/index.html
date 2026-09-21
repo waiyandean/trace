@@ -49,6 +49,13 @@
         <div class="preview" id="preview">
           <p class="muted">Rendering…</p>
         </div>
+        <!-- Sibling of #preview, not nested in it: the ZPL preview path
+             replaces #preview's children wholesale (an <img> or a note),
+             which would otherwise delete this node the first time a ZPL
+             label is opened. -->
+        <div class="preview" id="seal-preview" hidden>
+          <canvas id="seal-canvas" width="504" height="703"></canvas>
+        </div>
         <div id="messages" aria-live="polite" aria-atomic="true"></div>
         <div class="print-row">
           <label class="qty">
@@ -61,9 +68,13 @@
           One label per physical box. Ten cases of the same delivery line take
           ten labels.
         </p>
-        <details class="raw">
+        <details class="raw" id="zpl-details">
           <summary>ZPL sent to the printer</summary>
           <pre id="zpl"></pre>
+        </details>
+        <details class="raw" id="seal-details" hidden>
+          <summary>Data sent to the Brother QL-600</summary>
+          <pre id="seal-json"></pre>
         </details>
       </div>
       <div class="pane">
@@ -75,7 +86,7 @@
 
 </main>
 
-<!-- The five label types, baked into the page instead of fetched from
+<!-- The six label types, baked into the page instead of fetched from
      /api/labels/bootstrap: they never change without a deploy, so a round
      trip to fetch them on every load bought nothing. Keep in step with
      TYPES in worker/src/labels/data.js. -->
@@ -86,9 +97,11 @@ window.LABEL_TYPES = [
   { id: 'packet', name: 'Product Packet', blurb: 'The pouch or tub a finished product goes out in.', source: 'product' },
   { id: 'box', name: 'Product Box', blurb: 'The case the packets are shipped in.', source: 'product' },
   { id: 'notice', name: 'Notice', blurb: 'Anything else: a warning, a note, a sign. Big words, centred.', source: 'free' },
+  { id: 'box-seal', name: 'Box Seal', blurb: 'The small Brother-printed seal that also closes a Frozen Ramen case.', source: 'seal' },
 ];
 </script>
 <script src="/labels/logic.js"></script>
+<script src="/labels/seal.js"></script>
 <script src="/labels/app.js"></script>
 </body>
 </html>

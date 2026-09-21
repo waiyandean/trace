@@ -39,6 +39,20 @@ const LabelLogic = (() => {
       return isoDate(instant);
     }
 
+    if (kind && kind.startsWith("years:")) {
+      const years = Number(kind.slice(6));
+      if (!Number.isInteger(years) || years < 1) return "";
+      // Same day and month, year + N. The one day that can't exist -- 29 Feb
+      // landing on a non-leap year -- falls back to 28 Feb, mirroring
+      // years_on() in server.py rather than raising.
+      const wanted = Date.UTC(Number(year) + years, Number(month) - 1, Number(day));
+      const landed = new Date(wanted);
+      if (landed.getUTCMonth() !== Number(month) - 1) {
+        landed.setUTCDate(0);
+      }
+      return isoDate(landed);
+    }
+
     const months = kind && kind.startsWith("months:") ? Number(kind.slice(7)) : 0;
     if (!Number.isInteger(months) || months < 1) return "";
     const total = Number(year) * 12 + (Number(month) - 1) + months;
