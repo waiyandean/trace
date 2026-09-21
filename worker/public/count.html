@@ -14,12 +14,39 @@
    so — like stock and dispatch — it reads live balances rather than caching
    them and pretending. The count is of one storage area at a time: what the
    ledger thinks is there against what is physically counted. */
-.item { border-top: 1px solid var(--line); padding: 12px 16px; display: flex; gap: 12px; align-items: center; cursor: pointer; }
-.item .grow { flex: 1; min-width: 0; }
-.item .name { font-weight: 600; }
-.item .detail { font-size: 14px; color: var(--muted); margin-top: 2px; }
-.item .ledger { font: 600 15px/1 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; color: var(--muted); }
-.item.counted { background: var(--tint-soft); }
+/* Items to count are a grid of photo cards, not a list — staff recognise
+   stock by the picture the way the goods-in picker already assumes. */
+.count-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 4px 16px 8px; }
+@media (min-width: 640px) { .count-cards { grid-template-columns: repeat(3, 1fr); } }
+.count-card {
+  display: flex; flex-direction: column; text-align: left; font: inherit;
+  background: var(--surface); color: var(--text); border: 1px solid var(--line);
+  border-radius: var(--radius); overflow: hidden; cursor: pointer;
+}
+.count-card:active { border-color: var(--tint); background: var(--tint-soft); }
+.count-card .photo, .count-card .noimg {
+  width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background: var(--sunk); flex: none;
+}
+.count-card .noimg {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: var(--muted); text-align: center; padding: 6px;
+}
+.count-card .body { padding: 8px 10px 10px; }
+.count-card .name { font-weight: 600; font-size: 14px; line-height: 1.25; overflow-wrap: anywhere; }
+.count-card .meta { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; margin-top: 4px; }
+.count-card .status { font-size: 12px; color: var(--muted); }
+.count-card .ledger { font: 600 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; color: var(--muted); }
+/* Ingredients and products are counted separately — a raw case of chicken
+   carcass and a finished pouch of broth can share a freezer, but they are
+   never the same count. */
+.kind-toggle { display: flex; gap: 8px; padding: 0 16px 10px; }
+.kind-btn {
+  flex: 1; font: inherit; font-weight: 600; font-size: 14px; padding: 10px;
+  background: var(--surface); color: var(--text); border: 1px solid var(--line);
+  border-radius: var(--radius); text-align: center;
+}
+.kind-btn:active { background: var(--tint-soft); }
+.kind-btn.on { background: var(--tint-soft); border-color: var(--tint); color: var(--tint); }
 /* Four tappable areas instead of a dropdown: tap where you are standing and
    the items in that area come up, the way the current stock check works. */
 .areas { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 4px 16px 8px; }
@@ -52,6 +79,7 @@
   <a href="/stock" class="pill" style="text-decoration:none">Stock</a>
   <a href="/batches" class="pill" style="text-decoration:none">Batches</a>
   <a href="/dispatch" class="pill" style="text-decoration:none">Dispatch</a>
+  <a href="/reports" class="pill" style="text-decoration:none">Reports</a>
 </header>
 
 <main>
@@ -86,13 +114,17 @@
 
   <section id="add-section" hidden>
     <h2>Count an item</h2>
+    <div class="kind-toggle" id="kind-toggle">
+      <button type="button" class="kind-btn on" data-kind="ingredient">Ingredients</button>
+      <button type="button" class="kind-btn" data-kind="product">Products</button>
+    </div>
     <div class="row">
       <div class="field">
         <label for="search">Search by item</label>
         <input id="search" type="search" autocomplete="off" placeholder="hoi sin, sesame oil…" />
       </div>
     </div>
-    <ul class="lines" id="items"></ul>
+    <div class="count-cards" id="items"></div>
     <p class="empty" id="items-empty">Loading…</p>
   </section>
 

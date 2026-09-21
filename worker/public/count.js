@@ -19,7 +19,7 @@ const $ = (id) => document.getElementById(id);
 const store = makeStore(window.localStorage);
 const STAFF_KEY = 'trace.intake.staff';
 
-const state = { catalog: null, ledger: new Map(), lines: [], chosen: null, openLines: [], resolving: null };
+const state = { catalog: null, ledger: new Map(), lines: [], chosen: null, openLines: [], resolving: null, kind: 'ingredient' };
 
 async function api(path, options) {
   const response = await authedFetch(path, options);
@@ -40,6 +40,24 @@ function areaGlyph(loc) {
   if (/freezer/i.test(loc.name) || loc.kind === 'freezer') return '🧊';
   if (/fridge|chill/i.test(loc.name) || loc.kind === 'chill') return '❄️';
   return '📦';
+}
+
+// A photograph is served from this origin, so it works offline once cached.
+// An item without one gets its name on a plain tile: a stand-in picture of
+// something else would be worse than no picture at all (see goods-in.js).
+function thumbnail(item, className = '') {
+  const image = document.createElement('img');
+  image.src = `/photos/${item.id}.jpg`;
+  image.alt = '';
+  image.loading = 'lazy';
+  image.className = className;
+  image.addEventListener('error', () => {
+    const fallback = document.createElement('div');
+    fallback.className = `noimg ${className}`;
+    fallback.textContent = 'no photo';
+    image.replaceWith(fallback);
+  });
+  return image;
 }
 
 function notify(message, kind = 'warn') {
@@ -175,6 +193,7 @@ function renderItems() {
   const chosen = new Set(state.lines.map((line) => line.item_id));
   const kind = areaKindOf();
   const items = (state.catalog.items || []).filter((item) => {
+    if (item.kind !== state.kind) return false;
     if (chosen.has(item.id)) return false;
     if (wanted) return item.name.toLowerCase().includes(wanted);
     // No search term: show what is kept in this area, plus anything the ledger
@@ -186,34 +205,39 @@ function renderItems() {
   list.replaceChildren();
   $('items-empty').hidden = items.length > 0;
   if (!items.length) {
+    const label = state.kind === 'product' ? 'products' : 'ingredients';
     $('items-empty').textContent = !$('where').value
       ? 'Tap an area above to start.'
       : $('search').value
         ? `Nothing matches “${$('search').value}”.`
-        : 'Nothing is kept in this area. Search to count something stored elsewhere.';
+        : `No ${label} kept in this area. Search to count one stored elsewhere.`;
   }
 
   for (const item of items) {
-    const li = document.createElement('li');
-    li.className = 'item';
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'count-card';
+    card.append(thumbnail(item, 'photo'));
 
-    const grow = document.createElement('div');
-    grow.className = 'grow';
+    const body = document.createElement('div');
+    body.className = 'body';
     const name = document.createElement('div');
     name.className = 'name';
     name.textContent = item.name;
-    const detail = document.createElement('div');
-    detail.className = 'detail';
-    detail.textContent = 'not counted';
-    grow.append(name, detail);
-
-    const ledger = document.createElement('div');
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    const status = document.createElement('span');
+    status.className = 'status';
+    status.textContent = 'not counted';
+    const ledger = document.createElement('span');
     ledger.className = 'ledger';
-    ledger.textContent = `ledger ${trim(ledgerFor(item.id))} ${item.base_unit}`;
+    ledger.textContent = `${trim(ledgerFor(item.id))} ${item.base_unit}`;
+    meta.append(status, ledger);
+    body.append(name, meta);
 
-    li.append(grow, ledger);
-    li.addEventListener('click', () => openLine(item));
-    list.append(li);
+    card.append(body);
+    card.addEventListener('click', () => openLine(item));
+    list.append(card);
   }
 }
 
@@ -274,13 +298,9 @@ function openLine(item) {
 
   const chosen = $('line-chosen');
   chosen.replaceChildren();
-  const image = document.createElement('img');
-  image.src = `/photos/${item.id}.jpg`;
-  image.alt = '';
-  image.addEventListener('error', () => image.remove());
   const label = document.createElement('b');
   label.textContent = item.name;
-  chosen.append(image, label);
+  chosen.append(thumbnail(item), label);
 
   // Which tiers to show: cases and inner units only where the conversions
   // master can turn them into this item's base unit. The loose tier is the
@@ -542,6 +562,16 @@ $('staff').addEventListener('change', (event) => {
   refreshSave();
 });
 $('search').addEventListener('input', renderItems);
+for (const button of $('kind-toggle').querySelectorAll('.kind-btn')) {
+  button.addEventListener('click', () => {
+    if (button.dataset.kind === state.kind) return;
+    state.kind = button.dataset.kind;
+    for (const other of $('kind-toggle').querySelectorAll('.kind-btn')) {
+      other.classList.toggle('on', other === button);
+    }
+    renderItems();
+  });
+}
 $('line-add').addEventListener('click', addLine);
 $('line-cancel').addEventListener('click', () => $('line-dialog').close());
 $('save').addEventListener('click', save);
