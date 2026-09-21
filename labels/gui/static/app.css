@@ -10,6 +10,7 @@
   --text: #1b1b1f;
   --muted: #6a6a73;
   --tint: #0a6b3d;
+  --on-tint: #fff;
   --tint-soft: #e6f2ea;
   --bad: #b3261e;
   --bad-soft: #fdeceb;
@@ -20,7 +21,8 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #131316; --surface: #1d1d21; --sunk: #26262b; --line: #3a3a41;
-    --text: #f2f2f5; --muted: #9a9aa3; --tint: #34c77b; --tint-soft: #11301f;
+    --text: #f2f2f5; --muted: #9a9aa3; --tint: #34c77b; --on-tint: #131316;
+    --tint-soft: #11301f;
     --bad: #ff6961; --bad-soft: #3a1614; --warn: #ffd60a; --warn-soft: #3a3000;
   }
 }
@@ -54,7 +56,7 @@ button {
 }
 button:hover { background: var(--sunk); }
 button.primary {
-  background: var(--tint); border-color: var(--tint); color: #fff;
+  background: var(--tint); border-color: var(--tint); color: var(--on-tint);
   font-weight: 600;
 }
 button.primary:hover { filter: brightness(1.08); }
@@ -153,6 +155,7 @@ h3.section {
   min-height: 210px; display: grid; place-items: center; padding: 10px;
 }
 .preview img { width: 100%; max-width: 620px; display: block; }
+.preview canvas { width: 100%; max-width: 504px; height: auto; display: block; }
 .muted { color: var(--muted); }
 
 .print-row { display: flex; align-items: flex-end; gap: 14px; margin-top: 16px; }
@@ -187,6 +190,10 @@ h3.section {
   background: var(--sunk); color: var(--text); opacity: 1;
 }
 .field.gap input, .field.gap select { border-color: var(--warn); }
+.derive-reset {
+  background: none; border: 0; color: var(--tint); padding: 5px 0;
+  font-size: 12px; text-decoration: underline;
+}
 
 /* Picked on every print, sometimes several times in a row, so it is a row of
    targets rather than a dropdown: one click and a glance instead of two
@@ -197,7 +204,7 @@ h3.section {
   text-align: center; flex: 1;
 }
 .choices button.on {
-  background: var(--tint); border-color: var(--tint); color: #fff;
+  background: var(--tint); border-color: var(--tint); color: var(--on-tint);
   font-weight: 600;
 }
 .choices button.on:hover { filter: brightness(1.08); }

@@ -75,8 +75,9 @@ Three screens, one decision each.
    unloaded in, coldest first.
 
    Seven ingredients are bought from both suppliers and appear under both,
-   marked "also Tazaki": at the door it genuinely could be either. Storage
-   sections do not overlap.
+   marked "also Tazaki": at the door it genuinely could be either. Choosing
+   the row under a supplier carries that supplier into the label form, including
+   when the view is bookmarked. Storage sections do not overlap.
 
    Goods In sections on the unopened requirement; Date Opened sections on the
    after-opening one, which is the whole point of that label — several things
@@ -179,7 +180,11 @@ real today.
 ## What can be edited
 
 Batch, the dates and the number of copies are always editable — they change on
-every print and no catalog will ever hold them.
+every print and no catalog will ever hold them. Supplier and storage are also
+always editable even once the catalog has an answer: the catalog's answer is
+the usual one, but a one-off delivery or pack sometimes needs a different
+supplier or storage instruction, and typing over it prints a correct label
+without touching the catalog.
 
 On Goods In the use-by is **left empty by default** and the label prints
 "See product packaging" in its place. Most deliveries arrive with a date
@@ -191,12 +196,12 @@ answer.
 
 Several fields fill themselves in from a date and keep following it. Typing
 into one stops it following: after that it is yours, and it must not be undone
-by touching the date afterwards.
+by touching the date afterwards. "Use automatic value" restores the link.
 
 | Field | Follows | Rule |
 | --- | --- | --- |
 | Goods In, batch number | Delivered | `ddmmyy` — a delivery on 01/09/2026 is batch `010926` |
-
+| Date Opened, use by | Opened | The recorded number of days after opening |
 | Product, batch code | Packed, Pot | `ddmm`, the run suffix `GA`, then the pot — `0109GA3` |
 | Product, use by | Packed | Whole months on, landing on the **first** of that month |
 
@@ -267,11 +272,12 @@ Everything else is filled from the catalog and locked. Where the catalog has
 no answer, the field is unlocked and outlined, and the item is flagged
 **needs filling** in the list. That is a gap to close in the data, not a field
 to retype every time; typing into it prints a correct label today without
-recording anything.
+recording anything. Allergens are stricter: they remain locked, the server
+ignores any value supplied by the browser, and a missing declaration blocks
+printing until `label-data.json` is corrected.
 
-There are no gaps. Every label the tool prints is filled in from the catalog,
-the Allergen Matrix and `label-data.json`, and nothing has to be typed except
-the batch and the dates.
+Every current item has an allergen declaration. Other catalog gaps remain
+visible in the picker and the form rather than being silently defaulted.
 
 ## Allergens
 
@@ -330,6 +336,7 @@ it today.
 | File | What |
 | --- | --- |
 | `server.py` | The web server and the routes. Standard library only. |
+| `static/logic.js` | Date and batch derivations, shared with the browser tests. |
 | `zpl.py` | Builds each label format from field values. |
 | `printers.py` | Four ways of getting ZPL to a printer. |
 | `build_catalog.py` | Regenerates `catalog.json` from `worker/scripts/`. |
@@ -411,8 +418,11 @@ runs on a development machine.
 ## Preview
 
 The preview is a real render, through Labelary's ZPL interpreter, so it shows
-what the printer will draw rather than an approximation. Two things it cannot
-show:
+what the printer will draw rather than an approximation. The ZPL is prepared
+locally first, which keeps printing available when Labelary is offline. Print
+accepts only the fingerprint of that prepared ZPL; if catalog data changes in
+between, the job is stopped and the operator must review the refreshed label.
+Two things the image cannot show:
 
 - Anything caused by a setting left behind on the printer. Labelary starts
   from clean state. This is why every format here sets `^BY` explicitly — see

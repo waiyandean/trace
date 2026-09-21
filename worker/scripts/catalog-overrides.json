@@ -13,9 +13,12 @@
     "               countable item inside it.",
     "needs_health_mark  whether the item's label carries the oval health mark.",
     "               It follows animal origin, so it sits on the raw meat and",
-    "               bone ingredients rather than on the products made from",
-    "               them. Anything absent from this file stays null, meaning",
-    "               not yet determined rather than no mark.",
+    "               bone ingredients. Corrected 2026-09-16 (Dean): it is not",
+    "               exclusive to them after all -- Chicken Broth and Tonkotsu",
+    "               Broth carry it too, same as the diluted and Brix Test",
+    "               variants already did. Anything absent from this file",
+    "               stays null, meaning not yet determined rather than no",
+    "               mark.",
     "",
     "An entry may also create an item the workbook does not have at all. Those",
     "carry an explicit id, kind and base_unit, and their ids are prefixed",
@@ -167,6 +170,14 @@
       "kind": "product",
       "base_unit": "L",
       "note": "Reduction trial: Tonkotsu Broth concentrated by reducing the ingredients rather than adding water, to a 6.5 Brix target. A separate product, not a state of the broth, for the same reason as the diluted version -- it goes down the same pouch and serving the wrong one is what the label prevents. Test batches only, not yet a restaurant line; the label carries a 6.5 BRIX TEST band so it cannot be mistaken for either of the other two (Dean, 2026-09-10).",
+      "needs_health_mark": true
+    },
+    "Chicken Broth": {
+      "note": "Corrects the 2026-08-31 rule below, which put the mark on the raw animal ingredients and not on the broths made from them: the two broths carry it too (Dean, 2026-09-16).",
+      "needs_health_mark": true
+    },
+    "Tonkotsu Broth": {
+      "note": "Same correction as Chicken Broth (Dean, 2026-09-16). The diluted and 6.5 Brix Test variants above already carried it.",
       "needs_health_mark": true
     }
   },

@@ -1161,7 +1161,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwqoafdxpka', 'Chicken Broth', 'product', 'L', 'freezer', 'freezer', NULL, NULL, NULL, 1, NULL)
+VALUES ('mpwqoafdxpka', 'Chicken Broth', 'product', 'L', 'freezer', 'freezer', NULL, NULL, 1, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,
@@ -1545,7 +1545,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO items (id, name, kind, base_unit, storage_unopened, storage_opened,
                    opening_rule, days_after_opening,
                    needs_health_mark, active, note)
-VALUES ('mpwqpwl8j1px', 'Tonkotsu Broth', 'product', 'L', 'freezer', 'freezer', NULL, NULL, NULL, 1, NULL)
+VALUES ('mpwqpwl8j1px', 'Tonkotsu Broth', 'product', 'L', 'freezer', 'freezer', NULL, NULL, 1, 1, NULL)
 ON CONFLICT (id) DO UPDATE SET
   name = excluded.name,
   kind = excluded.kind,

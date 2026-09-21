@@ -4,6 +4,7 @@ import {
   groupByStorage, soleLocationFor, forSupplier, splitByRole, usualSupplierFor, duplicateLines,
   probeKindFor, withinLimit, vehicleReadingsNeeded,
 } from './lib/offline.js';
+import { buildGoodsInLabel } from './lib/zpl.js';
 
 // The goods intake form. Everything it needs to accept a delivery is on the
 // device before the network is asked for anything: the catalog is cached, the
@@ -43,6 +44,7 @@ function installServiceWorker() {
 
 const DEVICE_KEY = 'trace.intake.device';
 const STAFF_KEY = 'trace.intake.staff';
+const RELAY_KEY = 'trace.intake.relay';
 
 const state = {
   catalog: null,
@@ -701,7 +703,7 @@ async function saveLine() {
   if (!pool.remaining() && online()) await refillPool({ force: true });
   const shortCode = pool.take();
 
-  state.lines.push({
+  const line = {
     lot_id: ulid(),
     item_id: item.id,
     short_code: shortCode,
@@ -710,11 +712,52 @@ async function saveLine() {
     location_id: locationId,
     use_by: $('line-use-by').value || null,
     product_temp_c: productTemp,
-  });
+  };
+  state.lines.push(line);
 
   $('line-dialog').close();
   render();
   refillPool();
+  printLine(line, item);
+}
+
+// -------------------------------------------------------------- printing
+
+// Fires at the moment a line is added, same as taking the short code from
+// the pool — that is when the label is written (PLAN.md), not when the
+// server confirms the delivery, which can be minutes or hours away offline.
+// A print failure is shown but never blocks the line: the short code is
+// already on the line either way, and the fallback this form has always had
+// is writing it on the case by hand.
+async function printLine(line, item) {
+  const relay = $('relay-url').value.trim();
+  if (!relay || !line.short_code) return;
+
+  const zpl = buildGoodsInLabel({
+    name: item?.name || line.item_id,
+    shortCode: line.short_code,
+    batch: batchCode(),
+    useBy: line.use_by,
+    delivered: $('occurred').value ? $('occurred').value.slice(0, 10) : new Date().toISOString().slice(0, 10),
+    supplier: (state.catalog?.suppliers || []).find((row) => row.id === $('supplier').value)?.name || '',
+    quantity: line.quantity,
+    healthMark: item?.needs_health_mark === true,
+  });
+
+  try {
+    const response = await fetch(`${relay.replace(/\/$/, '')}/print`, {
+      method: 'POST',
+      headers: { 'content-type': 'text/plain' },
+      body: zpl,
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok || !body.ok) {
+      notify(`Label for ${item?.name || 'that line'} did not print: ${body.error || response.status}. `
+        + 'Write the short code on the case by hand.', 'warn');
+    }
+  } catch {
+    notify(`Could not reach the print relay at ${relay}. Write the short code on the case by hand.`, 'warn');
+  }
 }
 
 // -------------------------------------------------------------- submitting
@@ -980,6 +1023,12 @@ async function boot() {
   $('device-row').hidden = devices.length < 2;
   fillSelect($('device'), devices, { placeholder: 'Not set', selected: state.deviceId });
 
+  // Defaults to the standing tunnel in front of the kitchen laptop's relay
+  // (deanops.uk, set up 2026-09-16) rather than blank, so printing works on a
+  // fresh device with nothing typed in. Still editable, and still nothing
+  // stops somebody clearing it to add lines without printing.
+  $('relay-url').value = store.read(RELAY_KEY, 'https://print-relay.deanops.uk');
+
   const now = new Date();
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
   $('occurred').value = now.toISOString().slice(0, 16);
@@ -1032,6 +1081,10 @@ $('device').addEventListener('change', (event) => {
   store.write(DEVICE_KEY, state.deviceId);
   render();
   refillPool({ force: true });
+});
+
+$('relay-url').addEventListener('change', (event) => {
+  store.write(RELAY_KEY, event.target.value.trim());
 });
 
 $('add-line').addEventListener('click', openPicker);

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Labels — trace</title>
+<!-- Installed as an app from Chrome's menu, so it gets its own window with no
+     address bar and its own icon on the taskbar. There is deliberately no
+     service worker: a stale one would quietly go on serving the previous
+     version of the label formats after a deploy, which is exactly the wrong
+     thing for a compliance label. -->
+<link rel="manifest" href="/labels/manifest.webmanifest" />
+<meta name="theme-color" content="#0a6b3d" />
+<link rel="icon" href="/labels/icon-192.png" />
+<link rel="apple-touch-icon" href="/labels/icon-192.png" />
+<link rel="stylesheet" href="/labels/app.css" />
+</head>
+<body>
+
+<header>
+  <button class="back" id="back" hidden aria-label="Back">&#8592;</button>
+  <h1 id="title">Labels</h1>
+  <span class="relay-status" id="relay-status" role="status">
+    <span class="dot" aria-hidden="true"></span>
+    <span id="relay-status-text">Checking relay…</span>
+  </span>
+</header>
+
+<main>
+
+  <!-- 1. which kind of label -->
+  <section id="screen-types">
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <!-- 2. which item -->
+  <section id="screen-items" hidden>
+    <input id="search" class="search" type="search" autocomplete="off"
+           placeholder="Type to narrow the list" />
+    <div id="items"></div>
+    <p class="empty" id="items-empty" hidden>Nothing matches that.</p>
+  </section>
+
+  <!-- 3. the label itself -->
+  <section id="screen-label" hidden>
+    <div class="label-layout">
+      <div class="pane">
+        <h2>Label</h2>
+        <div class="preview" id="preview">
+          <p class="muted">Rendering…</p>
+        </div>
+        <!-- Sibling of #preview, not nested in it: the ZPL preview path
+             replaces #preview's children wholesale (an <img> or a note),
+             which would otherwise delete this node the first time a ZPL
+             label is opened. -->
+        <div class="preview" id="seal-preview" hidden>
+          <canvas id="seal-canvas" width="504" height="703"></canvas>
+        </div>
+        <div id="messages" aria-live="polite" aria-atomic="true"></div>
+        <div class="print-row">
+          <label class="qty">
+            <span>Copies</span>
+            <input id="quantity" type="number" min="1" max="200" value="1" />
+          </label>
+          <button id="print" class="primary" disabled>Print</button>
+        </div>
+        <p class="note" id="print-note">
+          One label per physical box. Ten cases of the same delivery line take
+          ten labels.
+        </p>
+        <details class="raw" id="zpl-details">
+          <summary>ZPL sent to the printer</summary>
+          <pre id="zpl"></pre>
+        </details>
+        <details class="raw" id="seal-details" hidden>
+          <summary>Data sent to the Brother QL-600</summary>
+          <pre id="seal-json"></pre>
+        </details>
+      </div>
+      <div class="pane">
+        <h2>Details</h2>
+        <form id="fields" autocomplete="off"></form>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- The six label types, baked into the page instead of fetched from
+     /api/labels/bootstrap: they never change without a deploy, so a round
+     trip to fetch them on every load bought nothing. Keep in step with
+     TYPES in worker/src/labels/data.js. -->
+<script>
+window.LABEL_TYPES = [
+  { id: 'goods-in', name: 'Goods In', blurb: 'Stuck on a delivery as it comes through the door.', source: 'ingredient' },
+  { id: 'date-opened', name: 'Date Opened', blurb: 'Stuck on a pack when it is opened or decanted.', source: 'opening' },
+  { id: 'packet', name: 'Product Packet', blurb: 'The pouch or tub a finished product goes out in.', source: 'product' },
+  { id: 'box', name: 'Product Box', blurb: 'The case the packets are shipped in.', source: 'product' },
+  { id: 'notice', name: 'Notice', blurb: 'Anything else: a warning, a note, a sign. Big words, centred.', source: 'free' },
+  { id: 'box-seal', name: 'Box Seal', blurb: 'The small Brother-printed seal that also closes a Frozen Ramen case.', source: 'seal' },
+];
+</script>
+<script src="/labels/logic.js"></script>
+<script src="/labels/seal.js"></script>
+<script src="/labels/app.js"></script>
+</body>
+</html>

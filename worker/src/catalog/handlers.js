@@ -102,7 +102,7 @@ export function getRecipes(db, { itemId = null } = {}) {
   return selectAll(
     db,
     `SELECT r.id AS recipe_id, r.item_id, p.name AS product_name, p.base_unit AS product_unit,
-            r.yield_quantity, r.shelf_life_days, r.active,
+            r.yield_quantity, r.shelf_life_months, r.active,
             l.id AS line_id, l.item_id AS ingredient_id, i.name AS ingredient_name,
             i.base_unit AS ingredient_base_unit, i.kind AS ingredient_kind,
             i.storage_unopened, l.quantity, l.unit, l.sort_order

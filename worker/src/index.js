@@ -11,6 +11,8 @@ import { openBatches, batchDetail, recordPacking, massBalance } from './ledger/p
 import { openUnproven, reviewUnproven } from './ledger/unproven.js';
 import { dispatch, dispatchResult, recentDispatches } from './ledger/dispatch.js';
 import { recordCount, countResult, recentCounts, openCountLines, resolveCountLine } from './ledger/count.js';
+import { recordOpening } from './ledger/opening.js';
+import { bootstrap as labelsBootstrap, items as labelsItems, form as labelsForm, render as labelsRender, sealInfo as labelsSealInfo, sealRender as labelsSealRender } from './labels/handlers.js';
 
 // The `trace` Worker.
 //
@@ -50,6 +52,15 @@ import { recordCount, countResult, recentCounts, openCountLines, resolveCountLin
 //   GET  /api/counts?event=…      one count: its lines, variances and outcomes
 //   GET  /api/counts?open         count lines with stock but no lot to carry it
 //   POST /api/counts              resolve one such line: {line_id, staff_id, note}
+//   POST /api/open                 record a pack opened: {lot_id, opened_on}
+//   GET  /api/labels/bootstrap         the five label types
+//   GET  /api/labels/items/<type>      the catalog, grouped, for one label type
+//   GET  /api/labels/form/<type>/<item>  the editable fields for one item's label
+//   POST /api/labels/render            {type, item, values, quantity} -> zpl + preview
+//   GET  /api/labels/seal-info?item=…  barcode + health mark, for the Brother box-seal label
+//   POST /api/labels/seal-render       {item, values} -> the Box Seal's data, for its canvas preview
+//        Printing is not a Worker route — the page posts the ZPL straight to
+//        the print relay on the kitchen laptop, same as goods-in.js.
 //
 // The old `forms` system stays authoritative until Dean cuts over, so nothing
 // here is yet the kitchen's record of anything.
@@ -91,6 +102,11 @@ const ROUTES = {
   '/api/dispatches': ['GET'],
   '/api/count': ['POST'],
   '/api/counts': ['GET', 'POST'],
+  '/api/open': ['POST'],
+  '/api/labels/bootstrap': ['GET'],
+  '/api/labels/render': ['POST'],
+  '/api/labels/seal-info': ['GET'],
+  '/api/labels/seal-render': ['POST'],
 };
 
 async function readBody(request) {
@@ -153,6 +169,15 @@ async function route(request, env, url) {
       const rows = await recentCounts(db);
       return json({ count: rows.length, rows });
     }
+    if (url.pathname === '/api/labels/bootstrap') return json(await labelsBootstrap());
+    if (url.pathname === '/api/labels/seal-info') return json(await labelsSealInfo(url.searchParams.get('item')));
+    let match = url.pathname.match(/^\/api\/labels\/items\/([\w-]+)$/);
+    if (match) return json(await labelsItems(match[1]));
+    match = url.pathname.match(/^\/api\/labels\/form\/([\w-]+)\/([\w:%-]+)$/);
+    if (match) {
+      return json(await labelsForm(
+        match[1], decodeURIComponent(match[2]), url.searchParams.get('supplier')));
+    }
     return null;
   }
 
@@ -192,6 +217,10 @@ async function route(request, env, url) {
     if (url.pathname === '/api/counts') {
       return json(await resolveCountLine(db, await readBody(request)));
     }
+    if (url.pathname === '/api/open') {
+      const result = await recordOpening(db, await readBody(request));
+      return json(result, { status: result.duplicate ? 200 : 201 });
+    }
     if (url.pathname === '/api/receive') {
       const result = await receive(db, await readBody(request));
       // 200 for a replay, 201 for a submission that wrote something. A device
@@ -199,6 +228,8 @@ async function route(request, env, url) {
       // the body.
       return json(result, { status: result.duplicate ? 200 : 201 });
     }
+    if (url.pathname === '/api/labels/render') return json(await labelsRender(await readBody(request)));
+    if (url.pathname === '/api/labels/seal-render') return json(await labelsSealRender(await readBody(request)));
     return null;
   }
 

@@ -595,6 +595,27 @@ def wrapped_lines(words, height, width=INNER):
     return lines
 
 
+def wrap_text(words, height, width=INNER):
+    """The same greedy wrap as wrapped_lines(), returning the actual line
+    strings rather than just how many there are."""
+    width = int(width * NOTICE_FIT)
+    space = text_width(" ", height)
+    pieces = words.split()
+    if not pieces:
+        return [""]
+    lines, current, current_width = [], [], 0
+    for word in pieces:
+        word_width = text_width(word, height)
+        if current and current_width + space + word_width > width:
+            lines.append(" ".join(current))
+            current, current_width = [word], word_width
+        else:
+            current_width += (space if current else 0) + word_width
+            current.append(word)
+    lines.append(" ".join(current))
+    return lines
+
+
 def notice(*, text, quantity=1):
     """A label that is nothing but words, set as large as they will go.
 
@@ -606,11 +627,20 @@ def notice(*, text, quantity=1):
     The border round the whole label is what tells Date Opened from Goods In
     across a room, and spending it on a second thing takes that distinction
     away from the pair that actually gets confused.
+
+    A line break typed into the textarea prints as one. The obvious way to
+    do that is ZPL's own \\& line-break escape inside a single multi-line
+    ^FB -- but that left every line after the first centred around a
+    different point than the first (measured, on identical text, a visible
+    few dots off). Giving each visual line its own single-line ^FB instead
+    means each one is centred with nothing before it to throw the
+    justification off.
     """
     warnings = []
-    words = escape(text)
-    if not words:
+    raw = escape(text)
+    if not raw:
         warnings.append("There is nothing to print on this label.")
+    paragraphs = raw.split("\n")
 
     available = HEIGHT - 2 * MARGIN
     for height in NOTICE_SIZES:
@@ -619,35 +649,42 @@ def notice(*, text, quantity=1):
         # push the count up. Estimating from the total width alone would then
         # under-count, and a block that needs one more line than it is allowed
         # draws the overflow on top of the line above rather than truncating.
-        longest = max((text_width(word, height) for word in words.split()),
-                      default=0)
+        longest = max((text_width(word, height)
+                       for p in paragraphs for word in p.split()), default=0)
         if longest > INNER:
             continue
         # Two counts, for two different jobs. The cautious one decides how
-        # many lines ^FB is allowed, so an under-estimate cannot overprint.
-        # The likely one decides where the block is centred, because
-        # centring on a line that usually is not there leaves every notice
-        # sitting high on the label.
-        lines = wrapped_lines(words, height)
-        likely = wrapped_lines(words, height, INNER / NOTICE_FIT)
+        # many lines are drawn, so an under-estimate cannot overprint. The
+        # likely one decides where the block is centred, because centring on
+        # a line that usually is not there leaves every notice sitting high
+        # on the label. Each typed line is wrapped on its own, then summed,
+        # so a forced break always costs at least one line even if short.
+        visual_lines = [line for p in paragraphs for line in wrap_text(p, height)]
+        lines = len(visual_lines)
+        likely = sum(wrapped_lines(p, height, INNER / NOTICE_FIT) for p in paragraphs)
         block = lines * height + (lines - 1) * gap
         if block <= available:
             break
     else:
-        height, gap, lines, likely = NOTICE_SIZES[-1], 4, 1, 1
+        height, gap = NOTICE_SIZES[-1], 4
+        visual_lines = [line for p in paragraphs for line in wrap_text(p, height)]
+        lines = likely = len(visual_lines)
         warnings.append(
             "That does not fit on a label even at the smallest size, so it "
             "will be cut off. Say it in fewer words.")
-        block = height
+        block = lines * height + (lines - 1) * gap
 
     centred = likely * height + (likely - 1) * gap
     top = MARGIN + (available - centred) // 2
     # If it does take the cautious number of lines after all, it still has to
     # stay above the bottom margin.
     top = min(top, MARGIN + available - block)
-    return "\n".join(_head(quantity) + [
-        f"^FO{MARGIN},{top}^A0N,{height},0^FB{INNER},{lines},{gap},C"
-        f"^FD{words}^FS",
+    rows = [
+        f"^FO{MARGIN},{top + i * (height + gap)}^A0N,{height},0"
+        f"^FB{INNER},1,0,C^FD{line}^FS"
+        for i, line in enumerate(visual_lines)
+    ]
+    return "\n".join(_head(quantity) + rows + [
         "",
         f"^PQ{int(quantity)}",
         "^XZ",

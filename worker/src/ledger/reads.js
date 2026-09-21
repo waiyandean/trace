@@ -78,7 +78,9 @@ export async function getStock(db, { itemId = null, locationId = null } = {}) {
               -- The batch number is what staff read off the label today, so a
               -- picker that only knows the short code cannot be searched the
               -- way they already work.
-              l.batch_code, l.use_by, l.status, b.location_id, loc.name AS location_name, b.quantity
+              l.batch_code, l.use_by, l.status, l.opened_at,
+              i.kind, i.opening_rule, i.days_after_opening, i.storage_opened,
+              b.location_id, loc.name AS location_name, b.quantity
          FROM balances b
          JOIN lots l ON l.id = b.lot_id
          JOIN items i ON i.id = l.item_id

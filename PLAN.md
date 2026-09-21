@@ -656,6 +656,15 @@ with tests plus a supervised real submission before its line is ticked.
     than left looking like an omission. The flag stays null on the other 83
     items, meaning not yet determined rather than no mark.
 
+    **Corrected again 2026-09-16 (Dean): the mark is not exclusive to the raw
+    ingredients after all.** Chicken Broth and Tonkotsu Broth carry it too —
+    `catalog-overrides.json`'s own comment saying it "sits on the raw meat
+    and bone ingredients rather than on the products made from them" was
+    itself the thing that needed correcting, not a typo in applying it.
+    `scripts/catalog.sql` and the local database were both updated; the
+    approval number that goes inside the oval (`GB GA 121`) is not catalog
+    data at all and is hardcoded in `lib/zpl.js`, editable in one place.
+
   **Locations and suppliers settled 2026-08-31 (Dean).** Only Glasgow is in
   scope, with four storage areas: Dry Store and the Dry Store Allergen Free
   Shelf (both ambient), the Walk In Fridge (chill) and the Walk In Freezer
@@ -788,10 +797,19 @@ with tests plus a supervised real submission before its line is ticked.
   unset, because the dry store and the allergen-free shelf both fit and
   choosing between them for somebody would be a guess about allergens.
 
-  Labels are still not printed from the form. That is the separate workstream
-  in `labels/`, and until it lands the form shows each line's short code to be
-  written on the case by hand — which is no worse than today, where the code
-  is a date.
+  **Printed from the form as of 2026-09-16 (Dean).** The gap this note
+  described is closed: `worker/public/lib/zpl.js` builds the case label
+  client-side and prints it the moment a line is added, matching the pool's
+  own timing ("the code is taken now... because that is when the label is
+  written"). Deliberately separate from `labels/` rather than sharing its
+  code — see `lib/zpl.js`'s own header for why. Printing goes through a small
+  relay (`worker/scripts/print-relay.py`) on the kitchen laptop, itself
+  installed as a Windows service, fronted by a Cloudflare Tunnel
+  (`print-relay.deanops.uk`) so the browser's `https://` origin can reach it
+  at all — a plain `http://` LAN address would be refused outright as mixed
+  content once this form is served from Cloudflare rather than `localhost`.
+  See open question 1 for the fuller printing writeup, which now covers all
+  three of goods-in's, P3's and the Date Opened label.
 
   **The device identifies itself, and its section is a footnote (Dean,
   2026-08-31).** Nothing in it is an instruction, so it sits at the foot of
@@ -1011,6 +1029,23 @@ with tests plus a supervised real submission before its line is ticked.
   is built (Dean, 2026-08-31, reaffirmed 2026-09-04), so P3 cannot close
   formally until then either — everything above is proven locally and by
   test, not yet by a real batch run on the real iPad.
+
+  **Packing prints a real packet label now (2026-09-16), and two real gaps
+  turned up building it.** First: produced lots never actually got a batch
+  code — `produce.js` accepted one but `batching.js` never sent one, so
+  every produced lot's code was silently null since the day this phase was
+  built. Second: the use-by itself disagreed with the kitchen's own rule —
+  HANDOFF.md says whole months landing on the first of the result,
+  `deriveUseBy` was adding raw days, and `recipes.shelf_life_days` (fed by
+  `import_recipes.py`'s `months * 30` approximation) was never really a day
+  count in the first place. Both fixed: `recordPacking` now requires and
+  mints a batch code (`ddmm` + `GA` + a pot 1-8 for the two broths, cooked
+  several times a day) and a short code (minted directly, no device pool —
+  batching has no device, being online-only), and `deriveUseBy` mirrors
+  `labels/gui`'s own `months_on()` exactly. `lib/zpl.js`'s `buildPackingLabel`
+  is laid out to match `labels/gui`'s product label field for field (Dean:
+  "I don't want it looking different") — checked three times against a real
+  printed Chicken Broth label, closest by print in hand each time.
 - **P4 — Dispatch.** Consumes product lots and inherits their recorded use-by
   rather than calculating a new one. This closes the chain to the customer,
   which is the question an audit actually asks.
@@ -1184,6 +1219,64 @@ These need Dean's answer before the phase that depends on them.
    to *export* the ZPL for the label layout rather than writing coordinates by
    hand, and keep that output as the template.
 
+   **Ethernet proven 2026-09-16.** The cable arrived; the ZT231 is on the
+   kitchen LAN at `192.168.0.166`, port 9100 open. `labels/gui/printers.py`'s
+   `print_tcp` backend — written and waiting since before this, never
+   exercised — sent a label straight to that address with no bridge, no
+   Windows spooler, no USB in the path at all, and it printed. This is this
+   open question's own "prove raw ZPL over port 9100" — done.
+
+   **The Worker-to-printer bridge question this was all leading up to turned
+   out not to matter yet, because the browser is not the Worker.** Every
+   label trace prints on its own (below) is built and sent by the *page*,
+   which runs on a device already on the kitchen LAN or reachable over the
+   internet — not by the Cloudflare Worker, which still cannot reach the
+   kitchen LAN at all and was never going to be able to without one of the
+   three bridge options above. The three-way choice above remains exactly
+   right for the day the Worker itself needs to print (a scheduled label, an
+   admin reprint, anything not triggered by a page load) — it has simply not
+   been the blocker this session, because nothing built so far needed it.
+
+   **Three of the five label types print automatically from trace's own
+   forms now (2026-09-16), not from `labels/`, and deliberately not sharing
+   its code.** `worker/public/lib/zpl.js` builds Goods In's case label, P3's
+   packet label and the Date Opened label, each carrying the lot's real
+   short code and a QR for it — the templates the 2026-08-28 note above says
+   were "ready to be generated from" are generated now. See `lib/zpl.js`'s
+   own header for why this stays separate from `labels/gui`'s code even
+   where Dean asked the packet label to look the same as `labels/gui`'s:
+   `labels/gui` is the hand-operated tool for all five types including the
+   two this did not touch (Product Packet/Box as `labels/gui` still prints
+   it, and Notice), and trace's own catalog still does not carry allergens,
+   so a label built from what trace actually knows is honestly a narrower
+   thing than the compliance label `labels/gui` prints.
+
+   **Getting the browser to the printer needed its own small piece of
+   infrastructure, not one of the three bridge options — a relay, not a
+   bridge.** A browser has no raw-socket API (checked directly this session:
+   no, hosting the page on GitHub Pages or Cloudflare Pages would not change
+   this, it is a browser limit, not a hosting one), so something with real
+   socket access still has to sit between the page and port 9100.
+   `worker/scripts/print-relay.py` is that something: a small stdlib-only
+   HTTP server that does nothing but forward a POST body to the printer,
+   running on the kitchen laptop as a proper Windows service now
+   (`install-relay-service.bat`, alongside `labels/gui`'s own app getting the
+   same treatment), fronted by a Cloudflare Tunnel
+   (`print-relay.deanops.uk`). The tunnel is not optional polish: this form
+   is served over HTTPS, and a browser refuses outright to let an HTTPS page
+   call an HTTP endpoint at all, kitchen wifi or not — proven by testing it
+   directly rather than assumed. `sync-and-restart.bat` on a 4-hourly Task
+   Scheduler entry keeps both services current from the same Drive folder
+   `labels/gui` already used, opt-in and reversing HANDOFF.md's earlier "no
+   automatic Drive sync" call on purpose, since restarting the service right
+   after a sync is what makes that safe now.
+
+   **Still open:** a DHCP reservation for the printer's address (HANDOFF.md
+   said so before the cable even arrived, and it still is not done), and no
+   password on the relay or the tunnel hostname — anyone on the tunnel URL
+   can print to the kitchen printer right now, fine for the testing this
+   session did, not fine to leave once this is relied on daily.
+
    **Correction to an earlier version of this plan, which said
    scannable labels block P1 and P3: they do not.** The lot picker works
    without any scanning — "open lots of chicken feet, first-expiring first" is
@@ -1313,11 +1406,31 @@ These need Dean's answer before the phase that depends on them.
    decanting here empties the container rather than splitting it, which leaves
    the lot intact and nothing to trace apart.
 
-   What remains is the event: recording that a pack was opened, and applying
-   the rule to that lot's use-by. That belongs with P3, where the opened pack
-   is what a batch is drawn from. Products are left undetermined — the fifteen
-   are all ingredients, and whether an opened tub of chilli oil behaves the
-   same way has not been asked.
+   **The event is built, 2026-09-16** — later than "belongs with P3" above
+   expected, and living with P2's stock screen rather than P3's batching one
+   in the end: opening a pack does not move quantity or consume anything, so
+   it sits beside move/waste/hold as a state change on the lot, not beside
+   batching. `src/ledger/opening.js`'s `POST /api/open` stamps `opened_at`,
+   applies `shortens`/`no_change` from the item's own rule, and refuses a lot
+   that is not open, already opened, not an ingredient, or `whole_pack`.
+   `stock.html`'s "Mark opened & print label" — deliberately the largest
+   button on the screen now, bigger than throw-away/hold/move, because for
+   these fifteen items it is what the screen actually gets used for day to
+   day (Dean) — fires it and prints a real Date Opened label
+   (`lib/zpl.js`'s `buildDateOpenedLabel`, laid out to match `labels/gui`'s
+   own `date_opened()`) in one tap. Products are still left undetermined —
+   the fifteen are all ingredients, and whether an opened tub of chilli oil
+   behaves the same way has still not been asked.
+
+   Needed two small schema additions neither of which could go through a
+   normal migration once the local database held data — `events.kind` and
+   `lots.use_by_source` both needed a new allowed value, and D1 refuses to
+   `DROP TABLE` a table anything else still references no matter what
+   `PRAGMA foreign_keys` is set to (confirmed directly: it silently ignores
+   `OFF`). Edited migration 0002 in place instead, the same way `hold`/
+   `release` were added before it, and rebuilt local state from the
+   migrations plus the seed scripts rather than losing an evening to a
+   workaround for a limit that turned out not to have one.
 5. **Density, for the four items measured one way and counted another
    (Dean will verify later, 2026-09-02).** Five recipe lines cannot be checked
    against what was used because the recipe states a volume for something the

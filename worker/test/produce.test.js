@@ -19,7 +19,7 @@ function batchDb(overrides = {}) {
     },
     locations: { 'loc:freezer': { id: 'loc:freezer', name: 'Walk In Freezer', active: 1 } },
     staff: { 'staff:nikin': { id: 'staff:nikin', name: 'Nikin', active: 1 } },
-    recipe: { id: 'recipe:broth', shelf_life_days: 360 },
+    recipe: { id: 'recipe:broth', shelf_life_months: 12 },
     events: {},
     ...overrides,
   };
@@ -134,12 +134,12 @@ test('the use-by comes from the recipe, not from the form', async () => {
   const db = batchDb();
   await produce(db, batch());
   const lot = lotFields(sqlOf(db, 'INSERT INTO lots')[0]);
-  assert.equal(lot.use_by, '2027-08-28', '360 days from the day it was made');
+  assert.equal(lot.use_by, '2027-09-01', '12 whole months from the day it was made, on the 1st');
   assert.equal(lot.use_by_source, 'shelf_life_rule');
 });
 
 test('a product whose recipe states no shelf life gets no use-by rather than a guessed one', async () => {
-  const db = batchDb({ recipe: { id: 'recipe:broth', shelf_life_days: null } });
+  const db = batchDb({ recipe: { id: 'recipe:broth', shelf_life_months: null } });
   await produce(db, batch());
   const lot = lotFields(sqlOf(db, 'INSERT INTO lots')[0]);
   assert.equal(lot.use_by, null);
@@ -213,9 +213,12 @@ test('an ingredient cannot be produced as though it were a product', async () =>
   await assert.rejects(() => produce(db, batch({ item_id: 'item:carcass' })), /is not a product/);
 });
 
-test('the shelf life counts whole days from the day it was made', () => {
-  assert.equal(deriveUseBy('2026-09-02T23:50:00Z', 180), '2027-03-01');
-  assert.equal(deriveUseBy('2026-09-02T08:00:00Z', 360), '2027-08-28');
+test('the shelf life counts whole months from the day it was made, landing on the 1st', () => {
+  assert.equal(deriveUseBy('2026-09-02T23:50:00Z', 6), '2027-03-01');
+  assert.equal(deriveUseBy('2026-09-02T08:00:00Z', 12), '2027-09-01');
+  // Rounds down to the start of the month, never carries the packed day
+  // forward — the conservative direction (HANDOFF.md).
+  assert.equal(deriveUseBy('2026-09-30T08:00:00Z', 1), '2026-10-01');
 });
 
 // The batch's own facts, and the balance they make possible.

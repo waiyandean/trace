@@ -26,12 +26,21 @@ CREATE TABLE events (
   -- The forms that write to the ledger. Naming them up front was meant to
   -- save relaxing the constraint later; it did not, because holds were not
   -- thought of as submissions at the time. 'hold' and 'release' were added in
-  -- P2 by editing this file, which was only safe because these migrations had
-  -- never run anywhere but a local copy. Widening it after a deploy means
-  -- rebuilding the table, since SQLite cannot alter a CHECK.
+  -- P2 by editing this file, and 'open' the same way in P1/P2 (Dean,
+  -- 2026-09-17) -- both only safe because these migrations had never run
+  -- anywhere but a local copy. Widening it after a deploy means rebuilding
+  -- the table, since SQLite cannot alter a CHECK -- and that rebuild turns
+  -- out not to be possible in D1 at all once the table holds data: D1
+  -- enforces foreign keys unconditionally and silently ignores `PRAGMA
+  -- foreign_keys = OFF` (confirmed by testing it directly, both through a
+  -- migration file and a bare `PRAGMA foreign_keys;` read straight after
+  -- setting it), so `DROP TABLE events` fails the moment any other table
+  -- holds a row referencing it, which by this phase is nearly everything.
+  -- Recorded here rather than only in a commit message because the next
+  -- person to need a ninth `kind` will hit the same wall.
   kind            TEXT NOT NULL CHECK (kind IN (
                     'receive', 'move', 'waste', 'hold', 'release',
-                    'produce', 'dispatch', 'count', 'adjust'
+                    'produce', 'dispatch', 'count', 'adjust', 'open'
                   )),
 
   -- What makes offline sync safe. Minted with the submission on the device
@@ -121,7 +130,22 @@ CREATE TABLE lots (
   -- supplier's date proves
   -- wrong, which lots relied on it; and if seven days proves too generous,
   -- which lots were dated by the rule rather than by evidence.
-  use_by_source  TEXT CHECK (use_by_source IN ('supplier_printed', 'shelf_life_rule')),
+  --
+  -- 'opened_rule' added P1/P2 (Dean, 2026-09-17), distinct from
+  -- 'shelf_life_rule': the two answer different questions (what the
+  -- use-by would have been with no printed date at all, versus what it
+  -- became once an already-dated pack was opened), and collapsing them
+  -- would lose which one actually applied.
+  use_by_source  TEXT CHECK (use_by_source IN ('supplier_printed', 'shelf_life_rule', 'opened_rule')),
+
+  -- When the pack was opened, null until it is (PLAN.md open item 4 named
+  -- this the one thing still missing after the rule itself was settled in
+  -- P0: "the event: recording that a pack was opened, and applying the
+  -- rule to that lot's use-by"). A lot opened twice is refused by
+  -- src/ledger/opening.js rather than overwritten -- a second "opening" of
+  -- the same lot means either a duplicate label request or a genuine
+  -- second container, and the two need telling apart by a person.
+  opened_at      TEXT,
 
   status         TEXT NOT NULL DEFAULT 'open'
                    CHECK (status IN ('open', 'closed', 'held', 'written_off')),

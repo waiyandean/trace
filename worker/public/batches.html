@@ -64,6 +64,21 @@
     <ul class="lines" id="batches"></ul>
     <p class="empty" id="batches-empty">Loading…</p>
   </section>
+
+  <!-- Same field and same localStorage key as index.html's — set it once on
+       whichever page, it applies everywhere. Prints the packet labels the
+       moment a batch is packed out, through the same relay as Goods In
+       (lib/zpl.js), not through labels/gui. -->
+  <section id="printer-section" class="footnote">
+    <h2>Label printer</h2>
+    <div class="row">
+      <div class="field">
+        <label for="relay-url">Print relay address</label>
+        <input id="relay-url" placeholder="https://print-relay.deanops.uk" autocomplete="off" />
+      </div>
+    </div>
+    <p class="note">Leave this blank to pack out without printing.</p>
+  </section>
 </main>
 
 <dialog id="batch-dialog">
@@ -89,6 +104,13 @@
       <div class="field">
         <label for="packets">How many packets</label>
         <input id="packets" type="number" min="0" step="1" inputmode="numeric" />
+      </div>
+      <!-- Only shown for the broths, cooked several pots a day — the batch
+           code needs the pot to tell today's pots apart (HANDOFF.md, "Batch
+           codes"). Hidden for everything else, which needs no pot at all. -->
+      <div class="field" id="pot-row" hidden>
+        <label for="pot">Which pot</label>
+        <select id="pot"></select>
       </div>
     </div>
     <ul class="attest">

@@ -35,11 +35,6 @@ ALIASES = {
     "kikkoman": "Japanese Soy Sauce",
 }
 
-# The kitchen states shelf life in months. Thirty days a month is the kitchen's
-# own arithmetic rather than a calendar month, and it is stated here so a
-# use-by can be checked rather than trusted.
-DAYS_PER_MONTH = 30
-
 # The same two conversions the Worker applies without evidence, kept in step
 # with src/ledger/units.js: one unit spelled two ways, and the metric
 # prefixes. Anything else is a fact about the item and belongs in the
@@ -115,8 +110,7 @@ def main():
             continue
         products.append({
             "name": name,
-            "shelfLifeMonths": None,
-            "shelf_life_days": recipe.get("shelf_life_days"),
+            "shelfLifeMonths": recipe.get("shelf_life_months"),
             "note": f"{recipe.get('note')} (stated by {provenance})",
             "checkpoints": recipe.get("checkpoints") or [],
             "ingredientTargets": [
@@ -160,15 +154,22 @@ def main():
             skipped.append(f"{product['name']} — needs {', '.join(sorted(set(absent)))}")
             continue
 
+        # Whole months, matching HANDOFF.md's own rule exactly ("Shelf life
+        # is counted in whole months... Twelve for the broths and six for
+        # everything else") rather than the DAYS_PER_MONTH approximation
+        # this importer used to store — that conversion (180/360 "days")
+        # was never a real day count, only months in a column that did not
+        # yet exist, and deriveUseBy() added it as raw days, which drifted
+        # the use-by off the 1st of the month it was supposed to land on
+        # (found and fixed in produce.js, 2026-09-17).
         months = product.get("shelfLifeMonths")
-        days = product.get("shelf_life_days") or (months * DAYS_PER_MONTH if months else None)
         note = product.get("note") or (f"{months} months, as the kitchen states it" if months else None)
         recipe_id = f"recipe:{item['id']}"
         lines.append(
-            f"INSERT INTO recipes (id, item_id, shelf_life_days, note) VALUES "
-            f"({sql_str(recipe_id)}, {sql_str(item['id'])}, {sql_num(days)}, {sql_str(note)})\n"
+            f"INSERT INTO recipes (id, item_id, shelf_life_months, note) VALUES "
+            f"({sql_str(recipe_id)}, {sql_str(item['id'])}, {sql_num(months)}, {sql_str(note)})\n"
             "  ON CONFLICT (item_id) DO UPDATE SET "
-            "shelf_life_days = excluded.shelf_life_days, note = excluded.note, "
+            "shelf_life_months = excluded.shelf_life_months, note = excluded.note, "
             "updated_at = datetime('now');"
         )
         # Replaced rather than merged: a line dropped from a recipe upstream

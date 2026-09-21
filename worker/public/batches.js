@@ -1,4 +1,11 @@
 import { ulid, makeStore } from './lib/offline.js';
+import { buildPackingLabel } from './lib/zpl.js';
+
+// Cooked several pots a day, so the batch code needs the pot to tell today's
+// pots apart (HANDOFF.md, "Batch codes"). Mirrored in src/ledger/packing.js,
+// which is the one that actually enforces it — this copy is only what
+// decides whether to show the field.
+const POT_ITEMS = new Set(['Chicken Broth', 'Tonkotsu Broth']);
 
 // What every unfinished batch is still waiting for.
 //
@@ -11,6 +18,7 @@ import { ulid, makeStore } from './lib/offline.js';
 const $ = (id) => document.getElementById(id);
 const store = makeStore(window.localStorage);
 const STAFF_KEY = 'trace.intake.staff';
+const RELAY_KEY = 'trace.intake.relay';
 
 const state = { catalog: null, batches: [], open: null, unproven: [] };
 
@@ -150,6 +158,20 @@ async function openBatch(batch) {
   $('packets').value = '';
   $('labelled').checked = false;
 
+  const needsPot = POT_ITEMS.has(batch.product_name);
+  $('pot-row').hidden = !needsPot;
+  if (needsPot) {
+    $('pot').replaceChildren(
+      ...Array.from({ length: 8 }, (_, i) => {
+        const option = document.createElement('option');
+        option.value = String(i + 1);
+        option.textContent = `Pot ${i + 1}`;
+        return option;
+      }),
+    );
+    $('pot').value = '1';
+  }
+
   const packed = Boolean(batch.packed_at);
   $('pack-heading').hidden = packed;
   $('pack-form').hidden = packed;
@@ -272,6 +294,83 @@ async function recordCheck(check, input) {
   await refresh();
 }
 
+// ddmm + the GA suffix + a pot where the product needs one. Local
+// wall-clock date components, same reasoning as lib/offline.js's
+// batchCodeFor for goods-in: parsing this from occurred_at's ISO instant on
+// the server would put the wrong day on a label packed either side of a UTC
+// midnight that is not the kitchen's midnight.
+function packingBatchCode(productName) {
+  const pad = (value) => String(value).padStart(2, '0');
+  const now = new Date();
+  const ddmm = `${pad(now.getDate())}${pad(now.getMonth() + 1)}`;
+  const pot = POT_ITEMS.has(productName) ? $('pot').value : '';
+  return `${ddmm}GA${pot}`;
+}
+
+async function printPacking(batch, batchCode, packetsProduced) {
+  const relay = $('relay-url').value.trim();
+  if (!relay || !batch.short_code) return;
+
+  const zpl = buildPackingLabel({
+    name: batch.product_name,
+    shortCode: batch.short_code,
+    batch: batchCode,
+    useBy: batch.use_by,
+    packed: new Date().toISOString().slice(0, 10),
+    quantity: packetsProduced,
+    healthMark: batch.needs_health_mark === true,
+  });
+
+  try {
+    const response = await fetch(`${relay.replace(/\/$/, '')}/print`, {
+      method: 'POST',
+      headers: { 'content-type': 'text/plain' },
+      body: zpl,
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok || !body.ok) {
+      notify(`Packet labels did not print: ${body.error || response.status}. Label them by hand.`, 'warn');
+    }
+  } catch {
+    notify(`Could not reach the print relay at ${relay}. Label the packets by hand.`, 'warn');
+  }
+
+  await printSeal(batch, batchCode, relay);
+}
+
+// The Brother box seal: name, barcode, batch, best before and the health
+// mark oval, small enough it does not cover the printed box artwork. Only
+// frozen ramen carries this seal, so the category lookup (not a hardcoded
+// name list here — see seal-info) decides whether it fires at all. A failure
+// here is reported separately from the case label above, because one can
+// print while the other does not.
+async function printSeal(batch, batchCode, relay) {
+  const info = await api(`/api/labels/seal-info?item=${encodeURIComponent(batch.product_name)}`);
+  if (!info.ok || info.body.category !== 'Frozen Ramen') return;
+
+  try {
+    const response = await fetch(`${relay.replace(/\/$/, '')}/print-seal`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        name: batch.product_name,
+        batch: batchCode,
+        useBy: batch.use_by,
+        barcode: info.body.barcode,
+        healthMark: info.body.healthMark,
+        hmCountry: info.body.hmCountry,
+        hmCode: info.body.hmCode,
+      }),
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok || !body.ok) {
+      notify(`Box seal label did not print: ${body.error || response.status}. Seal the boxes by hand.`, 'warn');
+    }
+  } catch {
+    notify(`Could not reach the print relay at ${relay} for the box seal. Seal the boxes by hand.`, 'warn');
+  }
+}
+
 async function packOut() {
   const batch = state.open.batch;
   const problems = [];
@@ -280,6 +379,7 @@ async function packOut() {
   if (!$('where').value) problems.push('where it is going');
   if ($('packets').value === '') problems.push('how many packets');
   if (!$('labelled').checked) problems.push('that every packet carries its label');
+  if (POT_ITEMS.has(batch.product_name) && !$('pot').value) problems.push('which pot this came from');
 
   const outstanding = state.open.checks.filter((check) => !check.recorded_at);
   if (outstanding.length) {
@@ -294,6 +394,9 @@ async function packOut() {
     return;
   }
 
+  const batchCode = packingBatchCode(batch.product_name);
+  const packetsProduced = Number($('packets').value);
+
   const response = await api('/api/packing', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -305,8 +408,9 @@ async function packOut() {
       lot_id: batch.lot_id,
       location_id: $('where').value,
       yield_quantity: Number($('yield').value),
-      packets_produced: Number($('packets').value),
+      packets_produced: packetsProduced,
       label_check: $('labelled').checked,
+      batch_code: batchCode,
     }),
   });
 
@@ -325,6 +429,17 @@ async function packOut() {
       `${balance.input} ${response.body.unit} in, ${balance.output} out, ` +
       `a difference of ${balance.difference}.`,
     'ok',
+  );
+  // Fired after the server confirms rather than before, unlike goods-in's
+  // line-add — P3 is online-only (PLAN.md, "Where the iPad actually is"),
+  // so there is no offline gap here to print ahead of. Uses the response's
+  // own short_code/batch_code rather than `batch` (state.open.batch, fetched
+  // before packing): that snapshot's short_code is always null, since the
+  // code is minted server-side inside recordPacking, not before it.
+  await printPacking(
+    { ...batch, short_code: response.body.short_code },
+    response.body.batch_code,
+    packetsProduced,
   );
   await load();
 }
@@ -442,6 +557,7 @@ async function boot() {
   state.catalog = { staff, locations };
   fillSelect($('staff'), staff, { placeholder: 'Choose your name', selected: store.read(STAFF_KEY, null) });
   fillSelect($('where'), locations, { placeholder: 'Choose where it is going' });
+  $('relay-url').value = store.read(RELAY_KEY, 'https://print-relay.deanops.uk');
 
   $('net').textContent = online() ? 'online' : 'offline';
   $('net').className = `pill ${online() ? 'ok' : 'warn'}`;
@@ -450,6 +566,7 @@ async function boot() {
 }
 
 $('staff').addEventListener('change', (event) => store.write(STAFF_KEY, event.target.value));
+$('relay-url').addEventListener('change', (event) => store.write(RELAY_KEY, event.target.value.trim()));
 $('pack-save').addEventListener('click', packOut);
 $('batch-close').addEventListener('click', () => $('batch-dialog').close());
 $('open-unproven').addEventListener('click', async () => {
