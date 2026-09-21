@@ -1174,6 +1174,74 @@ with tests plus a supervised real submission before its line is ticked.
   for missing lots, negative balances and conflicting dates. Simple versions of
   these are built alongside P1–P5 to validate the data model as it grows; P6 is
   where they become the finished operational views.
+
+  **Progress 2026-09-21.** Built on `worker/p6-reports-v2` and passing 333
+  tests. `src/ledger/reports.js` gives a lot's one-hop genealogy in both
+  directions and a bundled `GET /api/alerts` over the four queues P1–P5
+  already wrote plus two new integrity scans, negative balances and
+  conflicting dates. `worker/public/reports.html` is the screen over them.
+
+  **The recall walk is what makes P6 answer the audit question.** One hop
+  cannot say which customers received product made from a bad ingredient
+  lot, and P7's exit criterion is a timed mock recall of exactly that.
+  `GET /api/recall?lot=…&direction=forward|back` (`src/ledger/recall.js`)
+  follows the `CONSUME` edge the whole way: forward from a lot to the batches
+  it went into, the product lots those made and the dispatches those left on,
+  and back from a product lot to the ingredient lots and their suppliers. The
+  answer is a flat list rather than a tree: what went to customers, what is
+  still in the building, what was made from it, what was binned.
+
+  Three rules in it are decisions rather than implementation:
+
+  - **A recall is conservative and never apportions.** If 2 kg of a bad lot
+    went into a 40 L batch, the whole batch is listed, because nothing
+    records which part of the 40 L held it.
+  - **What the ledger cannot see is returned as `gaps`, not left off.** An
+    `unproven_inputs` row is a batch that used an item with no lot named, so a
+    forward recall cannot rule it out and a backward trace cannot see above
+    it. Forward, a gap is listed only where the batch falls between the lot
+    arriving and its use-by; a batch from before the lot existed cannot have
+    contained it. An empty list therefore means nothing was found, never that
+    nothing was looked for.
+  - **The walk is capped at ten hops and says so.** Real chains are about
+    three deep, so reaching the cap means the data is wrong, and the result
+    carries `truncated` and the screen shows a warning rather than a silently
+    short list. A lot reached by two routes, as when one ingredient feeds both
+    an oil and the broth the oil goes into, is listed once and names both.
+
+  Its tests run the real SQL against the real schema (`test/sqliteDb.js`
+  applies every migration to an in-memory SQLite), because the canned-row
+  fake used elsewhere cannot tell whether a recursive query is right. The
+  screen was also driven against a scratch local D1 with a seeded chain.
+
+  **Mass balance across a period is built too** (`GET
+  /api/period-balance?from=&to=`, `src/ledger/balance.js`, and a section on
+  the same screen). Per item: what was on hand at the start, what was
+  received or made, what was used, sent and binned, what the weekly counts
+  corrected, and what is on hand now. Every figure is a sum over `movements`,
+  and the report proves it: `other` is what is left when the flows are taken
+  off the closing balance, must be zero, and is shown as a fault if it is not,
+  since it would mean a movement type is being written that the report does
+  not know about. The list is ordered by the size of the count corrections as
+  a share of what there was to lose, biggest first.
+
+  What it deliberately does not do. It sets **no threshold** for what counts
+  as a worrying variance, because nothing yet says where that line is and an
+  invented one would teach staff to trust or ignore it. It cannot see a
+  supplier short-shipping, because no ordered or invoiced quantity is
+  recorded to compare a delivery against. And it cannot see recipe over-use
+  directly, only the count corrections that over-use eventually causes.
+
+  Two things it says on the row instead of leaving to be misread. **Bulk
+  kilograms are marked nominal**, read from the catalog rather than listed by
+  hand: an item whose case converts straight to its base unit, which today is
+  exactly chicken carcass, femur bones, hind feet and pork fat, so their small
+  variance is not chased as loss (see open question 4). And **use with no lot
+  named is stated beside its item**, because it never wrote a `CONSUME`, so
+  the ledger overstates stock by exactly that much and the next count tends to
+  write it back down as an adjustment that looks like loss and is not.
+  Quantities entered in a different unit are stated as given, not added in.
+
 - **P7 — Parallel run and cutover.** Old and new run together for an agreed,
   time-boxed period, reconciled daily, with a timed mock recall as the exit
   criterion. Old forms are retired only after that passes.

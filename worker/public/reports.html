@@ -40,12 +40,30 @@
   margin: 0; padding: 10px 16px 4px;
 }
 .trace-edges .empty { padding: 4px 16px 12px; font-size: 14px; color: var(--muted); }
+.recall-actions { display: flex; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.recall-actions button { flex: 1 1 200px; }
+#recall h3, #balance h3 {
+  font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted);
+  margin: 0; padding: 14px 16px 4px;
+}
+#recall .empty, #balance .empty { padding: 4px 16px 12px; font-size: 14px; color: var(--muted); }
+#recall .headline { padding: 14px 16px; font-size: 16px; font-weight: 600; border-top: 1px solid var(--line); }
+#recall .rows, #balance .rows { list-style: none; margin: 0; padding: 0; }
+#recall .rows li, #balance .rows li { border-top: 1px solid var(--line); padding: 10px 16px; }
+#recall .rows .name, #balance .rows .name { font-weight: 600; }
+#recall .rows .detail, #balance .rows .detail { font-size: 14px; color: var(--muted); margin-top: 2px; }
+#recall .rows .flag, #balance .rows .flag { color: var(--warn); font-weight: 600; }
 .picker-row {
   border-top: 1px solid var(--line); padding: 10px 16px; display: flex; gap: 10px;
   align-items: center; cursor: pointer; background: none; width: 100%; text-align: left; font: inherit;
 }
 .picker-row b { display: block; }
 .picker-row .detail { font-size: 13px; color: var(--muted); }
+#balance .rows .detail { white-space: pre-line; }
+#balance .rows .tag {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+  margin-left: 8px; padding: 2px 6px; border-radius: 6px; background: var(--sunk); color: var(--muted);
+}
 </style>
 </head>
 <body>
@@ -94,7 +112,37 @@
         <h3>Fed into — one step forward</h3>
         <div id="trace-forward"></div>
       </div>
+      <div class="recall-actions">
+        <button id="recall-forward" type="button">Recall: who did this reach?</button>
+        <button id="recall-back" type="button" class="secondary">Recall: what is it made from?</button>
+      </div>
     </div>
+    <div id="recall" hidden>
+    </div>
+  </section>
+
+  <section>
+    <h2>Mass balance</h2>
+    <p class="note">Per item over a period: what was there, what came in, where it went, and what the weekly
+      counts had to correct. Biggest correction first. A correction is where a short delivery, a recipe using
+      more than it states, or a miscounted shelf would show up.</p>
+    <div class="row">
+      <div class="field"><label for="bal-from">From</label><input id="bal-from" type="date" /></div>
+      <div class="field"><label for="bal-to">To</label><input id="bal-to" type="date" /></div>
+      <div class="field">
+        <label for="bal-kind">Show</label>
+        <select id="bal-kind">
+          <option value="ingredient">Ingredients</option>
+          <option value="product">Products</option>
+          <option value="">Both</option>
+        </select>
+      </div>
+      <div class="field" style="flex: 0 0 auto; align-self: flex-end;">
+        <button id="bal-go" type="button">Show</button>
+      </div>
+    </div>
+    <div id="bal-error"></div>
+    <div id="balance"></div>
   </section>
 </main>
 

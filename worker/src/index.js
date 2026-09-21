@@ -14,6 +14,8 @@ import { recordCount, countResult, recentCounts, openCountLines, resolveCountLin
 import { recordOpening } from './ledger/opening.js';
 import { bootstrap as labelsBootstrap, items as labelsItems, form as labelsForm, render as labelsRender, sealInfo as labelsSealInfo, sealRender as labelsSealRender } from './labels/handlers.js';
 import { traceLot, alerts } from './ledger/reports.js';
+import { recall } from './ledger/recall.js';
+import { periodBalance } from './ledger/balance.js';
 
 // The `trace` Worker.
 //
@@ -63,6 +65,12 @@ import { traceLot, alerts } from './ledger/reports.js';
 //        Printing is not a Worker route — the page posts the ZPL straight to
 //        the print relay on the kitchen laptop, same as goods-in.js.
 //   GET  /api/trace?lot=…         a lot's one-hop genealogy: what fed it, what it fed
+//   GET  /api/recall?lot=…&direction=forward|back
+//                                 the whole chain from a lot, not one hop: forward reaches
+//                                 customers, back reaches suppliers; gaps stated, not dropped
+//   GET  /api/period-balance?from=…&to=…[&item=…][&kind=ingredient|product]
+//                                 per item over a period: opening, in, out, counted
+//                                 corrections, closing, and what the ledger could not see
 //   GET  /api/alerts              every open alert bundled: deviations, holds,
 //                                 unproven inputs, unresourced count lines,
 //                                 negative balances, conflicting dates
@@ -113,6 +121,8 @@ const ROUTES = {
   '/api/labels/seal-info': ['GET'],
   '/api/labels/seal-render': ['POST'],
   '/api/trace': ['GET'],
+  '/api/recall': ['GET'],
+  '/api/period-balance': ['GET'],
   '/api/alerts': ['GET'],
 };
 
@@ -186,6 +196,15 @@ async function route(request, env, url) {
         match[1], decodeURIComponent(match[2]), url.searchParams.get('supplier')));
     }
     if (url.pathname === '/api/trace') return json(await traceLot(db, url.searchParams.get('lot')));
+    if (url.pathname === '/api/recall') {
+      return json(await recall(db, url.searchParams.get('lot'), url.searchParams.get('direction') || 'forward'));
+    }
+    if (url.pathname === '/api/period-balance') {
+      const q = url.searchParams;
+      return json(await periodBalance(db, {
+        from: q.get('from'), to: q.get('to'), item: q.get('item'), kind: q.get('kind'),
+      }));
+    }
     if (url.pathname === '/api/alerts') return json(await alerts(db));
     return null;
   }
