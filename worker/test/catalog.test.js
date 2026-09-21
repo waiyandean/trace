@@ -4,7 +4,7 @@ import { fakeDb } from './fakeDb.js';
 import { handleCatalog, getItems, getConversions } from '../src/catalog/handlers.js';
 import { BadRequest } from '../src/http.js';
 
-const catalogUrl = (query) => new URL(`https://trace.example/api/catalog?${query}`);
+const catalogUrl = (query) => new URL(`https://localhost/api/catalog?${query}`);
 
 test('items default to active rows only, ordered by name', async () => {
   const db = fakeDb(() => []);

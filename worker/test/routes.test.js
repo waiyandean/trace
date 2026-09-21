@@ -94,7 +94,7 @@ test('tracing with no lot is a 400', async () => {
 
 test('tracing is a read, so a POST to it is refused', async () => {
   const env = { DB: fakeDb(() => []) };
-  const res = await worker.fetch(new Request('https://trace.example/api/trace', { method: 'POST' }), env);
+  const res = await worker.fetch(new Request('https://localhost/api/trace', { method: 'POST' }), env);
   assert.equal(res.status, 405);
   assert.equal(res.headers.get('allow'), 'GET');
 });
@@ -111,7 +111,7 @@ test('a recall with no lot is a 400, and with a bad direction is a 400', async (
 
 test('a recall is a read, so a POST to it is refused', async () => {
   const env = { DB: fakeDb(() => []) };
-  const res = await worker.fetch(new Request('https://trace.example/api/recall', { method: 'POST' }), env);
+  const res = await worker.fetch(new Request('https://localhost/api/recall', { method: 'POST' }), env);
   assert.equal(res.status, 405);
   assert.equal(res.headers.get('allow'), 'GET');
 });
@@ -125,7 +125,7 @@ test('a balance with no dates is a 400 that says which', async () => {
 
 test('a balance is a read, so a POST to it is refused', async () => {
   const env = { DB: fakeDb(() => []) };
-  const res = await worker.fetch(new Request('https://trace.example/api/period-balance', { method: 'POST' }), env);
+  const res = await worker.fetch(new Request('https://localhost/api/period-balance', { method: 'POST' }), env);
   assert.equal(res.status, 405);
   assert.equal(res.headers.get('allow'), 'GET');
 });
