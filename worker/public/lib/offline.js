@@ -84,8 +84,12 @@ export function makeQueue(store) {
     pending: () => all().filter((entry) => entry.status === 'pending'),
     rejected: () => all().filter((entry) => entry.status === 'rejected'),
 
-    add(payload) {
-      const entry = { payload, status: 'pending', queued_at: new Date().toISOString(), attempts: 0, error: null };
+    // `token` is the sign-in of the person who keyed it. It travels with the
+    // record because the server judges a token by when the record was made, so
+    // a delivery sent hours later still goes out as the person who took it.
+    // It is dropped as soon as the record is settled either way.
+    add(payload, token = null) {
+      const entry = { payload, token, status: 'pending', queued_at: new Date().toISOString(), attempts: 0, error: null };
       const entries = all();
       entries.push(entry);
       return save(entries) ? entry : null;
@@ -350,7 +354,7 @@ export async function syncQueue(queue, post) {
   for (const entry of queue.pending()) {
     let response;
     try {
-      response = await post(entry.payload);
+      response = await post(entry.payload, entry.token);
     } catch {
       // No network, or the request never landed. The submission stays
       // pending: a retry is safe because the idempotency key travels with it.
@@ -361,6 +365,7 @@ export async function syncQueue(queue, post) {
     if (response.ok) {
       queue.update(entry.payload.idempotency_key, {
         status: 'sent',
+        token: null,
         result: response.body,
         attempts: entry.attempts + 1,
         error: null,
@@ -371,6 +376,7 @@ export async function syncQueue(queue, post) {
       // help, so it is parked where a person will see it.
       queue.update(entry.payload.idempotency_key, {
         status: 'rejected',
+        token: null,
         attempts: entry.attempts + 1,
         error: response.body?.error || `refused with ${response.status}`,
       });

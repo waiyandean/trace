@@ -1559,10 +1559,45 @@ These need Dean's answer before the phase that depends on them.
      time claimed in the future is treated as now, so it cannot stretch a
      token's life.
 
-   Still to do: the forms need a sign-in screen in place of the dropdown, the
-   offline queue must hold a submission whose token has expired rather than
-   drop it, Access needs setting up on a hostname, and the two secrets have to
-   be put on the Worker. Nothing here has been deployed.
+   **The forms sign in now.** A shared sign-in screen (`public/lib/signin.js`,
+   the pure half in `lib/auth.js`) replaces each form's name dropdown with a
+   name grid and a keypad big enough for a gloved thumb, then a line reading
+   "Dean · until 03:10" with a "Not you?" button. The dropdown stays in the
+   page, hidden and holding only the person signed in, so the code that builds
+   a submission is unchanged; the server takes the person from the token
+   regardless, so that value is only ever the same name, never the source of
+   it. Every form's requests carry the token, a sign-in the server refuses
+   drops back to the screen, and one that runs out mid-shift is noticed within
+   half a minute with the form underneath left untouched.
+
+   **A queued goods-in record carries the token of the person who keyed it**,
+   and goes out with that one however long it waited and whoever is signed in
+   when the wifi returns, or the server would refuse it as somebody else's. The
+   token is dropped from the record the moment it is settled either way. A
+   record the server refuses for its sign-in is parked as refused, visibly,
+   rather than retried for ever, which cannot help: a token that is invalid or
+   more than seven days past its expiry will not get better. The service
+   worker's shell now includes the new modules, so Goods In still opens with
+   no signal.
+
+   Driven end to end in a browser against a scratch local D1: the name grid,
+   a wrong PIN and the right one, a hold recorded through the Stock form, and
+   the ledger showing that person as its author.
+
+   **Sign-in lifetime settled at twelve hours (Dean, 2026-09-21).** Signing in
+   needs a connection and the server refuses something made after a token has
+   expired, so the case to worry about is a token running out while the iPad is
+   offline. The longest the iPad is realistically without a connection is two
+   to three hours, unless it is powered off, so that only bites if the twelve
+   hours happen to end inside one such gap, and even then everything recorded
+   before that moment is still accepted when it is sent. Not worth a longer
+   token, which would leave a shared iPad signed in as somebody for longer. The
+   "until" time on screen is there so it can be seen coming, and the lifetime
+   is one constant, `TOKEN_TTL_S`, if that ever changes.
+
+   Still to do: Access needs setting up on a hostname of trace's own, and the
+   two secrets have to be put on the Worker before anything is deployed.
+   Nothing here has been deployed.
 10. **Packaging — resolved 2026-09-04 (Dean).** Stays out of scope, same as
    the old rebuild. Nothing in the join failures this project exists to fix —
    not the 12,731 recorded uses, not the 2,675 delivery rows — ever pointed at

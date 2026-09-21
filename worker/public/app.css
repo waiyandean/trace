@@ -223,3 +223,22 @@ dialog header { border-radius: 16px 16px 0 0; }
 .hold .row { padding: 10px 0 0; }
 .hold .outcomes { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 10px; }
 .hold .outcomes button { flex: 1 1 120px; min-height: 40px; font-size: 15px; }
+
+/* Sign-in: a name grid, then a keypad big enough for a gloved thumb. */
+.signin {
+  position: fixed; inset: 0; z-index: 1000; background: var(--bg);
+  display: flex; align-items: center; justify-content: center; padding: 16px; overflow-y: auto;
+}
+.signin-card { width: 100%; max-width: 380px; text-align: center; }
+.signin-card h2 { font-size: 24px; margin: 0 0 12px; }
+.signin-hint { color: var(--muted); margin: 0 0 8px; }
+.signin-msg { min-height: 1.4em; margin: 8px 0; color: var(--bad); font-size: 15px; }
+.signin-dots { font-size: 32px; letter-spacing: 6px; margin: 8px 0; }
+.signin-names { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; }
+.signin-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.signin-names button, .signin-pad button { min-height: 64px; font-size: 20px; }
+.signin-pad button:nth-last-child(3) { font-size: 15px; }
+.signed-in { display: flex; align-items: center; gap: 8px; min-height: 44px; }
+.signed-in .who { font-weight: 700; }
+.signed-in .until { color: var(--muted); flex: 1; }
+.signed-in button { min-height: 34px; padding: 4px 12px; font-size: 14px; flex: none; }

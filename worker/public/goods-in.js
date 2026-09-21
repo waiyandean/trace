@@ -4,6 +4,8 @@ import {
   groupByStorage, soleLocationFor, forSupplier, splitByRole, usualSupplierFor, duplicateLines,
   probeKindFor, withinLimit, vehicleReadingsNeeded,
 } from './lib/offline.js';
+import { authedFetch, mountStaff, session } from './lib/signin.js';
+import { bearer } from './lib/auth.js';
 import { buildGoodsInLabel } from './lib/zpl.js';
 
 // The goods intake form. Everything it needs to accept a delivery is on the
@@ -56,7 +58,7 @@ const state = {
 // ---------------------------------------------------------------- network
 
 async function api(path, options) {
-  const response = await fetch(path, options);
+  const response = await authedFetch(path, options);
   const body = await response.json().catch(() => ({}));
   return { ok: response.ok, status: response.status, body };
 }
@@ -787,7 +789,7 @@ async function submitDelivery() {
 
   // Queued before it is sent, always. If this device dies on the next line
   // the delivery is still on it.
-  if (!queue.add(submission)) {
+  if (!queue.add(submission, session.current()?.token ?? null)) {
     notify(
       'This device could not store the record, so it has NOT been saved. Do not clear the screen: '
         + 'write the delivery down.',
@@ -810,10 +812,12 @@ async function submitDelivery() {
 }
 
 async function drainQueue() {
-  const results = await syncQueue(queue, async (payload) =>
+  // Each record goes out with the token of whoever keyed it, which may not be
+  // whoever is signed in by the time the wifi is back.
+  const results = await syncQueue(queue, async (payload, token) =>
     api('/api/receive', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', ...(token ? bearer(token) : {}) },
       body: JSON.stringify(payload),
     }),
   );
@@ -997,7 +1001,7 @@ async function boot() {
   if (!state.catalog) {
     notify('No catalog on this device and no connection. Connect once before using this at the door.', 'bad');
   } else {
-    fillSelect($('staff'), state.catalog.staff, { placeholder: 'Choose your name', selected: store.read(STAFF_KEY, null) });
+    mountStaff($('staff'), state.catalog.staff);
     fillSelect($('supplier'), state.catalog.suppliers, { placeholder: 'Choose the supplier' });
   }
 

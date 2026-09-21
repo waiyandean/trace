@@ -1,4 +1,5 @@
 import { ulid, makeStore, unitsFor } from './lib/offline.js';
+import { authedFetch, mountStaff } from './lib/signin.js';
 
 // The weekly count: what the ledger thinks is in one storage area against what
 // is physically counted there. The difference is written as ADJUST movements
@@ -21,7 +22,7 @@ const STAFF_KEY = 'trace.intake.staff';
 const state = { catalog: null, ledger: new Map(), lines: [], chosen: null, openLines: [], resolving: null };
 
 async function api(path, options) {
-  const response = await fetch(path, options);
+  const response = await authedFetch(path, options);
   const body = await response.json().catch(() => ({}));
   return { ok: response.ok, status: response.status, body };
 }
@@ -526,7 +527,7 @@ async function boot() {
   const [staff, locations, items, conversions] = responses.map((response) => response.body.rows);
   state.catalog = { staff, locations, items, conversions };
 
-  fillSelect($('staff'), staff, { placeholder: 'Choose your name', selected: store.read(STAFF_KEY, null) });
+  mountStaff($('staff'), staff);
   renderAreas();
 
   $('net').textContent = online() ? 'online' : 'offline';
