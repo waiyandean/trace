@@ -1585,6 +1585,127 @@ These need Dean's answer before the phase that depends on them.
 9. **Authentication.** The current forms use a staff picker with no real login.
    An audit trail naming who recorded and who approved an amendment is weaker
    if anyone can pick any name. Whether that changes, and to what, is open.
+
+   **Backend built 2026-09-21, on `worker/auth`; the forms are not yet
+   changed to use it.** Two separate problems were folded into the one
+   question, and they have separate answers. *Who can reach the app at all*
+   is a gate in front of the whole Worker, Cloudflare Access on a hostname of
+   trace's own (it has none yet; the label routes on `forms.deanops.uk` stay
+   public and outside it), with the kitchen iPad signing in through a shared
+   kitchen email. *Who is recording* is what the audit trail depends on, and
+   Access alone does not answer it, so that is a PIN per person.
+
+   A person signs in with a fixed four-digit PIN (`POST /api/login`) and gets a
+   signed token good for a shift. From then on the server takes the person
+   from the token and **ignores `staff_id` in the request body**, refusing one
+   that names somebody else, so the dropdown stops being a source of truth.
+   `src/auth.js` holds all of it, and every write is authenticated except the
+   public label routes. Decisions it enforces:
+
+   - **A four-digit PIN is only as strong as its guard rails, so it has them.**
+     Five wrong tries lock that person out for ten minutes, doubling on each
+     repeat up to a day; a locked person is refused before the PIN is looked
+     at, so guessing during a lockout learns nothing and does not extend it.
+   - **A copy of the database reveals no PIN.** With only 10,000 possibilities
+     a plain hash is cracked instantly, so the stored value is an HMAC keyed
+     with `PIN_PEPPER`, a Worker secret held outside the database, plus a
+     per-row salt. Tokens are signed with a separate `AUTH_SECRET`, so signing
+     everybody out does not invalidate every PIN. Both are required; with
+     either missing every write is refused, since an unconfigured server must
+     not be an open one.
+   - **The kitchen's existing clock-in codes can be reused as PINs (Dean,
+     2026-09-21).** `scripts/set-pin.mjs` takes each person's code typed hidden
+     in a terminal, twice, and stores only the hash, so the codes are never
+     printed, logged or seen by anybody else. An administrator may set a weak
+     code with a warning; a person changing their own PIN in the app may not.
+     The costs of reusing a code that belongs to another system are that
+     trace's attribution is only as private as that code is (a code shared
+     for clocking someone else in is shared here too), and that a code changed
+     in the clock-in system is not changed here until it is set again.
+   - **A submission is judged by when it was made, not when it arrived.** A
+     delivery keyed at the van with no signal and sent hours later was made
+     with a token that was valid, and is accepted. What is refused is use
+     before sign-in, after expiry, or more than seven days after expiry. A
+     time claimed in the future is treated as now, so it cannot stretch a
+     token's life.
+
+   **The forms sign in now.** A shared sign-in screen (`public/lib/signin.js`,
+   the pure half in `lib/auth.js`) replaces each form's name dropdown with a
+   name grid and a keypad big enough for a gloved thumb, then a line reading
+   "Dean · until 03:10" with a "Not you?" button. The dropdown stays in the
+   page, hidden and holding only the person signed in, so the code that builds
+   a submission is unchanged; the server takes the person from the token
+   regardless, so that value is only ever the same name, never the source of
+   it. Every form's requests carry the token, a sign-in the server refuses
+   drops back to the screen, and one that runs out mid-shift is noticed within
+   half a minute with the form underneath left untouched.
+
+   **A queued goods-in record carries the token of the person who keyed it**,
+   and goes out with that one however long it waited and whoever is signed in
+   when the wifi returns, or the server would refuse it as somebody else's. The
+   token is dropped from the record the moment it is settled either way. A
+   record the server refuses for its sign-in is parked as refused, visibly,
+   rather than retried for ever, which cannot help: a token that is invalid or
+   more than seven days past its expiry will not get better. The service
+   worker's shell now includes the new modules, so Goods In still opens with
+   no signal.
+
+   Driven end to end in a browser against a scratch local D1: the name grid,
+   a wrong PIN and the right one, a hold recorded through the Stock form, and
+   the ledger showing that person as its author.
+
+   **Sign-in lifetime settled at twelve hours (Dean, 2026-09-21).** Signing in
+   needs a connection and the server refuses something made after a token has
+   expired, so the case to worry about is a token running out while the iPad is
+   offline. The longest the iPad is realistically without a connection is two
+   to three hours, unless it is powered off, so that only bites if the twelve
+   hours happen to end inside one such gap, and even then everything recorded
+   before that moment is still accepted when it is sent. Not worth a longer
+   token, which would leave a shared iPad signed in as somebody for longer. The
+   "until" time on screen is there so it can be seen coming, and the lifetime
+   is one constant, `TOKEN_TTL_S`, if that ever changes.
+
+   **Access, 2026-09-21.** The account already has Zero Trust
+   (`waiyandean.cloudflareaccess.com`) with one-time PIN enabled, and no
+   applications. The plan is one application for `trace.deanops.uk` with a
+   thirty-day session and a single allow policy for three addresses: the shared
+   kitchen inbox, Dean's own, and the account owner's. A one-time PIN goes to
+   whichever signs in, so the kitchen iPad signs in through the shared inbox.
+   The application is created before the hostname exists, so the door is up
+   before the room is and the ledger is never briefly open.
+
+   **The Worker checks Access for itself** (`src/access.js`) rather than
+   trusting that the edge did. Every request except the public label routes
+   must carry the signed token Access adds, verified against Access's published
+   keys, for this team and this application's audience tag. Without that, a
+   deleted or edited application would turn every read (the catalog, the
+   ledger, every lot and customer) quietly public with nothing here noticing.
+   It fails closed: with the team domain or `ACCESS_AUD` unset the API refuses
+   everything but the label routes, so a deploy made before the application
+   exists is safe, and the label GUI is unaffected. Only the algorithm Access
+   uses is accepted, keys are cached and refetched at most once a minute so a
+   stranger cannot turn requests into fetches, and if Access cannot be reached
+   to check, the answer is no. Localhost skips it, being `wrangler dev` and the
+   tests, and cannot be reached from outside since Cloudflare routes on the
+   hostname it was sent.
+
+   **The application exists (created in the dashboard, 2026-09-21).** The
+   Cloudflare connection used in the session can read Access but not write it
+   (creating failed with error 1010 even with a minimal body), so it was made by
+   hand and then read back through the API to check it against the plan rather
+   than taken on trust. `trace` for `trace.deanops.uk`, self-hosted, one-time
+   PIN as the only login method with auto-redirect, and one allow policy for
+   the three addresses and nothing else; its Audience tag is in
+   `wrangler.toml`. It was first made with a 24-hour session, which would have
+   meant an emailed code to the shared inbox every day on the kitchen iPad, and
+   was changed to one month (730 hours, the dashboard's preset) on the same day
+   and confirmed by reading it back.
+
+   Still to do: the two Worker secrets, `trace.deanops.uk` added to
+   `wrangler.toml` as a custom domain, the remote database migrated (it holds
+   only the first migration), and the print relay, which no Access application
+   covers and which cannot easily be covered because the browser calls it
+   cross-origin. Nothing here has been deployed.
 10. **Packaging — resolved 2026-09-04 (Dean).** Stays out of scope, same as
    the old rebuild. Nothing in the join failures this project exists to fix —
    not the 12,731 recorded uses, not the 2,675 delivery rows — ever pointed at

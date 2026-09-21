@@ -1,4 +1,5 @@
 import { ulid, makeStore } from './lib/offline.js';
+import { authedFetch, mountStaff } from './lib/signin.js';
 import { buildPackingLabel } from './lib/zpl.js';
 
 // Cooked several pots a day, so the batch code needs the pot to tell today's
@@ -23,7 +24,7 @@ const RELAY_KEY = 'trace.intake.relay';
 const state = { catalog: null, batches: [], open: null, unproven: [] };
 
 async function api(path, options) {
-  const response = await fetch(path, options);
+  const response = await authedFetch(path, options);
   const body = await response.json().catch(() => ({}));
   return { ok: response.ok, status: response.status, body };
 }
@@ -555,7 +556,7 @@ async function boot() {
   }
   const [staff, locations] = responses.map((response) => response.body.rows);
   state.catalog = { staff, locations };
-  fillSelect($('staff'), staff, { placeholder: 'Choose your name', selected: store.read(STAFF_KEY, null) });
+  mountStaff($('staff'), staff);
   fillSelect($('where'), locations, { placeholder: 'Choose where it is going' });
   $('relay-url').value = store.read(RELAY_KEY, 'https://print-relay.deanops.uk');
 

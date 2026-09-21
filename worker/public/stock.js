@@ -1,4 +1,5 @@
 import { ulid, makeStore } from './lib/offline.js';
+import { authedFetch, mountStaff } from './lib/signin.js';
 import { buildDateOpenedLabel } from './lib/zpl.js';
 
 // The stock screen: what is in each area, and the three things that can be
@@ -18,7 +19,7 @@ const RELAY_KEY = 'trace.intake.relay';
 const state = { catalog: null, rows: [], holds: [], chosen: null, action: null };
 
 async function api(path, options) {
-  const response = await fetch(path, options);
+  const response = await authedFetch(path, options);
   const body = await response.json().catch(() => ({}));
   return { ok: response.ok, status: response.status, body };
 }
@@ -383,7 +384,7 @@ async function boot() {
   const [staff, locations, wasteReasons] = responses.map((response) => response.body.rows);
   state.catalog = { staff, locations, wasteReasons };
 
-  fillSelect($('staff'), staff, { placeholder: 'Choose your name', selected: store.read(STAFF_KEY, null) });
+  mountStaff($('staff'), staff);
   fillSelect($('where'), locations, { placeholder: 'Everywhere' });
   $('relay-url').value = store.read(RELAY_KEY, 'https://print-relay.deanops.uk');
 

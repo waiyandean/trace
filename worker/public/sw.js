@@ -20,7 +20,7 @@
 // deleted, so a stale cache cannot outlive the code it belongs to. It is also
 // shown on screen, so the iPad can be asked what it is running rather than
 // guessed at.
-const VERSION = '2026-09-16.1';
+const VERSION = '2026-09-21.1';
 
 const SHELL_CACHE = `trace-shell-${VERSION}`;
 const PHOTO_CACHE = 'trace-photos';
@@ -30,7 +30,7 @@ const PHOTO_CACHE = 'trace-photos';
 // browser refuses it with "Response served by service worker has redirected".
 // Caching the canonical URL avoids the whole question.
 const SHELL = [
-  '/', '/goods-in.js', '/lib/offline.js', '/lib/zpl.js', '/app.css', '/manifest.webmanifest',
+  '/', '/goods-in.js', '/lib/offline.js', '/lib/auth.js', '/lib/signin.js', '/lib/zpl.js', '/app.css', '/manifest.webmanifest',
   // The stock screen needs a connection anyway, so caching it buys nothing
   // operationally — but caching the shell means it opens and says so, rather
   // than showing a browser error page with no explanation.

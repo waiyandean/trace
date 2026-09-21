@@ -2,8 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fakeDb } from './fakeDb.js';
 import worker from '../src/index.js';
+import { login, makePinRow } from '../src/auth.js';
+import { sqliteDb } from './sqliteDb.js';
 
-const get = (path) => new Request(`https://trace.example${path}`);
+const get = (path) => new Request(`https://localhost${path}`);
 
 test('health reports what the database holds', async () => {
   const env = { DB: fakeDb(() => [{ items: 42, lots: 3 }]) };
@@ -30,7 +32,7 @@ test('a bad action is a 400 with the reason', async () => {
 
 test('the catalog is read-only: a write to it is refused and says what to use', async () => {
   const env = { DB: fakeDb(() => []) };
-  const res = await worker.fetch(new Request('https://trace.example/api/catalog', { method: 'POST' }), env);
+  const res = await worker.fetch(new Request('https://localhost/api/catalog', { method: 'POST' }), env);
   assert.equal(res.status, 405);
   assert.equal(res.headers.get('allow'), 'GET');
 });
@@ -66,8 +68,18 @@ test('a code that matches nothing says so rather than guessing', async () => {
 });
 
 test('a body that is not JSON is a 400, not a crash', async () => {
-  const env = { DB: fakeDb(() => []) };
-  const request = new Request('https://trace.example/api/receive', { method: 'POST', body: 'not json' });
+  // Signed in first: a write with no token is refused as a 401 before its body
+  // is looked at, which is its own test in auth.test.js.
+  const db = sqliteDb();
+  db.sqlite.exec("INSERT INTO staff (id, name) VALUES ('s1', 'Dean')");
+  const env = { DB: db, AUTH_SECRET: 'a'.repeat(40), PIN_PEPPER: 'b'.repeat(40) };
+  const pin = await makePinRow(env, '4821');
+  db.sqlite.prepare('INSERT INTO staff_pins (staff_id, pin_hash, salt) VALUES (?, ?, ?)').run('s1', pin.pin_hash, pin.salt);
+  const { token } = await login(db, env, { staff_id: 's1', pin: '4821' });
+
+  const request = new Request('https://localhost/api/receive', {
+    method: 'POST', headers: { authorization: `Bearer ${token}` }, body: 'not json',
+  });
   const res = await worker.fetch(request, env);
   assert.equal(res.status, 400);
   assert.match((await res.json()).error, /valid JSON/);
@@ -82,7 +94,7 @@ test('tracing with no lot is a 400', async () => {
 
 test('tracing is a read, so a POST to it is refused', async () => {
   const env = { DB: fakeDb(() => []) };
-  const res = await worker.fetch(new Request('https://trace.example/api/trace', { method: 'POST' }), env);
+  const res = await worker.fetch(new Request('https://localhost/api/trace', { method: 'POST' }), env);
   assert.equal(res.status, 405);
   assert.equal(res.headers.get('allow'), 'GET');
 });
@@ -99,7 +111,7 @@ test('a recall with no lot is a 400, and with a bad direction is a 400', async (
 
 test('a recall is a read, so a POST to it is refused', async () => {
   const env = { DB: fakeDb(() => []) };
-  const res = await worker.fetch(new Request('https://trace.example/api/recall', { method: 'POST' }), env);
+  const res = await worker.fetch(new Request('https://localhost/api/recall', { method: 'POST' }), env);
   assert.equal(res.status, 405);
   assert.equal(res.headers.get('allow'), 'GET');
 });
@@ -113,7 +125,7 @@ test('a balance with no dates is a 400 that says which', async () => {
 
 test('a balance is a read, so a POST to it is refused', async () => {
   const env = { DB: fakeDb(() => []) };
-  const res = await worker.fetch(new Request('https://trace.example/api/period-balance', { method: 'POST' }), env);
+  const res = await worker.fetch(new Request('https://localhost/api/period-balance', { method: 'POST' }), env);
   assert.equal(res.status, 405);
   assert.equal(res.headers.get('allow'), 'GET');
 });

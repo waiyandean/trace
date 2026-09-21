@@ -1,4 +1,5 @@
 import { ulid, makeStore, probeKindFor } from './lib/offline.js';
+import { authedFetch, mountStaff } from './lib/signin.js';
 
 // The dispatch screen: produced stock leaving for a customer.
 //
@@ -21,7 +22,7 @@ const state = {
 };
 
 async function api(path, options) {
-  const response = await fetch(path, options);
+  const response = await authedFetch(path, options);
   const body = await response.json().catch(() => ({}));
   return { ok: response.ok, status: response.status, body };
 }
@@ -453,7 +454,7 @@ async function boot() {
   state.catalog = { staff, customers, locations, products };
   state.products = new Map(products.map((item) => [item.id, item]));
 
-  fillSelect($('staff'), staff, { placeholder: 'Choose your name', selected: store.read(STAFF_KEY, null) });
+  mountStaff($('staff'), staff);
   fillSelect($('customer'), customers, { placeholder: 'Choose the customer', selected: store.read(CUSTOMER_KEY, null) });
   if (!customers.length) {
     notify('No customers in the catalog yet. Add them before a dispatch can be recorded.', 'warn');

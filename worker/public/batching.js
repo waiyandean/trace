@@ -1,4 +1,5 @@
 import { ulid, makeStore } from './lib/offline.js';
+import { authedFetch, mountStaff } from './lib/signin.js';
 
 // The batching form.
 //
@@ -27,7 +28,7 @@ const state = {
 };
 
 async function api(path, options) {
-  const response = await fetch(path, options);
+  const response = await authedFetch(path, options);
   const body = await response.json().catch(() => ({}));
   return { ok: response.ok, status: response.status, body };
 }
@@ -580,7 +581,7 @@ async function boot() {
   const [staff, items, recipes] = responses.map((response) => response.body.rows);
   state.catalog = { staff, items, recipes };
 
-  fillSelect($('staff'), staff, { placeholder: 'Choose your name', selected: store.read(STAFF_KEY, null) });
+  mountStaff($('staff'), staff);
   await countOpenBatches();
 
   const now = new Date();
