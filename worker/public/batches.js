@@ -334,6 +334,41 @@ async function printPacking(batch, batchCode, packetsProduced) {
   } catch {
     notify(`Could not reach the print relay at ${relay}. Label the packets by hand.`, 'warn');
   }
+
+  await printSeal(batch, batchCode, relay);
+}
+
+// The Brother box seal: name, barcode, batch, best before and the health
+// mark oval, small enough it does not cover the printed box artwork. Only
+// frozen ramen carries this seal, so the category lookup (not a hardcoded
+// name list here — see seal-info) decides whether it fires at all. A failure
+// here is reported separately from the case label above, because one can
+// print while the other does not.
+async function printSeal(batch, batchCode, relay) {
+  const info = await api(`/api/labels/seal-info?item=${encodeURIComponent(batch.product_name)}`);
+  if (!info.ok || info.body.category !== 'Frozen Ramen') return;
+
+  try {
+    const response = await fetch(`${relay.replace(/\/$/, '')}/print-seal`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        name: batch.product_name,
+        batch: batchCode,
+        useBy: batch.use_by,
+        barcode: info.body.barcode,
+        healthMark: info.body.healthMark,
+        hmCountry: info.body.hmCountry,
+        hmCode: info.body.hmCode,
+      }),
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok || !body.ok) {
+      notify(`Box seal label did not print: ${body.error || response.status}. Seal the boxes by hand.`, 'warn');
+    }
+  } catch {
+    notify(`Could not reach the print relay at ${relay} for the box seal. Seal the boxes by hand.`, 'warn');
+  }
 }
 
 async function packOut() {

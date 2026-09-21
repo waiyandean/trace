@@ -52,6 +52,8 @@ if not defined PY (
 set /p PRINTER_IP="Printer address [192.168.0.166]: "
 if "%PRINTER_IP%"=="" set PRINTER_IP=192.168.0.166
 
+set /p BROTHER_NAME="Brother QL-600 Windows printer name (blank to skip the box seal): "
+
 echo.
 echo   Installing the service, using %PY%...
 echo.
@@ -68,7 +70,11 @@ REM path". Without it NSSM was handed a directory with a stray trailing
 REM " baked into the name, which does not exist, and the service died on
 REM every start with no more explanation than "unexpected SERVICE_STOPPED".
 nssm set trace-print-relay AppDirectory "%~dp0."
-nssm set trace-print-relay AppParameters "print-relay.py --printer %PRINTER_IP%"
+if "%BROTHER_NAME%"=="" (
+  nssm set trace-print-relay AppParameters "print-relay.py --printer %PRINTER_IP%"
+) else (
+  nssm set trace-print-relay AppParameters "print-relay.py --printer %PRINTER_IP% --brother-printer \"%BROTHER_NAME%\""
+)
 nssm set trace-print-relay Start SERVICE_AUTO_START
 nssm set trace-print-relay AppStdout "%~dp0print-relay.log"
 nssm set trace-print-relay AppStderr "%~dp0print-relay.log"

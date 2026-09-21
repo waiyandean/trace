@@ -139,13 +139,24 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self._log(f'refused: brother_seal unavailable — {exc}')
             return self._json(500, {'ok': False, 'error': f'the Brother seal printer is not available on this machine: {exc}'})
 
+        # Optional, defaulting to one -- batches.js's automatic pack-out print
+        # never sends it, and gets the same single copy as before. The
+        # /labels page's Copies field does send it, same range as the ZPL
+        # routes (1-200).
         try:
-            brother_seal.render_and_print(self.brother_printer, payload)
-        except brother_seal.PrintError as exc:
-            self._log(f'refused: {self.brother_printer} — {exc}')
-            return self._json(502, {'ok': False, 'error': str(exc)})
+            quantity = int(payload.get('quantity', 1))
+        except (TypeError, ValueError):
+            quantity = 1
+        quantity = max(1, min(200, quantity))
 
-        self._log(f'printed box seal for {payload.get("name")!r} to {self.brother_printer}')
+        for _ in range(quantity):
+            try:
+                brother_seal.render_and_print(self.brother_printer, payload)
+            except brother_seal.PrintError as exc:
+                self._log(f'refused: {self.brother_printer} — {exc}')
+                return self._json(502, {'ok': False, 'error': str(exc)})
+
+        self._log(f'printed {quantity}x box seal for {payload.get("name")!r} to {self.brother_printer}')
         return self._json(200, {'ok': True})
 
 

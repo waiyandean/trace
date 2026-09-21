@@ -45,7 +45,11 @@ sed 's|HERE.parent / "lint-zpl.py"|HERE / "lint-zpl.py"|' \
 # the P1 auto-print bridge, not part of the label GUI proper) but it runs on
 # this same kitchen machine, so it travels in the same bundle.
 cp "$HERE/../../worker/scripts/print-relay.py" "$DEST/print-relay.py"
+cp "$HERE/../../worker/scripts/brother_seal.py" "$DEST/brother_seal.py"
+cp "$HERE/../../worker/scripts/brother_diag.py" "$DEST/brother_diag.py"
+cp "$HERE/../../worker/scripts/brother-diag.bat" "$DEST/brother-diag.bat"
 cp "$HERE/../../worker/scripts/install-relay-service.bat" "$DEST/install-relay-service.bat"
+cp "$HERE/../../worker/scripts/restart-relay-service.bat" "$DEST/restart-relay-service.bat"
 
 # Photographs. Only the ones the catalog still refers to, so a bundle does not
 # accumulate pictures of items that have been retired.
@@ -66,7 +70,7 @@ done
 # harder to explain than a missing one.
 for stale in "$DEST"/*.py "$DEST"/*.txt; do
   [ -e "$stale" ] || continue
-  case " server.py zpl.py printers.py check_layouts.py lint-zpl.py print-relay.py " in
+  case " server.py zpl.py printers.py check_layouts.py lint-zpl.py print-relay.py brother_seal.py brother_diag.py " in
     *" $(basename "$stale") "*) ;;
     *) rm "$stale"; echo "  removed stale $(basename "$stale")" ;;
   esac
