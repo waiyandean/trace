@@ -391,11 +391,11 @@ def _row(y, label, value, size, warnings, note=""):
     two.
     """
     text = f"{label}: {escape(value) or 'Not recorded'}"
-    fitted, lines = _shrink_to_one_line(text, INNER, [size, size - 2, size - 4,
-                                                       size - 6, size - 8])
+    ladder = [size - step for step in range(0, 16, 2)]
+    fitted, lines = _shrink_to_one_line(text, INNER, ladder)
     if lines > 1:
         warnings.append(
-            f"'{text}' does not fit on one line even at {size - 8} dots"
+            f"'{text}' does not fit on one line even at {ladder[-1]} dots"
             f"{' (' + note + ')' if note else ''}, so it wraps and may draw "
             f"over the row below. Shorten it.")
     return f"^FO{MARGIN},{y}^A0N,{fitted}^FD{text}^FS"
@@ -439,12 +439,12 @@ def dessert(*, name, contents, produced, use_by, net_weight, allergens,
         f"^FO{WIDTH - MARGIN - note_w},60^A0N,16^FB{note_w},1,0,R^FD{note[0]}\\&^FS",
         f"^FO{WIDTH - MARGIN - note_w},80^A0N,16^FB{note_w},1,0,R^FD{note[1]}\\&^FS",
         "",
-        _row(116, "Contents", contents, 28, warnings),
-        _row(154, "Produced", produced, 28, warnings),
-        _row(192, "Use by", use_by, 28, warnings),
+        _row(120, "Contents", contents, 34, warnings),
+        _row(168, "Produced", produced, 34, warnings),
+        _row(216, "Use by", use_by, 34, warnings),
         "",
-        _row(238, "Net Weight", net_weight, 28, warnings),
-        _row(276, "Allergens", allergens, 28, warnings,
+        _row(280, "Net Weight", net_weight, 34, warnings),
+        _row(328, "Allergens", allergens, 34, warnings,
              note="the allergen declaration"),
         "",
         f"^PQ{int(quantity)}",

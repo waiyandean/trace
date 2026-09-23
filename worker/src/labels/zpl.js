@@ -341,10 +341,12 @@ export function dateOpened({ name, opened, useBy, batch, allergens, storageOpene
 // one line, so there is only one row shape here rather than two.
 function row(y, label, value, size, warnings, note = '') {
   const text = `${label}: ${escape(value) || 'Not recorded'}`;
-  const [fitted, lines] = shrinkToOneLine(text, INNER, [size, size - 2, size - 4, size - 6, size - 8]);
+  const ladder = [0, 2, 4, 6, 8, 10, 12, 14].map((step) => size - step);
+  const [fitted, lines] = shrinkToOneLine(text, INNER, ladder);
   if (lines > 1) {
+    const floor = ladder[ladder.length - 1];
     warnings.push(
-      `'${text}' does not fit on one line even at ${size - 8} dots${note ? ` (${note})` : ''}, so it wraps and may ` +
+      `'${text}' does not fit on one line even at ${floor} dots${note ? ` (${note})` : ''}, so it wraps and may ` +
         'draw over the row below. Shorten it.',
     );
   }
@@ -382,12 +384,12 @@ export function dessert({ name, contents, produced, useBy, netWeight, allergens,
     `^FO${WIDTH - MARGIN - noteW},60^A0N,16^FB${noteW},1,0,R^FD${note[0]}\\&^FS`,
     `^FO${WIDTH - MARGIN - noteW},80^A0N,16^FB${noteW},1,0,R^FD${note[1]}\\&^FS`,
     '',
-    row(116, 'Contents', contents, 28, warnings),
-    row(154, 'Produced', produced, 28, warnings),
-    row(192, 'Use by', useBy, 28, warnings),
+    row(120, 'Contents', contents, 34, warnings),
+    row(168, 'Produced', produced, 34, warnings),
+    row(216, 'Use by', useBy, 34, warnings),
     '',
-    row(238, 'Net Weight', netWeight, 28, warnings),
-    row(276, 'Allergens', allergens, 28, warnings, 'the allergen declaration'),
+    row(280, 'Net Weight', netWeight, 34, warnings),
+    row(328, 'Allergens', allergens, 34, warnings, 'the allergen declaration'),
     '',
     `^PQ${Math.trunc(quantity)}`,
     '^XZ',
