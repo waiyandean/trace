@@ -409,12 +409,20 @@ def dessert(*, name, contents, produced, use_by, net_weight, allergens,
     2026-09-23) -- the 'MR' code and the 'M&R' prefix are both dropped, the
     same decision already made for every other product on 2026-09-01.
 
-    No batch code, SKU, QR or health mark: the sample artwork carries none of
-    them, and this label prints Produced and Use By as a month and year
-    rather than a day, which the other four formats never do -- the caller is
-    responsible for that formatting (see server.py's month_year()), the same
-    way it hands use_by/packed to the other builders already formatted as
-    dd/mm/yyyy.
+    No batch code, SKU or health mark: the sample artwork carries none of
+    them. Produced and Use By print as a month and year rather than a day,
+    which the other four formats never do -- the caller is responsible for
+    that formatting (see server.py's month_year()), the same way it hands
+    use_by/packed to the other builders already formatted as dd/mm/yyyy.
+
+    Use By and Produced sit in the big caption-over-value row every other
+    format gives its two most-consulted dates -- Goods In and Date Opened
+    both do this for USE BY/BATCH, and Product Packet/Box for USE BY/BATCH
+    too. There is no batch here to pair Use By against, so Produced takes
+    that slot instead: it is the other date on the label, even though nobody
+    checks a dessert tub against it the way they check the use-by (Dean,
+    2026-09-23, reworking the first version, which had copied the sample
+    artwork's flat list of equal-weight rows).
     """
     warnings = []
     note = DESSERT_STORAGE_NOTE.get(storage, DESSERT_STORAGE_NOTE["freezer"])
@@ -433,18 +441,21 @@ def dessert(*, name, contents, produced, use_by, net_weight, allergens,
     out = _head(quantity)
     out += [
         f"^FO{MARGIN},42^A0N,{NAME_HEIGHT}^FD{escape(name)}^FS",
-        f"^FO{MARGIN},100^GB{INNER},0,4^FS",
+        f"^FO{MARGIN},96^GB{INNER},0,4^FS",
         "",
         f"^FO{WIDTH - MARGIN - note_w},40^A0N,16^FB{note_w},1,0,R^FDStorage:\\&^FS",
         f"^FO{WIDTH - MARGIN - note_w},60^A0N,16^FB{note_w},1,0,R^FD{note[0]}\\&^FS",
         f"^FO{WIDTH - MARGIN - note_w},80^A0N,16^FB{note_w},1,0,R^FD{note[1]}\\&^FS",
         "",
-        _row(120, "Contents", contents, 34, warnings),
-        _row(168, "Produced", produced, 34, warnings),
-        _row(216, "Use by", use_by, 34, warnings),
+        f"^FO{MARGIN},112^A0N,20^FDUSE BY^FS",
+        f"^FO{MARGIN},136^A0N,42^FD{escape(use_by)}^FS",
         "",
-        _row(280, "Net Weight", net_weight, 34, warnings),
-        _row(328, "Allergens", allergens, 34, warnings,
+        "^FO450,112^A0N,20^FDPRODUCED^FS",
+        f"^FO450,136^A0N,42^FD{escape(produced)}^FS",
+        "",
+        _row(216, "Contents", contents, 34, warnings),
+        _row(268, "Net Weight", net_weight, 34, warnings),
+        _row(320, "Allergens", allergens, 34, warnings,
              note="the allergen declaration"),
         "",
         f"^PQ{int(quantity)}",
