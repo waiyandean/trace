@@ -313,6 +313,13 @@ class Data:
             if source == "seal" and self.extra.get("products", {}).get(
                     item["name"], {}).get("category") != "Frozen Ramen":
                 continue
+            # Unlike "product"/"seal", which apply to every product line, a
+            # dessert label is its own category -- so unlike the packet/box
+            # picker, which deliberately shows every category, this one is
+            # filtered down to Desserts rather than grouped by all of them.
+            if source == "dessert" and self.extra.get("products", {}).get(
+                    item["name"], {}).get("category") != "Desserts":
+                continue
             # Some catalog rows are real stock that simply never gets a label
             # of this kind printed. They stay active in the catalog -- this is
             # a statement about labelling, not about whether the kitchen holds
