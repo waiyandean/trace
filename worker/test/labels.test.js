@@ -159,13 +159,19 @@ test('a dessert prints its contents, produced/use-by as a month and year, and ha
     net_weight: '2.7 Kg',
   }, 1);
   assert.match(zpl, /Contents: 18 Matcha Brownies/);
-  assert.match(zpl, /Produced: September 2026/);
-  assert.match(zpl, /Use by: December 2026/);
   assert.match(zpl, /Net Weight: 2\.7 Kg/);
   assert.match(zpl, /Allergens: Egg, Gluten, Milk/);
   assert.doesNotMatch(zpl, /\^BQN/);
   assert.doesNotMatch(zpl, /BATCH/);
   assert.doesNotMatch(zpl, /SKU/i);
+
+  // Use by and Produced get the same big caption-over-value treatment every
+  // other format gives its two most-consulted dates, rather than sitting in
+  // the flat list of "Label: value" rows the sample artwork used.
+  assert.match(zpl, /\^FDUSE BY\^FS/);
+  assert.match(zpl, /\^A0N,42\^FDDecember 2026\^FS/);
+  assert.match(zpl, /\^FDPRODUCED\^FS/);
+  assert.match(zpl, /\^A0N,42\^FDSeptember 2026\^FS/);
 });
 
 test('the Desserts picker is grouped under its own category, alongside Product Packet/Box', () => {
