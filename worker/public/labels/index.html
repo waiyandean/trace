@@ -86,7 +86,7 @@
 
 </main>
 
-<!-- The six label types, baked into the page instead of fetched from
+<!-- The seven label types, baked into the page instead of fetched from
      /api/labels/bootstrap: they never change without a deploy, so a round
      trip to fetch them on every load bought nothing. Keep in step with
      TYPES in worker/src/labels/data.js. -->
@@ -97,6 +97,7 @@ window.LABEL_TYPES = [
   { id: 'packet', name: 'Product Packet', blurb: 'The pouch or tub a finished product goes out in.', source: 'product' },
   { id: 'box', name: 'Product Box', blurb: 'The case the packets are shipped in.', source: 'product' },
   { id: 'notice', name: 'Notice', blurb: 'Anything else: a warning, a note, a sign. Big words, centred.', source: 'free' },
+  { id: 'dessert', name: 'Desserts', blurb: 'The frozen dessert tubs.', source: 'dessert' },
   { id: 'box-seal', name: 'Box Seal', blurb: 'The small Brother-printed seal that also closes a Frozen Ramen case.', source: 'seal' },
 ];
 </script>

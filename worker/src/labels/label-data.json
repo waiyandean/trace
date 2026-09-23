@@ -56,6 +56,15 @@
     "               no_qty is the same for the pack size, and takes the Qty row off",
     "               the label rather than printing a caption with nothing after it.",
     "",
+    "               dessert carries what the Desserts label type needs instead of a",
+    "               packet/box: phrase is the exact words printed after the count on",
+    "               the Contents line (Brownie pluralises, Creme Brulee does not, so",
+    "               this is stated rather than derived from the name), count is the",
+    "               default number of units in a full batch, and net_weight is",
+    "               printed as-is. No SKU, batch, QR or health mark -- the sample",
+    "               artwork this type replicates (Dean, 2026-09-23) carries none of",
+    "               them.",
+    "",
     "health_mark is stated for every product, true or false, and never left",
     "unset. The catalog holds null for all of them, which means nobody had",
     "determined it; Dean determined it on 2026-09-01 -- the two broths and the",
@@ -116,6 +125,8 @@
     "Mae Ploy Red Curry Paste": "Crustaceans",
     "Mae Ploy Tom Yum Paste": "Crustaceans, Fish, Soya",
     "Maggi Seasoning": "Gluten",
+    "Matcha Brownie": "Egg, Gluten, Milk",
+    "Matcha Creme Brulee": "Egg, Gluten, Milk",
     "Memma Bamboo Shoots": "None declared",
     "Mirin Style Seasoning": "None declared",
     "Pak Choi": "None declared",
@@ -147,8 +158,8 @@
     "Toban Djan Chilli Bean Sauce": "Soya",
     "Tom Yum Tare": "Gluten, Crustaceans, Fish, Soya",
     "Tonkotsu Broth": "Gluten, Fish, Soya",
-    "Tonkotsu Broth Diluted": "Gluten, Fish, Soya",
     "Tonkotsu Broth 6.5 Brix Test": "Gluten, Fish, Soya",
+    "Tonkotsu Broth Diluted": "Gluten, Fish, Soya",
     "Wakame Seaweed": "None declared",
     "White Miso": "Soya",
     "White Truffle Oil": "None declared",
@@ -491,6 +502,22 @@
         "no_sku": true,
         "qty": "8 x 1.8 Litres"
       }
+    },
+    "Matcha Brownie": {
+      "category": "Desserts",
+      "dessert": {
+        "phrase": "Matcha Brownies",
+        "count": 18,
+        "net_weight": "2.7 Kg"
+      }
+    },
+    "Matcha Creme Brulee": {
+      "category": "Desserts",
+      "dessert": {
+        "phrase": "Matcha Creme Brulee",
+        "count": 12,
+        "net_weight": "4.0 Kg"
+      }
     }
   },
   "may_contain": {
@@ -507,7 +534,8 @@
     "Broths",
     "Frozen Ramen",
     "Soups",
-    "Sauces"
+    "Sauces",
+    "Desserts"
   ],
   "pot_numbers": {
     "categories": [

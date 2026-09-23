@@ -189,7 +189,7 @@ class LabelWorkflowTests(unittest.TestCase):
         self.assertIn("Settings", body["error"])
 
     def test_every_listed_label_can_be_prepared(self):
-        for type_id in ("goods-in", "date-opened", "packet", "box"):
+        for type_id in ("goods-in", "date-opened", "packet", "box", "dessert"):
             seen = set()
             for group in self.data.listing(type_id):
                 for section in group["sections"]:

@@ -131,6 +131,20 @@ CASES = [
     ("everything empty", zpl.goods_in, dict(
         name="", use_by="", batch="", supplier="", delivered="",
         allergens="", storage=None, quantity=1)),
+    ("dessert, Brownie", zpl.dessert, dict(
+        name="Matcha Brownie", contents="18 Matcha Brownies",
+        produced="September 2026", use_by="December 2026",
+        net_weight="2.7 Kg", allergens="Egg, Gluten, Milk", quantity=1)),
+    ("dessert, Creme Brulee (worst name)", zpl.dessert, dict(
+        name="Matcha Creme Brulee", contents="12 Matcha Creme Brulee",
+        produced="September 2026", use_by="December 2026",
+        net_weight="4.0 Kg", allergens="Egg, Gluten, Milk", quantity=1)),
+    ("dessert worst", zpl.dessert, dict(
+        name="Matcha Creme Brulee", contents="24 Matcha Creme Brulee",
+        produced="September 2026", use_by="December 2026",
+        net_weight="4.0 Kg",
+        allergens="Gluten, Crustaceans, Sesame, Soya, Egg, Milk, Sulphites",
+        quantity=200)),
 ]
 
 

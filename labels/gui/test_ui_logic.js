@@ -23,6 +23,16 @@ test("existing batch and month rules remain unchanged", () => {
     derive("months:6", { packed: "2026-09-17" }), "2027-03-01");
 });
 
+test("months:N can name a source field other than packed", () => {
+  // The Desserts label has no "packed" field, only "produced", so its use-by
+  // names its source explicitly rather than relying on the default.
+  assert.equal(
+    derive("months:3:produced", { produced: "2026-09-23" }), "2026-12-01");
+  // A form that has not filled in "produced" yet derives nothing, the same
+  // as every other date-derived field with a blank source.
+  assert.equal(derive("months:3:produced", { produced: "" }), "");
+});
+
 test("box seal best-before is exactly a year from packing", () => {
   assert.equal(derive("years:1", { packed: "2026-09-18" }), "2027-09-18");
   // 2028 is a leap year, 2029 is not: 29 Feb falls back to 28 Feb rather

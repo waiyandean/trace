@@ -76,19 +76,6 @@
    }
   },
   {
-   "id": "mpwqnttivfp9",
-   "name": "BBQ Seasoning",
-   "kind": "product",
-   "base_unit": "Units",
-   "storage_unopened": "chill",
-   "storage_opened": "chill",
-   "opening_rule": null,
-   "days_after_opening": null,
-   "needs_health_mark": null,
-   "suppliers": [],
-   "pack": null
-  },
-  {
    "id": "mpucqr4q51x5",
    "name": "Balsamic Vinegar",
    "kind": "ingredient",
@@ -153,7 +140,7 @@
    "storage_opened": "freezer",
    "opening_rule": null,
    "days_after_opening": null,
-   "needs_health_mark": null,
+   "needs_health_mark": 1,
    "suppliers": [],
    "pack": null
   },
@@ -767,6 +754,32 @@
    "pack": null
   },
   {
+   "id": "trace:matcha-brownie",
+   "name": "Matcha Brownie",
+   "kind": "product",
+   "base_unit": "Units",
+   "storage_unopened": "freezer",
+   "storage_opened": "freezer",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
+   "id": "trace:matcha-creme-brulee",
+   "name": "Matcha Creme Brulee",
+   "kind": "product",
+   "base_unit": "Units",
+   "storage_unopened": "freezer",
+   "storage_opened": "freezer",
+   "opening_rule": null,
+   "days_after_opening": null,
+   "needs_health_mark": null,
+   "suppliers": [],
+   "pack": null
+  },
+  {
    "id": "trace:memma",
    "name": "Memma Bamboo Shoots",
    "kind": "ingredient",
@@ -1236,7 +1249,7 @@
    "storage_opened": "freezer",
    "opening_rule": null,
    "days_after_opening": null,
-   "needs_health_mark": null,
+   "needs_health_mark": 1,
    "suppliers": [],
    "pack": null
   },

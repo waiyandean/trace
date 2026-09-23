@@ -137,6 +137,42 @@ test('browser derivations cover Date Opened and existing product rules', () => {
   assert.equal(derive('years:1', { packed: '2026-09-18' }), '2027-09-18');
   // 2028 is a leap year, 2029 is not: 29 Feb falls back to 28 Feb.
   assert.equal(derive('years:1', { packed: '2028-02-29' }), '2029-02-28');
+  // The Desserts label has no "packed" field, only "produced", so its use-by
+  // names its source explicitly.
+  assert.equal(derive('months:3:produced', { produced: '2026-09-23' }), '2026-12-01');
+});
+
+test('a dessert prints its contents, produced/use-by as a month and year, and has no batch, SKU or QR', async () => {
+  const item = itemNamed('Matcha Brownie');
+  const result = await form('dessert', item.id);
+  const fields = Object.fromEntries(result.fields.map((f) => [f.key, f]));
+  assert.equal(fields.name.editable, false);
+  assert.equal(fields.contents.value, '18 Matcha Brownies');
+  assert.equal(fields.use_by.derive, 'months:3:produced');
+  assert.equal(fields.net_weight.editable, false);
+  assert.equal(fields.net_weight.value, data.extra.products['Matcha Brownie'].dessert.net_weight);
+  assert.equal(fields.allergens.editable, false);
+  assert.deepEqual(result.gaps, []);
+
+  const [zpl] = build('dessert', item.id, {
+    contents: '18 Matcha Brownies', produced: '2026-09-23', use_by: '2026-12-01',
+    net_weight: '2.7 Kg',
+  }, 1);
+  assert.match(zpl, /Contents: 18 Matcha Brownies/);
+  assert.match(zpl, /Produced: September 2026/);
+  assert.match(zpl, /Use by: December 2026/);
+  assert.match(zpl, /Net Weight: 2\.7 Kg/);
+  assert.match(zpl, /Allergens: Egg, Gluten, Milk/);
+  assert.doesNotMatch(zpl, /\^BQN/);
+  assert.doesNotMatch(zpl, /BATCH/);
+  assert.doesNotMatch(zpl, /SKU/i);
+});
+
+test('the Desserts picker is grouped under its own category, alongside Product Packet/Box', () => {
+  const groups = Object.fromEntries(data.listing('dessert').map((g) => [g.name, g]));
+  assert.ok(groups.Desserts);
+  const names = groups.Desserts.sections[0].items.map((i) => i.name).sort();
+  assert.deepEqual(names, ['Matcha Brownie', 'Matcha Creme Brulee']);
 });
 
 test('seal-info gives the Brother box seal a frozen ramen product\'s barcode and health mark', async () => {

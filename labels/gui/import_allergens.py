@@ -78,6 +78,8 @@ DECIDED = {
     "Chicken Fillet": [],
     "Coconut Milk": [],
     "Dried Bird Eye Chillies": [],
+    "Matcha Brownie": ["EGG", "GLU", "MLK"],
+    "Matcha Creme Brulee": ["EGG", "GLU", "MLK"],
     "Memma Bamboo Shoots": [],
     "Pak Choi": [],
     "Pork Belly": [],

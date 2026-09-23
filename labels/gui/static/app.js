@@ -24,6 +24,7 @@ const ICONS = {
   "box": '<path d="M2 7h20v12H2z"/><path d="M2 7l3-4h14l3 4"/><path d="M12 3v4"/><path d="M8 12h8"/>',
   "notice": '<path d="M3 5h18v14H3z"/><path d="M7 10h10"/><path d="M7 14h6"/>',
   "box-seal": '<circle cx="12" cy="12" r="8"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
+  "dessert": '<path d="M4 21h16"/><path d="M6 21c0-6 1-10 6-10s6 4 6 10"/><path d="M9 11c0-4 1-7 3-7s3 3 3 7"/>',
 };
 
 async function api(path, options) {

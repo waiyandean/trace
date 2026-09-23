@@ -19,10 +19,15 @@ const LabelLogic = (() => {
   }
 
   function derive(kind, current) {
+    // months:N and years:N may name which field they follow as a third
+    // segment (e.g. "months:3:produced"), defaulting to "packed" where none
+    // is given -- every format before the Desserts label followed "packed",
+    // so the common case still needs nothing written.
+    const segments = (kind || "").split(":");
     let source;
     if (kind === "ddmmyy") source = current.delivered;
     else if (kind && kind.startsWith("days:")) source = current.opened;
-    else source = current.packed;
+    else source = current[segments[2] || "packed"];
 
     const parts = isoParts(source);
     if (!parts) return "";
@@ -40,7 +45,7 @@ const LabelLogic = (() => {
     }
 
     if (kind && kind.startsWith("years:")) {
-      const years = Number(kind.slice(6));
+      const years = Number(segments[1]);
       if (!Number.isInteger(years) || years < 1) return "";
       // Same day and month, year + N. The one day that can't exist -- 29 Feb
       // landing on a non-leap year -- falls back to 28 Feb, mirroring
@@ -53,7 +58,7 @@ const LabelLogic = (() => {
       return isoDate(landed);
     }
 
-    const months = kind && kind.startsWith("months:") ? Number(kind.slice(7)) : 0;
+    const months = kind && kind.startsWith("months:") ? Number(segments[1]) : 0;
     if (!Number.isInteger(months) || months < 1) return "";
     const total = Number(year) * 12 + (Number(month) - 1) + months;
     const onward = String(Math.floor(total / 12));
