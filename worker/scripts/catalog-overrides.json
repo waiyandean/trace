@@ -172,6 +172,18 @@
       "note": "Reduction trial: Tonkotsu Broth concentrated by reducing the ingredients rather than adding water, to a 6.5 Brix target. A separate product, not a state of the broth, for the same reason as the diluted version -- it goes down the same pouch and serving the wrong one is what the label prevents. Test batches only, not yet a restaurant line; the label carries a 6.5 BRIX TEST band so it cannot be mistaken for either of the other two (Dean, 2026-09-10).",
       "needs_health_mark": true
     },
+    "Matcha Brownie": {
+      "id": "trace:matcha-brownie",
+      "kind": "product",
+      "base_unit": "Units",
+      "note": "New frozen dessert line, previously hand-labelled as MR019 M&R Brownie. The MR-prefix and 'M&R' are dropped, same as every other product on 2026-09-01 (Dean, 2026-09-23)."
+    },
+    "Matcha Creme Brulee": {
+      "id": "trace:matcha-creme-brulee",
+      "kind": "product",
+      "base_unit": "Units",
+      "note": "New frozen dessert line, previously hand-labelled as MR020 M&R Creme Brulee. The MR-prefix and 'M&R' are dropped, same as every other product on 2026-09-01 (Dean, 2026-09-23)."
+    },
     "Chicken Broth": {
       "note": "Corrects the 2026-08-31 rule below, which put the mark on the raw animal ingredients and not on the broths made from them: the two broths carry it too (Dean, 2026-09-16).",
       "needs_health_mark": true
@@ -278,7 +290,9 @@
       "Spicy Teriyaki": "ambient",
       "Soba Sauce": "ambient",
       "Tonkotsu Broth Diluted": "freezer",
-      "Tonkotsu Broth 6.5 Brix Test": "freezer"
+      "Tonkotsu Broth 6.5 Brix Test": "freezer",
+      "Matcha Brownie": "freezer",
+      "Matcha Creme Brulee": "freezer"
     }
   },
   "excluded": {

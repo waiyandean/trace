@@ -6,7 +6,7 @@
 // goods-in.js, stock.js and batches.js already print — see static/app.js.
 // This file only builds the ZPL and renders the preview.
 import { BadRequest } from '../http.js';
-import { Data, TYPES, uk } from './data.js';
+import { Data, TYPES, uk, monthYear } from './data.js';
 import { BUILDERS } from './zpl.js';
 
 const LABELARY = 'http://api.labelary.com/v1/printers/8dpmm/labels/4x2/0/';
@@ -43,6 +43,19 @@ export function build(typeId, itemId, values, quantity) {
       batch: values.batch || '',
       allergens,
       storageOpened: values.storage_opened || item.storage_opened,
+      quantity,
+    });
+  }
+  if (typeId === 'dessert') {
+    const product = data.extra.products?.[item.name] || {};
+    return BUILDERS.dessert({
+      name: values.name || product.label_name || item.name,
+      contents: values.contents || '',
+      produced: monthYear(values.produced),
+      useBy: monthYear(values.use_by),
+      netWeight: values.net_weight || '',
+      allergens,
+      storage: item.storage_unopened || 'freezer',
       quantity,
     });
   }

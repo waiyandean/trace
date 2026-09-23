@@ -1,5 +1,5 @@
 overrides: catalog-overrides.json (Dean, 2026-08-31)
-98 items (69 ingredients, 29 products), 128 conversions, 4 locations, 2 suppliers, 10 staff -> /Users/grid/Repos/trace/worker/scripts/catalog.sql
+101 items (69 ingredients, 32 products), 128 conversions, 4 locations, 2 suppliers, 10 staff -> /Users/grid/Repos/trace/worker/scripts/catalog.sql
 
 Opened pack shortens the use-by, per the supplier's specification (2)
   - Balsamic Vinegar — 90 days
@@ -14,7 +14,8 @@ Moves to a different area once opened (3)
   - Hoi Sin Sauce Cans — chill
   - White Miso — chill
 
-Excluded from the catalog, imported inactive (11)
+Excluded from the catalog, imported inactive (12)
+  - BBQ Seasoning — not a dispatched Glasgow product; removed on Dean's instruction 2026-09-04 (no recipe, never batched)
   - Carrots — used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)
   - Chicken Powder — used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)
   - Chinese Leaves — used at Edinburgh only, not held at Glasgow (Dean, 2026-08-31)
@@ -34,27 +35,36 @@ Product kept in ambient storage, named by the kitchen (5)
   - Spicy Teriyaki
   - Teriyaki Sauce
 
-Product kept in freezer storage, named by the kitchen (7)
+Product kept in freezer storage, named by the kitchen (10)
   - Chicken Broth
   - Frozen Ramen : Black Garlic
   - Frozen Ramen : Chicken Tori Paitan
   - Frozen Ramen : Hell Ramen
   - Frozen Ramen : Laksa Ramen
+  - Matcha Brownie
+  - Matcha Creme Brulee
   - Tonkotsu Broth
+  - Tonkotsu Broth 6.5 Brix Test
   - Tonkotsu Broth Diluted
 
-Added from the overrides, not in the workbook (9)
+Added from the overrides, not in the workbook (12)
   - Chicken Fillet
   - Coconut Milk
+  - Matcha Brownie
+  - Matcha Creme Brulee
   - Memma Bamboo Shoots
   - Pak Choi
   - Pork Belly
   - Pork Chasiu
   - Ramen Noodles
+  - Tonkotsu Broth 6.5 Brix Test
   - Tonkotsu Broth Diluted
   - Wakame Seaweed
 
-Added item has no storage, left null (1)
+Added item has no storage, left null (4)
+  - Matcha Brownie
+  - Matcha Creme Brulee
+  - Tonkotsu Broth 6.5 Brix Test
   - Tonkotsu Broth Diluted
 
 No case conversion, by decision (1)
@@ -78,8 +88,8 @@ No item-to-base conversion written (15)
   - Yutaka Gochujang — the item size carries no unit the workbook recognises
 
 Opened pack shortens the use-by by the kitchen's 42-day rule: 11 rows
-After-opening storage taken from the kitchen's rule: same as unopened: 95 rows
-Health mark not yet determined, left null: 83 rows
+After-opening storage taken from the kitchen's rule: same as unopened: 98 rows
+Health mark not yet determined, left null: 81 rows
 Used whole, so no Date Opened label: 54 rows
 Base unit set from the pack size the kitchen stated: 15 rows
 Product storage from the kitchen's default: chill: 16 rows

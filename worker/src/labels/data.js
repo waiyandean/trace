@@ -23,6 +23,7 @@ export const TYPES = [
   // No catalog behind this one, so it has no list to pick from and the tile
   // opens the label itself.
   { id: 'notice', name: 'Notice', blurb: 'Anything else: a warning, a note, a sign. Big words, centred.', source: 'free' },
+  { id: 'dessert', name: 'Desserts', blurb: 'The frozen dessert tubs.', source: 'dessert' },
   // Prints on the Brother QL-600, not the Zebra -- see the 'seal' branches
   // in Data.listing/Data.form and handlers.js's sealRender().
   { id: 'box-seal', name: 'Box Seal', blurb: 'The small Brother-printed seal that also closes a Frozen Ramen case.', source: 'seal' },
@@ -82,6 +83,18 @@ function monthsOn(iso, months) {
   return `${onward}-${at}-01`;
 }
 
+// An ISO date as 'September 2026', the way a Desserts label prints its
+// dates -- day-of-month is recorded (so a derive can still work out a use-by
+// from it) but never shown, since the sample artwork this type replicates
+// only ever gives a month.
+export function monthYear(iso) {
+  const parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  if (!parts) return iso || '';
+  const [, year, month] = parts;
+  const names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  return `${names[Number(month) - 1]} ${year}`;
+}
+
 // `years` after `iso`, same day and month. Unlike shelf life on the other
 // products, the box seal's best-before isn't rounded to the start of a
 // month -- one year from the pack date, exactly. The one day that can't
@@ -125,7 +138,7 @@ export class Data {
     const rows = [];
     for (const item of this.catalog.items) {
       if (source === 'ingredient' && item.kind !== 'ingredient') continue;
-      if ((source === 'product' || source === 'seal') && item.kind !== 'product') continue;
+      if ((source === 'product' || source === 'seal' || source === 'dessert') && item.kind !== 'product') continue;
       if (source === 'seal' && this.extra.products?.[item.name]?.category !== 'Frozen Ramen') continue;
       // Some catalog rows are real stock that simply never gets a label of
       // this kind printed. They stay active in the catalog -- this is a
@@ -146,7 +159,7 @@ export class Data {
       });
     }
 
-    if (source === 'product' || source === 'seal') return this.byCategory(rows);
+    if (source === 'product' || source === 'seal' || source === 'dessert') return this.byCategory(rows);
 
     const groups = [];
     // A trailing null stands for the ingredients nobody has recorded a
@@ -230,6 +243,7 @@ export class Data {
     }
     const product = this.extra.products?.[item.name] || {};
     if (typeId === 'box-seal') return product.barcode || '';
+    if (typeId === 'dessert') return product.dessert?.net_weight || '';
     const variant = product[typeId === 'box' ? 'box' : 'packet'] || {};
     if (variant.qty) return variant.qty;
     // A pack size nobody states is not a pack size nobody has got round to.
@@ -253,6 +267,12 @@ export class Data {
       // a gap, the same as one sold without a SKU.
       if (!variant.qty && !variant.no_qty) gaps.push('qty');
       if (product.health_mark === undefined || product.health_mark === null) gaps.push('health mark');
+    } else if (typeId === 'dessert') {
+      // No batch, SKU, QR or health mark on this label -- see zpl.dessert --
+      // so net weight is the only catalog fact beyond allergens that can be
+      // missing.
+      const product = this.extra.products?.[item.name] || {};
+      if (!product.dessert?.net_weight) gaps.push('net weight');
     } else {
       const key = typeId === 'date-opened' ? 'storage_opened' : 'storage_unopened';
       if (!item[key]) gaps.push('storage');
@@ -364,6 +384,36 @@ export class Data {
           hint: 'Maintained in label-data.json from the allergen matrix; it cannot be changed while printing.',
         }),
       );
+    } else if (typeId === 'dessert') {
+      const product = this.extra.products?.[item.name] || {};
+      const dessertInfo = product.dessert || {};
+      const phrase = dessertInfo.phrase || item.name;
+      const count = dessertInfo.count || '';
+      fields.push(
+        field('name', 'Product', product.label_name || item.name, { editable: false }),
+        // Editable, not derived -- a partial batch prints a different count
+        // than a full one, and the catalog only knows what a full batch is.
+        field('contents', 'Contents', `${count} ${phrase}`.trim(), {
+          hint: "What's in the tub. Type over it for a partial batch.",
+        }),
+        field('produced', 'Produced', today, { kind: 'date', hint: 'The use-by follows this.' }),
+        field('use_by', 'Use by', monthsOn(today, 3), {
+          kind: 'date',
+          derive: 'months:3:produced',
+          hint: "3 months from being produced, on the first of that month. Type over it to set a different date.",
+        }),
+        field('net_weight', 'Net Weight', dessertInfo.net_weight || '', {
+          editable: false,
+          missing: !dessertInfo.net_weight,
+          hint: dessertInfo.net_weight ? 'Maintained in label-data.json.' : 'Nothing in the catalog records this yet.',
+        }),
+        field('allergens', 'Allergens', allergens, {
+          editable: false,
+          missing: !allergens,
+          hint: 'Maintained in label-data.json from the allergen matrix; it cannot be changed while printing.',
+        }),
+      );
+      return { type: typeId, item: itemId, title: this.labelName(item), gaps: this.gaps(item, typeId), fields };
     } else if (typeId === 'box-seal') {
       const product = this.extra.products?.[item.name] || {};
       const mark = product.health_mark;

@@ -125,6 +125,18 @@ const OPENED_FOOTER = {
   freezer: 'KEEP FROZEN  -  DO NOT REFREEZE',
 };
 
+// The three-line storage note in the top right of a Desserts label, matching
+// the sample artwork's "Storage: / Keep Frozen / below -18C" (Dean,
+// 2026-09-23). ^CI28 puts the printer in UTF-8, so the degree sign prints as
+// itself. Every dessert today is frozen; the other two entries exist so a
+// chilled or ambient line does not have to invent a layout from scratch if
+// one is ever added.
+const DESSERT_STORAGE_NOTE = {
+  freezer: ['Keep Frozen', 'below -18°C'],
+  chill: ['Keep Chilled', '0-5°C'],
+  ambient: ['Keep Ambient', 'Cool, dry place'],
+};
+
 function textWidth(text, height) {
   return Math.floor(text.length * height * CHAR_W);
 }
@@ -316,6 +328,66 @@ export function dateOpened({ name, opened, useBy, batch, allergens, storageOpene
   out.push(
     '',
     `^FO${MARGIN},344^A0N,20^FB${INNER},1,0,C^FD${escape(footer)}\\&^FS`,
+    '',
+    `^PQ${Math.trunc(quantity)}`,
+    '^XZ',
+  );
+  return [`${out.join('\n')}\n`, warnings];
+}
+
+// One "Label: value" line, shrunk to fit rather than overprinting. Unlike the
+// caption-over-big-value rows the other four formats use, the sample artwork
+// this type replicates prints the label and its value at the same size on
+// one line, so there is only one row shape here rather than two.
+function row(y, label, value, size, warnings, note = '') {
+  const text = `${label}: ${escape(value) || 'Not recorded'}`;
+  const [fitted, lines] = shrinkToOneLine(text, INNER, [size, size - 2, size - 4, size - 6, size - 8]);
+  if (lines > 1) {
+    warnings.push(
+      `'${text}' does not fit on one line even at ${size - 8} dots${note ? ` (${note})` : ''}, so it wraps and may ` +
+        'draw over the row below. Shorten it.',
+    );
+  }
+  return `^FO${MARGIN},${y}^A0N,${fitted}^FD${text}^FS`;
+}
+
+// The frozen dessert tub label: Brownie, Creme Brulee and whatever else
+// follows them. Replaces the hand-written MR019/MR020 artwork (Dean,
+// 2026-09-23) -- the 'MR' code and the 'M&R' prefix are both dropped, the
+// same decision already made for every other product on 2026-09-01.
+//
+// No batch code, SKU, QR or health mark: the sample artwork carries none of
+// them. Produced and Use By print as a month and year rather than a day,
+// which the other four formats never do -- the caller is responsible for
+// that formatting (see data.js's monthYear()), the same way it hands
+// useBy/packed to the other builders already formatted as dd/mm/yyyy.
+export function dessert({ name, contents, produced, useBy, netWeight, allergens, storage = 'freezer', quantity = 1 }) {
+  const warnings = [];
+  const note = DESSERT_STORAGE_NOTE[storage] || DESSERT_STORAGE_NOTE.freezer;
+  if (!DESSERT_STORAGE_NOTE[storage]) {
+    warnings.push(`No storage note recorded for '${storage}', so the label falls back to the freezer instruction. Add it to zpl.js's DESSERT_STORAGE_NOTE.`);
+  }
+
+  // The storage note sits top right and the name has to stay clear of it,
+  // the same way a product's variant chip carves into the name's width.
+  const noteW = Math.max(textWidth('Storage:', 16), textWidth(note[0], 16), textWidth(note[1], 16)) + 16;
+  warnName(name, warnings, INNER - noteW - 16);
+
+  const out = head();
+  out.push(
+    `^FO${MARGIN},42^A0N,${NAME_HEIGHT}^FD${escape(name)}^FS`,
+    `^FO${MARGIN},100^GB${INNER},0,4^FS`,
+    '',
+    `^FO${WIDTH - MARGIN - noteW},40^A0N,16^FB${noteW},1,0,R^FDStorage:\\&^FS`,
+    `^FO${WIDTH - MARGIN - noteW},60^A0N,16^FB${noteW},1,0,R^FD${note[0]}\\&^FS`,
+    `^FO${WIDTH - MARGIN - noteW},80^A0N,16^FB${noteW},1,0,R^FD${note[1]}\\&^FS`,
+    '',
+    row(116, 'Contents', contents, 28, warnings),
+    row(154, 'Produced', produced, 28, warnings),
+    row(192, 'Use by', useBy, 28, warnings),
+    '',
+    row(238, 'Net Weight', netWeight, 28, warnings),
+    row(276, 'Allergens', allergens, 28, warnings, 'the allergen declaration'),
     '',
     `^PQ${Math.trunc(quantity)}`,
     '^XZ',
@@ -609,4 +681,5 @@ export const BUILDERS = {
   packet: product,
   box: product,
   notice,
+  dessert,
 };

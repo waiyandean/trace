@@ -1,13 +1,15 @@
 Allergen import from /Users/grid/Repos/forms/apps/wiki/html/1.4 Allergen Management/1.4.1 Allergen Matrix.html
 
-71 rows in the matrix, 86 matched to catalog items.
+71 rows in the matrix, 87 matched to catalog items.
 5 carry a 'may contain'.
 
--- Stated directly, not in the matrix (11)
+-- Stated directly, not in the matrix (13)
    Should be added to the matrix itself; this map is the stopgap.
      Chicken Fillet  =  None declared
      Coconut Milk  =  None declared
      Dried Bird Eye Chillies  =  None declared
+     Matcha Brownie  =  Egg, Gluten, Milk
+     Matcha Creme Brulee  =  Egg, Gluten, Milk
      Memma Bamboo Shoots  =  None declared
      Pak Choi  =  None declared
      Pork Belly  =  None declared
@@ -22,14 +24,17 @@ Allergen import from /Users/grid/Repos/forms/apps/wiki/html/1.4 Allergen Managem
      Pork Chasiu  <-  Japanese Soy Sauce
      Tonkotsu Broth Diluted  <-  Tonkotsu Broth
 
--- Retired, skipped (2)
+-- Retired, skipped (1)
    Still in the matrix, no longer used by the kitchen.
      Dark Soy Sauce
-     Mapo Tare
 
--- In the matrix, no catalog item (0)
+-- In the matrix, no catalog item (2)
    Add an alias in ALIASES once it is decided what each one means.
+     Mapo Tare (Discontinued — withdrawn Aug 2026)
+     Spicy Bean Sauce (Mapo) (Discontinued — withdrawn Aug 2026)
 
--- In the catalog, no matrix row (0)
+-- In the catalog, no matrix row (2)
    These print 'Not recorded' until the matrix covers them. Items in
    not_labelled are left out: no label is printed for them at all.
+     Spicy Bean Sauce (Mapo)
+     Tonkotsu Broth 6.5 Brix Test

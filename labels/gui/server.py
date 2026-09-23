@@ -82,6 +82,9 @@ TYPES = [
     {"id": "notice", "name": "Notice",
      "blurb": "Anything else: a warning, a note, a sign. Big words, centred.",
      "source": "free"},
+    {"id": "dessert", "name": "Desserts",
+     "blurb": "The frozen dessert tubs.",
+     "source": "dessert"},
     # Prints on the Brother QL-600, not the Zebra -- see the "seal" branches
     # in Data.listing/Data.form and the /api/seal/* routes below.
     {"id": "box-seal", "name": "Box Seal",
@@ -171,6 +174,17 @@ def uk(iso):
         return datetime.strptime(iso, "%Y-%m-%d").strftime("%d/%m/%Y")
     except ValueError:
         return iso
+
+
+def month_year(iso):
+    """An ISO date as 'September 2026', the way a Desserts label prints its
+    dates -- day-of-month is recorded (so 'derive' can still work out a use-by
+    from it) but never shown, since the sample artwork this type replicates
+    only ever gives a month."""
+    try:
+        return datetime.strptime(iso, "%Y-%m-%d").strftime("%B %Y")
+    except (ValueError, TypeError):
+        return iso or ""
 
 
 def ddmmyy(iso):
@@ -294,7 +308,7 @@ class Data:
         for item in self.catalog["items"]:
             if source == "ingredient" and item["kind"] != "ingredient":
                 continue
-            if source in ("product", "seal") and item["kind"] != "product":
+            if source in ("product", "seal", "dessert") and item["kind"] != "product":
                 continue
             if source == "seal" and self.extra.get("products", {}).get(
                     item["name"], {}).get("category") != "Frozen Ramen":
@@ -322,7 +336,7 @@ class Data:
                 "suppliers": item["suppliers"],
             })
 
-        if source in ("product", "seal"):
+        if source in ("product", "seal", "dessert"):
             return self._by_category(rows)
 
         groups = []
@@ -416,6 +430,8 @@ class Data:
         product = self.extra.get("products", {}).get(item["name"], {})
         if type_id == "box-seal":
             return product.get("barcode", "")
+        if type_id == "dessert":
+            return product.get("dessert", {}).get("net_weight", "")
         variant = product.get("box" if type_id == "box" else "packet", {})
         if variant.get("qty"):
             return variant["qty"]
@@ -444,6 +460,13 @@ class Data:
                 gaps.append("qty")
             if product.get("health_mark") is None:
                 gaps.append("health mark")
+        elif type_id == "dessert":
+            # No batch, SKU, QR or health mark on this label -- see zpl.dessert
+            # -- so net weight is the only catalog fact beyond allergens that
+            # can be missing.
+            product = self.extra.get("products", {}).get(item["name"], {})
+            if not product.get("dessert", {}).get("net_weight"):
+                gaps.append("net weight")
         else:
             key = "storage_opened" if type_id == "date-opened" else "storage_unopened"
             if not item[key]:
@@ -460,6 +483,46 @@ class Data:
                              "being reflowed. Keep it short: a label read "
                              "across a room is a few words, not a "
                              "paragraph.")]}
+
+        if type_id == "dessert":
+            item = self.items[item_id]
+            product = self.extra.get("products", {}).get(item["name"], {})
+            dessert_info = product.get("dessert", {})
+            allergens = self.extra.get("allergens", {}).get(item["name"], "")
+            today = date.today().isoformat()
+            phrase = dessert_info.get("phrase") or item["name"]
+            count = dessert_info.get("count") or ""
+            fields = [
+                field("name", "Product", product.get("label_name") or item["name"],
+                      editable=False),
+                # Editable, not derived -- a partial batch prints a different
+                # count than a full one, and the catalog only knows what a
+                # full batch is.
+                field("contents", "Contents",
+                      f"{count} {phrase}".strip(),
+                      hint="What's in the tub. Type over it for a partial "
+                           "batch."),
+                field("produced", "Produced", today, kind="date",
+                      hint="The use-by follows this."),
+                field("use_by", "Use by", months_on(today, 3), kind="date",
+                      derive="months:3:produced",
+                      hint="3 months from being produced, on the first of "
+                           "that month. Type over it to set a different "
+                           "date."),
+                field("net_weight", "Net Weight",
+                      dessert_info.get("net_weight", ""), editable=False,
+                      missing=not dessert_info.get("net_weight"),
+                      hint="Maintained in label-data.json." if
+                           dessert_info.get("net_weight") else
+                           "Nothing in the catalog records this yet."),
+                field("allergens", "Allergens", allergens, editable=False,
+                      missing=not allergens,
+                      hint="Maintained in label-data.json from the allergen "
+                           "matrix; it cannot be changed while printing."),
+            ]
+            return {"type": type_id, "item": item_id,
+                    "title": self.label_name(item, type_id),
+                    "gaps": self.gaps(item, type_id), "fields": fields}
 
         if type_id == "box-seal":
             item = self.items[item_id]
@@ -714,6 +777,17 @@ def build(data, type_id, item_id, values, quantity):
             batch=values.get("batch", ""),
             allergens=allergens,
             storage_opened=values.get("storage_opened") or item["storage_opened"],
+            quantity=quantity)
+    if type_id == "dessert":
+        product = data.extra.get("products", {}).get(item["name"], {})
+        return zpl.dessert(
+            name=values.get("name") or product.get("label_name") or item["name"],
+            contents=values.get("contents", ""),
+            produced=month_year(values.get("produced")),
+            use_by=month_year(values.get("use_by")),
+            net_weight=values.get("net_weight", ""),
+            allergens=allergens,
+            storage=item["storage_unopened"] or "freezer",
             quantity=quantity)
     return zpl.product(
         name=values.get("name") or item["name"],
