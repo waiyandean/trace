@@ -71,8 +71,15 @@ header h1 { font-size: 17px; margin: 0; flex: 1; letter-spacing: -0.2px; }
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
   padding: 8px 16px; background: var(--sunk); border-top: 1px solid var(--line);
 }
-.nav-pill { text-decoration: none; }
+.nav-pill { text-decoration: none; position: relative; }
 .nav-pill.current { background: var(--tint-soft); color: var(--tint); font-weight: 700; }
+/* The underline GitHub's own tab strip uses, flush with the header's own
+   bottom edge rather than the pill's — so it reads as "the row itself is
+   anchored here" rather than just another fill colour (Dean, 2026-09-24). */
+.nav-pill.current::after {
+  content: ''; position: absolute; left: 6px; right: 6px; bottom: -8px;
+  height: 2px; border-radius: 1px; background: var(--tint);
+}
 main { padding: 16px; max-width: 760px; margin: 0 auto; }
 section {
   background: var(--surface); border: 1px solid var(--line);
