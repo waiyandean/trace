@@ -37,10 +37,19 @@ body {
   font: 17px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   padding: 0 0 env(safe-area-inset-bottom);
 }
+/* Two fixed rows, never one that reflows around whichever page-specific
+   buttons happen to exist: the top row is "what is going on right now" and
+   its contents differ page to page (a connectivity pill is the only thing
+   every page has); the nav row underneath is the same seven pills in the
+   same order everywhere, in a strip of its own so it can never be mistaken
+   for a status pill or shift position depending on what is above it
+   (Dean, 2026-09-24). */
 header {
   position: sticky; top: 0; z-index: 20; background: var(--surface);
-  border-bottom: 1px solid var(--line); padding: 10px 16px calc(10px);
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  border-bottom: 1px solid var(--line); display: flex; flex-direction: column;
+}
+.header-top {
+  padding: 10px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
 }
 header h1 { font-size: 20px; margin: 0; flex: 1; letter-spacing: -0.2px; }
 .pill {
@@ -50,6 +59,10 @@ header h1 { font-size: 20px; margin: 0; flex: 1; letter-spacing: -0.2px; }
 .pill.ok { background: var(--tint-soft); color: var(--tint); }
 .pill.bad { background: var(--bad-soft); color: var(--bad); }
 .pill.warn { background: var(--warn-soft); color: var(--warn); }
+#nav {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 16px; background: var(--sunk); border-top: 1px solid var(--line);
+}
 .nav-pill { text-decoration: none; }
 .nav-pill.current { background: var(--tint-soft); color: var(--tint); font-weight: 700; }
 main { padding: 16px; max-width: 760px; margin: 0 auto; }

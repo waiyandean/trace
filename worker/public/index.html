@@ -15,12 +15,14 @@
 <body>
 
 <header>
-  <h1>Goods In</h1>
-  <span class="pill" id="net">checking</span>
-  <span class="pill" id="pool">codes —</span>
+  <div class="header-top">
+    <h1>Goods In</h1>
+    <span class="pill" id="net">checking</span>
+    <span class="pill" id="pool">codes —</span>
+    <button class="secondary" id="open-holds" style="min-height:36px;padding:6px 12px;font-size:14px">Held <span id="holds-count">0</span></button>
+    <button class="secondary" id="open-queue" style="min-height:36px;padding:6px 12px;font-size:14px">Queue <span id="queue-count">0</span></button>
+  </div>
   <nav id="nav"></nav>
-  <button class="secondary" id="open-holds" style="min-height:36px;padding:6px 12px;font-size:14px">Held <span id="holds-count">0</span></button>
-  <button class="secondary" id="open-queue" style="min-height:36px;padding:6px 12px;font-size:14px">Queue <span id="queue-count">0</span></button>
 </header>
 
 <main>

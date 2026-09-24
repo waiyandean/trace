@@ -1785,6 +1785,17 @@ These need Dean's answer before the phase that depends on them.
    meant going via Goods In first. That gap closed for free once there was
    one list instead of seven hand-kept ones.
 
+   **The nav is also a fixed second row now, not interleaved with each
+   page's own status pills (Dean, 2026-09-24), once having the same list
+   everywhere made a different problem visible: the nav's position still
+   drifted, because how many status pills sit before it in the header — a
+   connectivity pill on every page, then Goods In's pool count and Held and
+   Queue buttons, or Batches' and Count's own review-queue buttons — is not
+   the same on every page.** The header is two rows now: the status row on
+   top, whatever it holds on a given page, and the nav underneath it,
+   shaded and set off with its own top border, always the same seven pills
+   at the same position regardless of what is above them.
+
    Still open: the print relay, which no Access application covers and which
    cannot easily be covered because the browser calls it cross-origin.
 10. **Packaging — resolved 2026-09-04 (Dean).** Stays out of scope, same as
