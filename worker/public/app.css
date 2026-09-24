@@ -50,6 +50,8 @@ header h1 { font-size: 20px; margin: 0; flex: 1; letter-spacing: -0.2px; }
 .pill.ok { background: var(--tint-soft); color: var(--tint); }
 .pill.bad { background: var(--bad-soft); color: var(--bad); }
 .pill.warn { background: var(--warn-soft); color: var(--warn); }
+.nav-pill { text-decoration: none; }
+.nav-pill.current { background: var(--tint-soft); color: var(--tint); font-weight: 700; }
 main { padding: 16px; max-width: 760px; margin: 0 auto; }
 section {
   background: var(--surface); border: 1px solid var(--line);

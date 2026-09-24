@@ -1,5 +1,6 @@
 import { ulid, makeStore } from './lib/offline.js';
 import { authedFetch, mountStaff } from './lib/signin.js';
+import { mountNav } from './lib/nav.js';
 import { buildPackingLabel } from './lib/zpl.js';
 
 // Cooked several pots a day, so the batch code needs the pot to tell today's
@@ -17,6 +18,8 @@ const POT_ITEMS = new Set(['Chicken Broth', 'Tonkotsu Broth']);
 // the one nobody looks at is where a cooling check goes to die.
 
 const $ = (id) => document.getElementById(id);
+
+mountNav($('nav'), '/batches');
 const store = makeStore(window.localStorage);
 const STAFF_KEY = 'trace.intake.staff';
 const RELAY_KEY = 'trace.intake.relay';

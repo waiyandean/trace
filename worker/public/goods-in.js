@@ -5,6 +5,7 @@ import {
   probeKindFor, withinLimit, vehicleReadingsNeeded,
 } from './lib/offline.js';
 import { authedFetch, mountStaff, session } from './lib/signin.js';
+import { mountNav } from './lib/nav.js';
 import { bearer } from './lib/auth.js';
 import { buildGoodsInLabel } from './lib/zpl.js';
 
@@ -19,6 +20,8 @@ import { buildGoodsInLabel } from './lib/zpl.js';
 // and are unit tested.
 
 const $ = (id) => document.getElementById(id);
+
+mountNav($('nav'), '/');
 
 const store = makeStore(window.localStorage);
 const queue = makeQueue(store);

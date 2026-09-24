@@ -1771,6 +1771,20 @@ These need Dean's answer before the phase that depends on them.
    photo of it)** — 7 8 9 / 4 5 6 / 1 2 3, delete / 0 / clear — so a PIN goes
    in on muscle memory already built daily rather than a layout to relearn.
 
+   **Every screen's header nav is now one shared list (Dean, 2026-09-24):
+   the same seven pills, in the same order, on every page — including the
+   page you are already on, shown as a plain pill rather than hidden, so the
+   row itself never changes shape as staff move around.** Ordered by the
+   process rather than alphabetically: Goods In, Stock, Batching, Batches,
+   Dispatch, Count, Reports. `public/lib/nav.js` is the one place this list
+   lives; each page calls `mountNav` with its own path rather than
+   hand-writing its own set of links. Fixing this surfaced a real gap the
+   hand-written headers had drifted into: five of the seven pages —
+   everything except `batches.html` and `batching.html` itself — had no link
+   to Batching at all, so starting a new batch from, say, Dispatch or Count
+   meant going via Goods In first. That gap closed for free once there was
+   one list instead of seven hand-kept ones.
+
    Still open: the print relay, which no Access application covers and which
    cannot easily be covered because the browser calls it cross-origin.
 10. **Packaging — resolved 2026-09-04 (Dean).** Stays out of scope, same as

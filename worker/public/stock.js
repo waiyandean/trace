@@ -1,5 +1,6 @@
 import { ulid, makeStore } from './lib/offline.js';
 import { authedFetch, mountStaff } from './lib/signin.js';
+import { mountNav } from './lib/nav.js';
 import { buildDateOpenedLabel } from './lib/zpl.js';
 
 // The stock screen: what is in each area, and the three things that can be
@@ -11,6 +12,8 @@ import { buildDateOpenedLabel } from './lib/zpl.js';
 // else moved something. Pretending otherwise would be worse than saying so.
 
 const $ = (id) => document.getElementById(id);
+
+mountNav($('nav'), '/stock');
 const store = makeStore(window.localStorage);
 const STAFF_KEY = 'trace.intake.staff';
 const DEVICE_KEY = 'trace.intake.device';

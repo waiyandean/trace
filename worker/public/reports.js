@@ -1,4 +1,8 @@
+import { mountNav } from './lib/nav.js';
+
 const $ = (id) => document.getElementById(id);
+
+mountNav($('nav'), '/reports');
 
 // P6 — Reports. Reads only: nothing on this screen writes to the ledger.
 // See PLAN.md, "P6 — Reports": one-step-back, one-step-forward, mass balance,

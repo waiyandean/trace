@@ -9,11 +9,19 @@ import { readFileSync, existsSync } from 'node:fs';
 
 const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
 const script = readFileSync(new URL('../public/goods-in.js', import.meta.url), 'utf8');
+
+// The shared nav (lib/nav.js) declares a few element ids of its own at
+// runtime — the current wording is static import.meta.url — pulled out here
+// so every per-page "every id a script reaches for exists" check below can
+// count them as declared, the same as anything written directly in the HTML.
+const navScript = readFileSync(new URL('../public/lib/nav.js', import.meta.url), 'utf8');
+const navDeclaredIds = new Set([...navScript.matchAll(/badgeId: '([^']+)'/g)].map((m) => m[1]));
 // Both forms share one stylesheet, so the rules that are load-bearing for
 // behaviour — the hidden attribute, the checkbox tick — are checked there.
 const css = readFileSync(new URL('../public/app.css', import.meta.url), 'utf8');
 
 const declared = new Set([...html.matchAll(/id="([^"]+)"/g)].map((match) => match[1]));
+for (const id of navDeclaredIds) declared.add(id);
 const used = new Set([...script.matchAll(/\$\('([^']+)'\)/g)].map((match) => match[1]));
 
 test('every element the form reaches for exists in the page', () => {
@@ -149,6 +157,7 @@ const stockScript = readFileSync(new URL('../public/stock.js', import.meta.url),
 
 test('every element the stock screen reaches for exists in its page', () => {
   const declared = new Set([...stockHtml.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+  for (const id of navDeclaredIds) declared.add(id);
   const used = new Set([...stockScript.matchAll(/\$\('([^']+)'\)/g)].map((m) => m[1]));
   const missing = [...used].filter((id) => !declared.has(id));
   assert.deepEqual(missing, []);
@@ -174,6 +183,7 @@ const batchingScript = readFileSync(new URL('../public/batching.js', import.meta
 
 test('every element the batching form reaches for exists in its page', () => {
   const declared = new Set([...batchingHtml.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+  for (const id of navDeclaredIds) declared.add(id);
   const used = new Set([...batchingScript.matchAll(/\$\('([^']+)'\)/g)].map((m) => m[1]));
   assert.deepEqual([...used].filter((id) => !declared.has(id)), []);
 });
@@ -239,6 +249,7 @@ const batchesScript = readFileSync(new URL('../public/batches.js', import.meta.u
 
 test('every element the open batches screen reaches for exists in its page', () => {
   const declared = new Set([...batchesHtml.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+  for (const id of navDeclaredIds) declared.add(id);
   const used = new Set([...batchesScript.matchAll(/\$\('([^']+)'\)/g)].map((m) => m[1]));
   assert.deepEqual([...used].filter((id) => !declared.has(id)), []);
 });
@@ -271,6 +282,7 @@ const dispatchScript = readFileSync(new URL('../public/dispatch.js', import.meta
 
 test('every element the dispatch screen reaches for exists in its page', () => {
   const declared = new Set([...dispatchHtml.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+  for (const id of navDeclaredIds) declared.add(id);
   const used = new Set([...dispatchScript.matchAll(/\$\('([^']+)'\)/g)].map((m) => m[1]));
   assert.deepEqual([...used].filter((id) => !declared.has(id)), []);
 });
@@ -301,6 +313,7 @@ const countScript = readFileSync(new URL('../public/count.js', import.meta.url),
 
 test('every element the count screen reaches for exists in its page', () => {
   const declared = new Set([...countHtml.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+  for (const id of navDeclaredIds) declared.add(id);
   const used = new Set([...countScript.matchAll(/\$\('([^']+)'\)/g)].map((m) => m[1]));
   assert.deepEqual([...used].filter((id) => !declared.has(id)), []);
 });
