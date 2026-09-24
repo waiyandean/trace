@@ -67,11 +67,18 @@ header h1 { font-size: 17px; margin: 0; flex: 1; letter-spacing: -0.2px; }
    idea as .pill, sized down to match, so a header button reads as part of
    the compact status row rather than a full-size call to action. */
 .header-btn { min-height: 28px; padding: 3px 10px; font-size: 12px; }
+/* One row, always — never two. Wrapping to a second line on a narrow phone
+   pushed the whole page down and undid the point of pinning this row in a
+   fixed place (Dean, 2026-09-24, spotted on his phone). Scrolls sideways
+   instead, the way a phone's own tab strips do; nav-pill's flex-shrink: 0
+   is what stops a pill being squashed instead of the row just scrolling. */
 #nav {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
   padding: 8px 16px; background: var(--sunk); border-top: 1px solid var(--line);
+  overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
 }
-.nav-pill { text-decoration: none; position: relative; }
+#nav::-webkit-scrollbar { display: none; }
+.nav-pill { text-decoration: none; position: relative; flex-shrink: 0; }
 .nav-pill.current { background: var(--tint-soft); color: var(--tint); font-weight: 700; }
 /* The underline GitHub's own tab strip uses, flush with the header's own
    bottom edge rather than the pill's — so it reads as "the row itself is

@@ -22,6 +22,7 @@ export const NAV = [
 // the sighted, visual styling that also marks it.
 export function mountNav(container, currentPath) {
   container.replaceChildren();
+  let current = null;
   for (const item of NAV) {
     const here = item.path === currentPath;
     const el = document.createElement(here ? 'span' : 'a');
@@ -32,8 +33,16 @@ export function mountNav(container, currentPath) {
       badge.id = item.badgeId;
       el.append(badge);
     }
-    if (here) el.setAttribute('aria-current', 'page');
-    else el.href = item.path;
+    if (here) {
+      el.setAttribute('aria-current', 'page');
+      current = el;
+    } else {
+      el.href = item.path;
+    }
     container.append(el);
   }
+  // The row scrolls sideways on a narrow screen rather than wrapping, so on
+  // a page near the end of the list (Reports, on a phone) the current pill
+  // can start off screen. Brought into view without moving the page itself.
+  current?.scrollIntoView({ inline: 'nearest', block: 'nearest' });
 }

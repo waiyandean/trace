@@ -1796,6 +1796,20 @@ These need Dean's answer before the phase that depends on them.
    shaded and set off with its own top border, always the same seven pills
    at the same position regardless of what is above them.
 
+   **The nav scrolls sideways rather than wrapping to a second line (Dean,
+   2026-09-24, spotted on his phone).** Seven pills at a readable size do
+   not fit one line on a phone-width screen, and letting the row wrap
+   pushed the whole page down and undid the point of the row above: it
+   only stays in a fixed position if it stays one row. `#nav` scrolls
+   horizontally instead, the way a phone's own tab strips already do, and
+   `mountNav` scrolls the current page's pill into view on load so a page
+   near the end of the list — Reports, on a narrow screen — is never left
+   off to the side unless somebody scrolls to find it.
+
+   The status row above it was not touched, and status pills top out at
+   four (Goods In: connectivity, pool count, Held, Queue), which still
+   fits a phone width; revisit if that grows.
+
    Still open: the print relay, which no Access application covers and which
    cannot easily be covered because the browser calls it cross-origin.
 10. **Packaging — resolved 2026-09-04 (Dean).** Stays out of scope, same as
