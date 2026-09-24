@@ -15,12 +15,17 @@
 // An administrator may set any four digits, including a code somebody already
 // uses elsewhere such as a clock-in code. A weak one is warned about and needs
 // a yes; self-service changes in the app refuse weak ones outright.
+//
+// A PIN typed with nobody chosen (the app's usual way in now) has to find one
+// person, so it refuses to set a PIN that collides with another active
+// person's, full stop — no "use it anyway", because that would leave two
+// people unable to tell apart until one of them changes it.
 
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { Writable } from 'node:stream';
 import readline from 'node:readline';
-import { makePinRow, weakness } from '../src/auth.js';
+import { makePinRow, weakness, findPinCollision } from '../src/auth.js';
 
 const args = process.argv.slice(2);
 const remote = args.includes('--remote');
@@ -118,6 +123,18 @@ for (const person of targets) {
   const weak = weakness(first);
   if (weak && !/^y/i.test(await ask(`  that code is ${weak}. Use it anyway? [y/N] `, { hidden: false }))) {
     console.log('  skipped');
+    continue;
+  }
+
+  // Fetched fresh each time, not once up front, so a --all run checks a
+  // person against PINs just set earlier in the same run, not a stale list.
+  const others = d1(
+    `SELECT s.id, s.name, p.pin_hash, p.salt FROM staff_pins p
+       JOIN staff s ON s.id = p.staff_id WHERE s.active = 1 AND s.id != ${quote(person.id)}`,
+  );
+  const collision = await findPinCollision({ PIN_PEPPER: pepper }, others, first);
+  if (collision) {
+    console.log(`  that code is already ${collision.name}'s; typing a PIN alone has to find one person, skipped`);
     continue;
   }
 

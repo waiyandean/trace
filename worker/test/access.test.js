@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import worker from '../src/index.js';
-import { verifyAccess, resetAccessCache, isLocalHost, isPublicApi } from '../src/access.js';
+import { verifyAccess, resetAccessCache, isDevRequest, isPublicApi } from '../src/access.js';
 import { AuthError } from '../src/http.js';
 import { fakeDb } from './fakeDb.js';
 
@@ -167,12 +167,11 @@ test('a team domain given with https:// or a trailing slash still matches', asyn
   assert.equal(who.email, 'ramenhq97@gmail.com');
 });
 
-test('only localhost skips the check, and only the label routes are public', () => {
-  assert.equal(isLocalHost('localhost'), true);
-  assert.equal(isLocalHost('127.0.0.1'), true);
-  for (const host of ['trace.deanops.uk', 'forms.deanops.uk', 'localhost.evil.com', 'evil-localhost']) {
-    assert.equal(isLocalHost(host), false, host);
-  }
+test('only LOCAL_DEV skips the check, and only the label routes are public', () => {
+  assert.equal(isDevRequest({ LOCAL_DEV: '1' }), true);
+  assert.equal(isDevRequest({}), false);
+  assert.equal(isDevRequest({ LOCAL_DEV: '' }), false, 'set but empty is not set');
+  assert.equal(isDevRequest({ LOCAL_DEV: '0' }), true, '"0" is still a truthy string — set it or omit it, not "0"');
   assert.equal(isPublicApi('/api/labels/render'), true);
   for (const path of ['/api/receive', '/api/ledger', '/api/labelsX', '/api/labels', '/api/health', '/api/whoami']) {
     assert.equal(isPublicApi(path), false, path);

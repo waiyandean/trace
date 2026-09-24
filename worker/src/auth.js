@@ -96,52 +96,165 @@ export async function makePinRow(env, pin) {
   return { salt, pin_hash: b64u(await sign(env.PIN_PEPPER, `pin:${salt}:${pin}`)) };
 }
 
-async function pinMatches(env, row, pin) {
+export async function pinMatches(env, row, pin) {
   return verifySignature(env.PIN_PEPPER, `pin:${row.salt}:${pin}`, unb64u(row.pin_hash));
+}
+
+// The comparison `pinCollision` and `identifyByPin` both do, pulled out so
+// `scripts/set-pin.mjs` — which reaches the database through the `wrangler`
+// CLI, not this file's `db.prepare()` calls — can run the same check itself
+// on rows it fetched its own way, rather than a second copy of the logic.
+export async function findPinCollision(env, rows, pin, excludeStaffId = null) {
+  for (const row of rows) {
+    if (row.id === excludeStaffId) continue;
+    if (await pinMatches(env, row, pin)) return { id: row.id, name: row.name };
+  }
+  return null;
 }
 
 const minutes = (seconds) => Math.max(1, Math.ceil(seconds / 60));
 
-// Checks a PIN and keeps the lockout books. A person who is locked out is
-// refused before the PIN is even looked at, so guessing during a lockout
-// neither succeeds nor learns anything, and does not extend it.
+// The lockout bookkeeping, shared by a named person's own row (`staff_pins`)
+// and the single shared row for a blind guess that matched nobody
+// (`identify_lockout`). Both tables have the same three columns for exactly
+// this reason.
+function lockoutStore(table, key, whoFailed) {
+  return {
+    async current(db) {
+      return db.prepare(`SELECT failed_count, lock_level, locked_until FROM ${table} WHERE ${key.column} = ?`)
+        .bind(key.value).first();
+    },
+    async isLocked(db, nowMs) {
+      const row = await this.current(db);
+      if (!row?.locked_until) return null;
+      const left = (Date.parse(row.locked_until) - nowMs) / 1000;
+      return left > 0 ? left : null;
+    },
+    async clear(db) {
+      await db.prepare(`UPDATE ${table} SET failed_count = 0, lock_level = 0, locked_until = NULL WHERE ${key.column} = ?`)
+        .bind(key.value).run();
+    },
+    // Returns how many seconds the failure just locked things out for, or
+    // null if there is still at least one try left.
+    async fail(db, nowMs) {
+      // Incremented in the statement, not read and written back, so a burst
+      // of guesses cannot each start from the same count.
+      await db.prepare(`UPDATE ${table} SET failed_count = failed_count + 1 WHERE ${key.column} = ?`)
+        .bind(key.value).run();
+      const row = await this.current(db);
+      if (row.failed_count < MAX_ATTEMPTS) return { locked: null, triesLeft: MAX_ATTEMPTS - row.failed_count };
+      const level = row.lock_level + 1;
+      const seconds = Math.min(LOCK_BASE_S * 2 ** (level - 1), LOCK_MAX_S);
+      await db.prepare(`UPDATE ${table} SET failed_count = 0, lock_level = ?, locked_until = ? WHERE ${key.column} = ?`)
+        .bind(level, new Date(nowMs + seconds * 1000).toISOString(), key.value).run();
+      return { locked: seconds, triesLeft: 0 };
+    },
+    whoFailed,
+  };
+}
+
+const staffLockout = (staffId) => lockoutStore('staff_pins', { column: 'staff_id', value: staffId });
+const identifyLockout = () => lockoutStore('identify_lockout', { column: 'id', value: 'identify' });
+
+// Checks a PIN against one named person and keeps that person's lockout
+// books. A person who is locked out is refused before the PIN is even looked
+// at, so guessing during a lockout neither succeeds nor learns anything, and
+// does not extend it.
 async function checkPin(db, env, staff, pin, nowMs) {
   requirePinShape(pin);
+  const lockout = staffLockout(staff.id);
   const row = await db
-    .prepare('SELECT pin_hash, salt, failed_count, lock_level, locked_until FROM staff_pins WHERE staff_id = ?')
+    .prepare('SELECT pin_hash, salt FROM staff_pins WHERE staff_id = ?')
     .bind(staff.id).first();
   if (!row) throw new AuthError(401, `no PIN is set for ${staff.name}; ask whoever runs trace to set one`);
 
-  if (row.locked_until) {
-    const left = (Date.parse(row.locked_until) - nowMs) / 1000;
-    if (left > 0) {
-      throw new AuthError(429, `too many wrong PINs for ${staff.name}; try again in ${minutes(left)} min`,
-        { retryAfter: Math.ceil(left) });
-    }
+  const lockedFor = await lockout.isLocked(db, nowMs);
+  if (lockedFor !== null) {
+    throw new AuthError(429, `too many wrong PINs for ${staff.name}; try again in ${minutes(lockedFor)} min`,
+      { retryAfter: Math.ceil(lockedFor) });
   }
 
   if (await pinMatches(env, row, pin)) {
-    await db.prepare(
-      'UPDATE staff_pins SET failed_count = 0, lock_level = 0, locked_until = NULL WHERE staff_id = ?',
-    ).bind(staff.id).run();
+    await lockout.clear(db);
     return;
   }
 
-  // Incremented in the statement, not read and written back, so a burst of
-  // guesses cannot each start from the same count.
-  await db.prepare('UPDATE staff_pins SET failed_count = failed_count + 1 WHERE staff_id = ?').bind(staff.id).run();
-  const now = await db.prepare('SELECT failed_count, lock_level FROM staff_pins WHERE staff_id = ?')
-    .bind(staff.id).first();
-  if (now.failed_count >= MAX_ATTEMPTS) {
-    const level = now.lock_level + 1;
-    const seconds = Math.min(LOCK_BASE_S * 2 ** (level - 1), LOCK_MAX_S);
-    await db.prepare('UPDATE staff_pins SET failed_count = 0, lock_level = ?, locked_until = ? WHERE staff_id = ?')
-      .bind(level, new Date(nowMs + seconds * 1000).toISOString(), staff.id).run();
-    throw new AuthError(429, `too many wrong PINs for ${staff.name}; try again in ${minutes(seconds)} min`,
-      { retryAfter: seconds });
+  const result = await lockout.fail(db, nowMs);
+  if (result.locked !== null) {
+    throw new AuthError(429, `too many wrong PINs for ${staff.name}; try again in ${minutes(result.locked)} min`,
+      { retryAfter: result.locked });
   }
-  const left = MAX_ATTEMPTS - now.failed_count;
-  throw new AuthError(401, `wrong PIN for ${staff.name}; ${left} ${left === 1 ? 'try' : 'tries'} left`);
+  throw new AuthError(401,
+    `wrong PIN for ${staff.name}; ${result.triesLeft} ${result.triesLeft === 1 ? 'try' : 'tries'} left`);
+}
+
+// Whether `pin` is already somebody else's, checked by trying it against
+// every other active person's stored hash rather than by a database lookup —
+// the hash is salted per row precisely so it cannot be looked up directly.
+// This is what typing a PIN alone (`identify`, below) depends on: it only
+// works while PINs are unique, so nothing may set one that collides.
+export async function pinCollision(db, env, pin, excludeStaffId = null) {
+  const { results } = await db
+    .prepare('SELECT s.id, s.name, p.pin_hash, p.salt FROM staff_pins p JOIN staff s ON s.id = p.staff_id WHERE s.active = 1')
+    .all();
+  return findPinCollision(env, results || [], pin, excludeStaffId);
+}
+
+// Who `pin` belongs to, with nobody chosen first. Tries it against every
+// active, currently-unlocked person's PIN; a locked person's row is skipped
+// entirely, so a correct guess against a locked account neither signs
+// them in nor reveals that it was close. Every candidate is still checked
+// even after a match, so how many people happen to be enrolled does not
+// change how long this takes to answer.
+//
+// Blind guessing has no one person to charge a wrong attempt to, so it is
+// charged to the shared `identify_lockout` row instead (PLAN.md, open
+// question 9) — a lock on guessing, never a second lock on any one account.
+// Picking a name and entering that person's PIN goes through `checkPin`
+// above and is never affected by this.
+async function identifyByPin(db, env, pin, nowMs) {
+  requirePinShape(pin);
+  const lockout = identifyLockout();
+  const lockedFor = await lockout.isLocked(db, nowMs);
+  if (lockedFor !== null) {
+    throw new AuthError(429, `too many wrong PINs; try again in ${minutes(lockedFor)} min, or choose your name`,
+      { retryAfter: Math.ceil(lockedFor) });
+  }
+
+  const { results } = await db
+    .prepare(
+      `SELECT s.id, s.name, p.pin_hash, p.salt FROM staff_pins p
+         JOIN staff s ON s.id = p.staff_id
+        WHERE s.active = 1 AND (p.locked_until IS NULL OR p.locked_until <= ?)`,
+    )
+    .bind(new Date(nowMs).toISOString())
+    .all();
+
+  let match = null;
+  let ambiguous = false;
+  for (const row of results || []) {
+    if (await pinMatches(env, row, pin)) {
+      if (match) ambiguous = true;
+      else match = row;
+    }
+  }
+
+  // Two people sharing a PIN should be impossible (`pinCollision` refuses
+  // setting one), but if it ever happened silently picking a winner would
+  // attribute somebody's record to the wrong person, so this refuses instead
+  // of guessing and says to use the name picker, which asks nothing of the
+  // PIN's uniqueness.
+  if (!match || ambiguous) {
+    const result = await lockout.fail(db, nowMs);
+    if (result.locked !== null) {
+      throw new AuthError(429, `too many wrong PINs; try again in ${minutes(result.locked)} min, or choose your name`,
+        { retryAfter: result.locked });
+    }
+    throw new AuthError(401, "PIN not recognised; choose your name if you're sure it's right");
+  }
+
+  await lockout.clear(db);
+  return match;
 }
 
 async function activeStaff(db, id) {
@@ -182,10 +295,20 @@ const bearer = (request) => (request.headers.get('authorization') || '').match(/
 
 // ------------------------------------------------------------------ handlers
 
+// With a `staff_id`, this is the original flow: a name was chosen, so the
+// PIN is checked against that one person and locks only them out. With none,
+// the PIN alone has to say who it is (`identifyByPin`), which is the primary
+// way in now and falls back to naming yourself on request only when it
+// cannot find a match — see `lib/signin.js`.
 export async function login(db, env, body, nowMs = Date.now()) {
   requireSecrets(env);
-  const staff = await activeStaff(db, body?.staff_id);
-  await checkPin(db, env, staff, body?.pin, nowMs);
+  let staff;
+  if (body?.staff_id) {
+    staff = await activeStaff(db, body.staff_id);
+    await checkPin(db, env, staff, body?.pin, nowMs);
+  } else {
+    staff = await identifyByPin(db, env, body?.pin, nowMs);
+  }
   const { token, expires_at } = await issueToken(env, staff.id, nowMs);
   return { token, expires_at, staff: { id: staff.id, name: staff.name } };
 }
@@ -243,6 +366,12 @@ export async function changePin(db, env, body, nowMs = Date.now()) {
   const weak = weakness(body.new_pin);
   if (weak) throw new BadRequest(`that PIN is ${weak}; pick one that is harder to guess`);
   await checkPin(db, env, staff, body.old_pin, nowMs);
+  // Typing a PIN alone has to find one person, so nobody may hold another
+  // active person's PIN — checked here, after the old PIN is confirmed
+  // correct, so this cannot be used to probe whether a guessed PIN belongs to
+  // somebody else.
+  const collision = await pinCollision(db, env, body.new_pin, staff.id);
+  if (collision) throw new BadRequest(`that PIN is already somebody else's; pick a different one`);
   const row = await makePinRow(env, body.new_pin);
   await db.prepare(
     `UPDATE staff_pins SET pin_hash = ?, salt = ?, set_at = datetime('now'),

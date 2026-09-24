@@ -1685,9 +1685,19 @@ These need Dean's answer before the phase that depends on them.
    exists is safe, and the label GUI is unaffected. Only the algorithm Access
    uses is accepted, keys are cached and refetched at most once a minute so a
    stranger cannot turn requests into fetches, and if Access cannot be reached
-   to check, the answer is no. Localhost skips it, being `wrangler dev` and the
-   tests, and cannot be reached from outside since Cloudflare routes on the
-   hostname it was sent.
+   to check, the answer is no.
+
+   **Skipping the check for local dev needed a real signal, not a hostname
+   guess (found 2026-09-24, by testing it rather than assuming).** The first
+   version skipped it for `localhost`, on the reasoning that Cloudflare routes
+   on the hostname a request was actually sent to, so `localhost` could never
+   arrive from outside. True, but irrelevant: once `wrangler.toml` named a real
+   route (`trace.deanops.uk`), `wrangler dev` started *simulating* that route
+   locally too — the Request the Worker sees has that hostname on it, even the
+   raw `Host` header, whatever port it is actually listening on. So `isDevRequest`
+   now reads an explicit `LOCAL_DEV` variable instead, which only ever comes
+   from `.dev.vars` (gitignored) or a test's own env — never from
+   `wrangler.toml`'s `[vars]`, which ships to production, and never a secret.
 
    **The application exists (created in the dashboard, 2026-09-21).** The
    Cloudflare connection used in the session can read Access but not write it
@@ -1701,11 +1711,49 @@ These need Dean's answer before the phase that depends on them.
    was changed to one month (730 hours, the dashboard's preset) on the same day
    and confirmed by reading it back.
 
-   Still to do: the two Worker secrets, `trace.deanops.uk` added to
-   `wrangler.toml` as a custom domain, the remote database migrated (it holds
-   only the first migration), and the print relay, which no Access application
-   covers and which cannot easily be covered because the browser calls it
-   cross-origin. Nothing here has been deployed.
+   **Deployed, 2026-09-24 (Dean).** In order: the two Worker secrets
+   (`AUTH_SECRET`, `PIN_PEPPER`, each piped straight into `wrangler secret put`
+   from Dean's own terminal, never displayed or typed); migrations 2 to 18
+   applied to the remote database, the first time it held anything past the
+   catalog; `trace.deanops.uk` added as a fourth pattern on the existing
+   `routes` array (the same mechanism `forms.deanops.uk` already used — no
+   separate custom-domain feature needed, since both are on a zone Cloudflare
+   already manages), with the zone's own proxied placeholder DNS record it
+   needs to intercept anything at all (found by checking `forms.deanops.uk`'s
+   own record first, not assumed); then `npm run deploy`. Verified from
+   outside afterwards rather than trusted: `trace.deanops.uk` redirects to
+   Access (302), `forms.deanops.uk/labels` is unaffected (307, its normal
+   asset redirect), and the closed `workers.dev` address stays closed (404).
+   Dean set the first real PIN the same way, reusing his own Kobas clock-in
+   code, confirmed in the database without ever reading the PIN back.
+
+   **Sign-in became PIN-first the same day, with the name grid as a fallback
+   (Dean, 2026-09-24), once the first real sign-in showed choosing a name
+   first was extra friction the PIN made unnecessary.** Typing a PIN with
+   nobody chosen now identifies the person by trying it against everyone's
+   stored hash (`identifyByPin` in `src/auth.js`); the name grid appears only
+   when that finds no one match. This only works while every PIN is unique, so
+   `changePin` and `scripts/set-pin.mjs` both refuse a PIN that collides with
+   another active person's — checked by trying it against everyone else's
+   hash the same way, since a salted hash cannot be looked up directly
+   (`pinCollision`, and `findPinCollision` for the script, which reaches the
+   database through the `wrangler` CLI rather than this file's `db.prepare()`
+   and needed the same comparison in a form it could call on rows it fetched
+   itself).
+
+   The one real design question was lockout: a wrong guess against a chosen
+   name locks that one person, but a blind guess belongs to nobody until it
+   matches, so there is nothing to charge it to. A single shared row,
+   `identify_lockout` (migration 0019), locks blind guessing itself after
+   repeated misses, entirely apart from anyone's own lockout — so a burst of
+   wrong guesses throttles guessing, never a specific account, and choosing a
+   name is always still available as the original, unaffected path — the same
+   escape hatch a PIN that matches nobody also falls back to. A locked-out
+   person's own correct PIN is excluded from the blind search entirely, so it
+   neither signs them in nor reveals that it was close.
+
+   Still open: the print relay, which no Access application covers and which
+   cannot easily be covered because the browser calls it cross-origin.
 10. **Packaging — resolved 2026-09-04 (Dean).** Stays out of scope, same as
    the old rebuild. Nothing in the join failures this project exists to fix —
    not the 12,731 recorded uses, not the 2,675 delivery rows — ever pointed at

@@ -16,9 +16,17 @@ import { AuthError } from './http.js';
 // unset, the API refuses everything but the public label routes, which is
 // what a half-configured deploy should do.
 //
-// Not applied to localhost, which is `wrangler dev` and the tests. A request
-// for that hostname cannot arrive through Cloudflare's edge, which routes on
-// the hostname it was sent, so there is no way to use it from outside.
+// Not applied when `LOCAL_DEV` is set, which is `wrangler dev` and the tests.
+// This has to be a variable rather than a hostname check: `wrangler dev`
+// simulates the configured zone route, so once `wrangler.toml` names a real
+// host (`trace.deanops.uk`), the Request the Worker actually sees under dev
+// has that hostname on it too — url.hostname, and even the raw Host header,
+// say `trace.deanops.uk`, not `localhost`, no matter what `wrangler dev`
+// itself is listening on (found by testing it directly, not assumed).
+// `LOCAL_DEV` only ever comes from `.dev.vars` (gitignored, never committed)
+// or a test's own env object — never from `wrangler.toml`'s `[vars]`, which
+// is what ships, and never as a Worker secret — so it cannot end up set on
+// the deployed Worker by anything short of editing the deploy itself.
 
 const KEYS_TTL_MS = 60 * 60 * 1000;
 // A token signed by a key not in the cache is either a rotation or somebody
@@ -68,7 +76,7 @@ async function keysFor(team, fetchImpl, now, { force }) {
   return keys;
 }
 
-export const isLocalHost = (hostname) => hostname === 'localhost' || hostname === '127.0.0.1';
+export const isDevRequest = (env) => Boolean(env.LOCAL_DEV);
 
 // The label GUI is public by design. Everything else goes through Access.
 export const isPublicApi = (path) => path.startsWith('/api/labels/');

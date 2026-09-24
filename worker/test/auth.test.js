@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import worker from '../src/index.js';
 import {
-  login, authenticate, whoami, changePin, makePinRow, weakness,
+  login, authenticate, whoami, changePin, makePinRow, weakness, pinCollision, findPinCollision,
   MAX_ATTEMPTS, TOKEN_TTL_S, QUEUE_GRACE_S,
 } from '../src/auth.js';
 import { AuthError, BadRequest } from '../src/http.js';
@@ -11,14 +11,19 @@ import { sqliteDb } from './sqliteDb.js';
 const T0 = Date.parse('2026-09-21T06:00:00Z');
 const H = 3600 * 1000;
 
+// Dean and Nikin deliberately share a PIN — this is legal on the original
+// name-first flow (each is only ever checked against their own row) and is
+// exactly the fixture identify-by-PIN needs to prove it refuses rather than
+// guesses when a PIN matches more than one person. Aaron's is unique, for the
+// identify tests that want a clean match.
 async function world() {
   const db = sqliteDb();
-  const env = { DB: db, AUTH_SECRET: 'a'.repeat(40), PIN_PEPPER: 'b'.repeat(40) };
+  const env = { LOCAL_DEV: '1', DB: db, AUTH_SECRET: 'a'.repeat(40), PIN_PEPPER: 'b'.repeat(40) };
   db.sqlite.exec(`
-    INSERT INTO staff (id, name) VALUES ('dean', 'Dean'), ('nikin', 'Nikin'), ('nopin', 'Nopin');
+    INSERT INTO staff (id, name) VALUES ('dean', 'Dean'), ('nikin', 'Nikin'), ('aaron', 'Aaron'), ('nopin', 'Nopin');
     INSERT INTO staff (id, name, active) VALUES ('gone', 'Gone', 0);
   `);
-  for (const [id, pin] of [['dean', '4821'], ['nikin', '4821'], ['gone', '7391']]) {
+  for (const [id, pin] of [['dean', '4821'], ['nikin', '4821'], ['aaron', '5566'], ['gone', '7391']]) {
     const row = await makePinRow(env, pin);
     db.sqlite.prepare('INSERT INTO staff_pins (staff_id, pin_hash, salt) VALUES (?, ?, ?)')
       .run(id, row.pin_hash, row.salt);
@@ -106,6 +111,66 @@ test('a PIN must be exactly four digits', async () => {
   const { db, env } = await world();
   for (const pin of ['123', '12345', 'abcd', '', null]) {
     await assert.rejects(() => login(db, env, { staff_id: 'dean', pin }, T0), /exactly four digits/);
+  }
+});
+
+// ---------------------------------------------------- identifying by PIN alone
+
+test('a unique PIN with nobody chosen finds the one person it belongs to', async () => {
+  const { db, env } = await world();
+  const result = await login(db, env, { pin: '5566' }, T0);
+  assert.equal(result.staff.name, 'Aaron');
+});
+
+test('a PIN that matches nobody, or matches more than one person, is refused the same way', async () => {
+  const { db, env } = await world();
+  await assert.rejects(() => login(db, env, { pin: '0000' }, T0), refused(401, /not recognised/));
+  // Dean and Nikin share 4821 in this fixture (legal on the name-first flow),
+  // so identifying by that PIN alone must refuse rather than guess.
+  await assert.rejects(() => login(db, env, { pin: '4821' }, T0), refused(401, /not recognised/));
+});
+
+test('blind guessing locks out guessing, not any one account, and picking a name still works', async () => {
+  const { db, env } = await world();
+  for (let i = 0; i < MAX_ATTEMPTS; i += 1) await login(db, env, { pin: '0000' }, T0).catch(() => {});
+  await assert.rejects(() => login(db, env, { pin: '5566' }, T0), refused(429, /or choose your name/),
+    "even Aaron's own correct PIN is refused while guessing is locked out");
+  const named = await login(db, env, { staff_id: 'aaron', pin: '5566' }, T0);
+  assert.ok(named.token, 'naming yourself bypasses the guessing lock entirely');
+});
+
+test('a repeat blind-guessing lockout doubles, the same as a named one', async () => {
+  const { db, env } = await world();
+  let last;
+  for (let i = 0; i < MAX_ATTEMPTS; i += 1) last = await login(db, env, { pin: '0000' }, T0).catch((e) => e);
+  assert.equal(last.retryAfter, 600);
+  for (let i = 0; i < MAX_ATTEMPTS; i += 1) {
+    last = await login(db, env, { pin: '0000' }, T0 + 11 * 60000).catch((e) => e);
+  }
+  assert.equal(last.retryAfter, 1200);
+});
+
+test('a correct identify clears the guessing lockout, the way a correct named PIN clears its own', async () => {
+  const { db, env } = await world();
+  for (let i = 0; i < MAX_ATTEMPTS - 1; i += 1) await login(db, env, { pin: '0000' }, T0).catch(() => {});
+  await login(db, env, { pin: '5566' }, T0);
+  const row = db.sqlite.prepare("SELECT failed_count FROM identify_lockout WHERE id = 'identify'").get();
+  assert.equal(row.failed_count, 0);
+});
+
+test('a locked-out person is invisible to identify-by-PIN, even with their exact PIN', async () => {
+  const { db, env } = await world();
+  for (let i = 0; i < MAX_ATTEMPTS; i += 1) await login(db, env, { staff_id: 'aaron', pin: '0000' }, T0).catch(() => {});
+  // Aaron is now individually locked. Their real PIN must not silently sign
+  // them in through the blind path, nor should it say "close" in any way.
+  await assert.rejects(() => login(db, env, { pin: '5566' }, T0), refused(401, /not recognised/));
+});
+
+test('identify needs both secrets too, and refuses a malformed PIN the same way', async () => {
+  const { db, env } = await world();
+  await assert.rejects(() => login(db, { ...env, AUTH_SECRET: undefined }, { pin: '5566' }, T0), refused(503, /not set up/));
+  for (const pin of ['123', 'abcd', '']) {
+    await assert.rejects(() => login(db, env, { pin }, T0), /exactly four digits/);
   }
 });
 
@@ -249,6 +314,31 @@ test('a wrong old PIN counts against the lockout, and a weak new one is refused'
   await assert.rejects(() => changePin(db, env, { staff_id: 'dean', old_pin: '4821', new_pin: '55' }, T0), /exactly four digits/);
 });
 
+test('changing your own PIN to one somebody else already has is refused', async () => {
+  const { db, env } = await world();
+  // Aaron's PIN is unique; Dean picking it would make it not-unique.
+  await assert.rejects(() => changePin(db, env, { staff_id: 'dean', old_pin: '4821', new_pin: '5566' }, T0),
+    /already somebody else's/);
+  // Unaffected: what Dean and Nikin already share is only checked at set time.
+  assert.ok((await login(db, env, { staff_id: 'dean', pin: '4821' }, T0)).token);
+});
+
+test('pinCollision finds who a PIN belongs to, or nobody, and ignores whoever is excluded', async () => {
+  const { db, env } = await world();
+  assert.equal((await pinCollision(db, env, '5566')).name, 'Aaron');
+  assert.equal(await pinCollision(db, env, '5566', 'aaron'), null, "excluding the PIN's own owner");
+  assert.equal(await pinCollision(db, env, '9999'), null, 'a PIN nobody holds');
+});
+
+test('findPinCollision runs the same check over a plain array of rows, as scripts/set-pin.mjs does', async () => {
+  const { db, env } = await world();
+  const rows = db.sqlite.prepare(
+    'SELECT s.id, s.name, p.pin_hash, p.salt FROM staff_pins p JOIN staff s ON s.id = p.staff_id WHERE s.active = 1',
+  ).all();
+  assert.equal((await findPinCollision(env, rows, '5566')).name, 'Aaron');
+  assert.equal(await findPinCollision(env, rows, '5566', 'aaron'), null);
+});
+
 // --------------------------------------------------------------- the Worker
 
 test('through the Worker: a ledger write with no token is a 401, and a read is still open', async () => {
@@ -273,6 +363,25 @@ test('through the Worker: sign in, then change your PIN as the person the token 
   }), env);
   assert.equal(changed.status, 200, 'staff_id was not sent; the token supplied it');
   assert.ok((await login(db, env, { staff_id: 'dean', pin: '9153' })).token);
+});
+
+test('through the Worker: /api/login with a PIN and no staff_id identifies the person', async () => {
+  const { env } = await world();
+  const res = await worker.fetch(new Request('https://localhost/api/login', {
+    method: 'POST', body: JSON.stringify({ pin: '5566' }),
+  }), env);
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.staff.name, 'Aaron');
+});
+
+test('through the Worker: an unrecognised or ambiguous PIN is a 401 naming the name picker', async () => {
+  const { env } = await world();
+  const res = await worker.fetch(new Request('https://localhost/api/login', {
+    method: 'POST', body: JSON.stringify({ pin: '4821' }),
+  }), env);
+  assert.equal(res.status, 401);
+  assert.match((await res.json()).error, /not recognised/);
 });
 
 test('through the Worker: naming somebody else in the body is a 403', async () => {

@@ -35,12 +35,16 @@ function el(tag, className, text) {
   return node;
 }
 
+// `staffId` is the original, named path (checked against one person's PIN
+// only); omitting it is the primary way in now — the PIN alone says who it
+// is (`identifyByPin` in src/auth.js), and the name grid is only a fallback
+// for when that cannot find one person to match.
 async function login(staffId, pin) {
   try {
     const response = await fetch('/api/login', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ staff_id: staffId, pin }),
+      body: JSON.stringify(staffId ? { staff_id: staffId, pin } : { pin }),
     });
     const body = await response.json().catch(() => ({}));
     return { ok: response.ok, status: response.status, body };
@@ -59,7 +63,10 @@ function openSignIn(staff) {
   overlay.append(card);
   document.body.append(overlay);
 
-  let chosen = null;
+  // Whether the keypad is live right now — true on both the blind pad
+  // (`person` null) and a named one, false on the name grid. `chosen` alone
+  // cannot say this, since it is legitimately null while the blind pad is up.
+  let onPad = false;
   let digits = '';
   let busy = false;
 
@@ -70,7 +77,7 @@ function openSignIn(staff) {
   }
 
   function showNames(message = '') {
-    chosen = null;
+    onPad = false;
     digits = '';
     card.replaceChildren(el('h2', null, 'Who is this?'));
     if (message) card.append(el('p', 'signin-msg', message));
@@ -84,10 +91,18 @@ function openSignIn(staff) {
     card.append(grid);
   }
 
+  // `person` is who the PIN is checked against and locks out on a wrong
+  // guess. Null is the blind pad: the PIN alone has to find that person, and
+  // a wrong or ambiguous one falls back to the name grid rather than staying
+  // here to be retried, since retrying a PIN that cannot identify anyone only
+  // spends the shared guessing lock for no reason.
   function showPin(person, message = '') {
-    chosen = person;
+    onPad = true;
     digits = '';
-    card.replaceChildren(el('h2', null, person.name), el('p', 'signin-hint', 'Enter your PIN'));
+    card.replaceChildren(
+      el('h2', null, person ? person.name : 'Enter your PIN'),
+      el('p', 'signin-hint', person ? 'Enter your PIN' : 'Nobody has to be chosen — just type it'),
+    );
     const dots = el('div', 'signin-dots');
     dots.setAttribute('aria-live', 'polite');
     const note = el('p', 'signin-msg', message);
@@ -106,12 +121,17 @@ function openSignIn(staff) {
       if (digits.length < PIN_LENGTH) return;
       busy = true;
       note.textContent = 'Checking…';
-      const result = await login(person.id, digits);
+      const result = await login(person?.id, digits);
       busy = false;
       if (result.ok) {
         session.save(result.body);
         close();
         changed();
+        return;
+      }
+      if (!person) {
+        // The blind pad never retries itself — see the note above `showPin`.
+        showNames(result.body.error || `Refused with ${result.status}`);
         return;
       }
       digits = '';
@@ -124,9 +144,9 @@ function openSignIn(staff) {
       button.addEventListener('click', () => press(key));
       pad.append(button);
     }
-    const back = el('button', 'secondary', 'Not me');
-    back.type = 'button';
-    back.addEventListener('click', () => showNames());
+    const corner = el('button', 'secondary', person ? 'Not me' : 'Choose name');
+    corner.type = 'button';
+    corner.addEventListener('click', () => showNames());
     const zero = el('button', 'secondary', '0');
     zero.type = 'button';
     zero.addEventListener('click', () => press('0'));
@@ -134,20 +154,20 @@ function openSignIn(staff) {
     erase.type = 'button';
     erase.setAttribute('aria-label', 'Delete the last digit');
     erase.addEventListener('click', () => { digits = digits.slice(0, -1); paint(); });
-    pad.append(back, zero, erase);
+    pad.append(corner, zero, erase);
     card.append(pad);
   }
 
-  // A hardware keyboard works as well as the pad.
+  // A hardware keyboard works as well as the pad, on either PIN screen.
   function onKey(event) {
-    if (!chosen) return;
+    if (!onPad) return;
     if (/^\d$/.test(event.key)) card.querySelectorAll('.signin-pad button')[event.key === '0' ? 10 : Number(event.key) - 1]?.click();
     else if (event.key === 'Backspace') card.querySelector('.signin-pad button[aria-label]')?.click();
     else if (event.key === 'Escape') showNames();
   }
   document.addEventListener('keydown', onKey);
 
-  showNames();
+  showPin(null);
 }
 
 // ------------------------------------------------------------ a form's name
