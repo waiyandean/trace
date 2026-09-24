@@ -481,7 +481,7 @@ async function loadUnprovenCount() {
 function renderUnprovenBadge() {
   const count = state.unproven.length;
   $('unproven-count').textContent = String(count);
-  $('open-unproven').className = count ? 'danger' : 'secondary';
+  $('open-unproven').className = `header-btn ${count ? 'danger' : 'secondary'}`;
 }
 
 function renderUnproven() {

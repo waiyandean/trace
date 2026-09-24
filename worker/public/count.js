@@ -467,7 +467,7 @@ async function loadOpen() {
   const response = await api('/api/counts?open');
   state.openLines = response.ok ? response.body.rows : [];
   $('open-count').textContent = String(state.openLines.length);
-  $('open-unresolved').className = state.openLines.length ? 'secondary warn-outline' : 'secondary';
+  $('open-unresolved').className = `header-btn ${state.openLines.length ? 'secondary warn-outline' : 'secondary'}`;
 }
 
 function openUnresolved() {

@@ -283,7 +283,7 @@ function renderStatus() {
 
   const holds = state.holds?.length ?? 0;
   $('holds-count').textContent = String(holds);
-  $('open-holds').className = holds ? 'danger' : 'secondary';
+  $('open-holds').className = `header-btn ${holds ? 'danger' : 'secondary'}`;
 }
 
 // The van's compartments are asked about only where the delivery carries

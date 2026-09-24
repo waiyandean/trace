@@ -353,3 +353,24 @@ test('the count screen treats a missing item as uncounted, not zero', () => {
   assert.match(countScript, /not set to zero/);
   assert.match(countScript, /left as it is/);
 });
+
+// A header status button's className was once replaced wholesale on render
+// (`$('open-holds').className = holds ? 'danger' : 'secondary'`), which
+// silently dropped the shared .header-btn class the moment a hold appeared
+// or cleared, and the button jumped back to full size (Dean, 2026-09-24,
+// spotted on the live page). Every className assignment for one of these
+// buttons must keep header-btn in every branch, not just the initial HTML.
+test('a header status button never loses its size class when its own state changes', () => {
+  const targets = [
+    { name: 'open-holds', text: script },
+    { name: 'open-unproven', text: batchesScript },
+    { name: 'open-unresolved', text: countScript },
+  ];
+  for (const { name, text } of targets) {
+    const assignments = [...text.matchAll(new RegExp(String.raw`\$\('${name}'\)\.className = ([^;]+);`, 'g'))];
+    assert.ok(assignments.length > 0, `${name}: expected at least one className assignment`);
+    for (const [, expr] of assignments) {
+      assert.match(expr, /header-btn/, `${name}: ${expr.trim()}`);
+    }
+  }
+});
