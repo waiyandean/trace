@@ -63,6 +63,21 @@ header h1 { font-size: 17px; margin: 0; flex: 1; letter-spacing: -0.2px; }
 .pill.ok { background: var(--tint-soft); color: var(--tint); }
 .pill.bad { background: var(--bad-soft); color: var(--bad); }
 .pill.warn { background: var(--warn-soft); color: var(--warn); }
+/* A read-only status, not a control -- there is exactly one relay and
+   typing a different address only breaks printing, so this replaced what
+   used to be an editable field (labels/app.css carries the same rule). */
+.relay-status {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 13px; color: var(--muted); white-space: nowrap;
+}
+.relay-status .dot {
+  width: 8px; height: 8px; border-radius: 50%; flex: none;
+  background: var(--muted);
+}
+.relay-status[data-state="ok"] { color: var(--tint); }
+.relay-status[data-state="ok"] .dot { background: var(--tint); }
+.relay-status[data-state="bad"] { color: var(--bad); }
+.relay-status[data-state="bad"] .dot { background: var(--bad); }
 /* A status-row action button (Held, Queue, Unproven, Unresolved…) — same
    idea as .pill, sized down to match, so a header button reads as part of
    the compact status row rather than a full-size call to action. */
@@ -126,6 +141,16 @@ button.danger { background: transparent; color: var(--bad); border-color: var(--
 button:disabled { opacity: 0.45; }
 .actions { display: flex; gap: 10px; padding: 0 16px 16px; flex-wrap: wrap; }
 .actions button { flex: 1 1 160px; }
+/* Two buttons side by side at 160px each leaves a long label — "Save goods
+   in record" — nowhere to go but a second line, and a two-line button at a
+   44px-minimum height reads as oversized rather than just a longer label
+   (Dean, 2026-09-24, on his phone). Full width and stacked below 520px, the
+   same breakpoint the ingredient grid already uses, so the label gets the
+   width it needs instead of the button growing taller to make room for it. */
+@media (max-width: 520px) {
+  .actions { flex-direction: column; }
+  .actions button { flex: none; width: 100%; }
+}
 
 .lines { list-style: none; margin: 0; padding: 0; }
 .lines li { border-top: 1px solid var(--line); padding: 12px 16px; display: flex; gap: 12px; align-items: flex-start; }

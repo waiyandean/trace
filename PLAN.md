@@ -1810,8 +1810,33 @@ These need Dean's answer before the phase that depends on them.
    four (Goods In: connectivity, pool count, Held, Queue), which still
    fits a phone width; revisit if that grows.
 
-   Still open: the print relay, which no Access application covers and which
-   cannot easily be covered because the browser calls it cross-origin.
+   **The print relay address stopped being an editable field on Goods In,
+   Stock and Batches too (Dean, 2026-09-24)**, the same fix `labels/app.js`
+   already had for the same reason (2026-09-18): there is exactly one relay
+   for this domain, so a text box only offered a way to break printing for
+   everybody by mistyping it. `public/lib/relay.js` is the one place `RELAY`
+   now lives and the one place the read-only status pill (checked on load,
+   focus, a 30s interval and again right after a print) is built, shared by
+   all three forms rather than copied a third time. Whether to print at all
+   stayed a real, kept choice — "leave this blank" used to mean "don't
+   print, write the code on the case by hand", now a plain on/off checkbox
+   that means the same thing, under one shared key so it applies wherever
+   staff set it.
+
+   **Long button labels forced onto two lines were what actually read as
+   "too big" (Dean, 2026-09-24, on his phone) — not the 44px minimum tap
+   target itself, which stays untouched.** "Save goods in record" squeezed
+   into half a row next to "Clear this delivery" wraps its text, and a
+   two-line button at a 44px floor looks bulky. Below 520px — the same
+   breakpoint the ingredient grid already used — `.actions` stacks full
+   width instead of forcing a row, so a long label gets the width it needs
+   rather than the button growing taller around wrapped text. iPad not yet
+   checked at the time of writing.
+
+   Still open: the print relay has no password, so anyone who reaches the
+   tunnel URL can print to the kitchen printer; no Access application
+   covers it, and it cannot easily be covered because the browser calls it
+   cross-origin.
 10. **Packaging — resolved 2026-09-04 (Dean).** Stays out of scope, same as
    the old rebuild. Nothing in the join failures this project exists to fix —
    not the 12,731 recorded uses, not the 2,675 delivery rows — ever pointed at

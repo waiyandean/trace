@@ -74,11 +74,11 @@
     <h2>Label printer</h2>
     <div class="row">
       <div class="field">
-        <label for="relay-url">Print relay address</label>
-        <input id="relay-url" placeholder="https://print-relay.deanops.uk" autocomplete="off" />
+        <label><input type="checkbox" id="print-enabled" checked /> Print through the relay</label>
+        <span class="relay-status" id="relay-status" role="status"></span>
       </div>
     </div>
-    <p class="note">Leave this blank to mark a lot opened without printing.</p>
+    <p class="note">Turn this off to mark a lot opened without printing.</p>
   </section>
 </main>
 

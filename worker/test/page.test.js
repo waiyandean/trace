@@ -374,3 +374,21 @@ test('a header status button never loses its size class when its own state chang
     }
   }
 });
+
+// The print relay address used to be a text field, backed by localStorage,
+// on Goods In, Stock and Batches — exactly the mistake already fixed once in
+// labels/app.js (2026-09-18) for the same reason: there is one relay, and
+// retyping it only breaks printing for everybody. Dean asked for the same
+// fix here (2026-09-24). Whether to print at all stays a real choice, now a
+// checkbox rather than an empty field that happened to mean the same thing.
+test('the print relay is a fixed constant on every form that prints, never a typed field', () => {
+  for (const { name, text } of [
+    { name: 'goods-in.js', text: script },
+    { name: 'stock.js', text: stockScript },
+    { name: 'batches.js', text: batchesScript },
+  ]) {
+    assert.doesNotMatch(text, /relay-url|RELAY_KEY/, `${name} still has the old editable field`);
+    assert.match(text, /mountRelayStatus/, `${name} should show the read-only relay status`);
+    assert.match(text, /print-enabled/, `${name} should still let staff turn printing off`);
+  }
+});

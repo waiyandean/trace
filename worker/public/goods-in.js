@@ -5,6 +5,7 @@ import {
   probeKindFor, withinLimit, vehicleReadingsNeeded,
 } from './lib/offline.js';
 import { authedFetch, mountStaff, session } from './lib/signin.js';
+import { RELAY, PRINT_ENABLED_KEY, mountRelayStatus } from './lib/relay.js';
 import { mountNav } from './lib/nav.js';
 import { bearer } from './lib/auth.js';
 import { buildGoodsInLabel } from './lib/zpl.js';
@@ -49,7 +50,6 @@ function installServiceWorker() {
 
 const DEVICE_KEY = 'trace.intake.device';
 const STAFF_KEY = 'trace.intake.staff';
-const RELAY_KEY = 'trace.intake.relay';
 
 const state = {
   catalog: null,
@@ -735,8 +735,7 @@ async function saveLine() {
 // already on the line either way, and the fallback this form has always had
 // is writing it on the case by hand.
 async function printLine(line, item) {
-  const relay = $('relay-url').value.trim();
-  if (!relay || !line.short_code) return;
+  if (!$('print-enabled').checked || !line.short_code) return;
 
   const zpl = buildGoodsInLabel({
     name: item?.name || line.item_id,
@@ -750,7 +749,7 @@ async function printLine(line, item) {
   });
 
   try {
-    const response = await fetch(`${relay.replace(/\/$/, '')}/print`, {
+    const response = await fetch(`${RELAY}/print`, {
       method: 'POST',
       headers: { 'content-type': 'text/plain' },
       body: zpl,
@@ -761,7 +760,7 @@ async function printLine(line, item) {
         + 'Write the short code on the case by hand.', 'warn');
     }
   } catch {
-    notify(`Could not reach the print relay at ${relay}. Write the short code on the case by hand.`, 'warn');
+    notify('Could not reach the print relay. Write the short code on the case by hand.', 'warn');
   }
 }
 
@@ -1030,11 +1029,8 @@ async function boot() {
   $('device-row').hidden = devices.length < 2;
   fillSelect($('device'), devices, { placeholder: 'Not set', selected: state.deviceId });
 
-  // Defaults to the standing tunnel in front of the kitchen laptop's relay
-  // (deanops.uk, set up 2026-09-16) rather than blank, so printing works on a
-  // fresh device with nothing typed in. Still editable, and still nothing
-  // stops somebody clearing it to add lines without printing.
-  $('relay-url').value = store.read(RELAY_KEY, 'https://print-relay.deanops.uk');
+  $('print-enabled').checked = store.read(PRINT_ENABLED_KEY, true);
+  mountRelayStatus($('relay-status'));
 
   const now = new Date();
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -1090,8 +1086,8 @@ $('device').addEventListener('change', (event) => {
   refillPool({ force: true });
 });
 
-$('relay-url').addEventListener('change', (event) => {
-  store.write(RELAY_KEY, event.target.value.trim());
+$('print-enabled').addEventListener('change', (event) => {
+  store.write(PRINT_ENABLED_KEY, event.target.checked);
 });
 
 $('add-line').addEventListener('click', openPicker);
