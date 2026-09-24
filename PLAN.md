@@ -1752,6 +1752,25 @@ These need Dean's answer before the phase that depends on them.
    person's own correct PIN is excluded from the blind search entirely, so it
    neither signs them in nor reveals that it was close.
 
+   **The device signs itself out after every closed write, not after a whole
+   shift (Dean, 2026-09-24), once trying identify-by-PIN live showed staying
+   signed in was what let the wrong name sit there unnoticed on a shared
+   iPad.** A delivery logged, a lot moved, a batch started — each is one
+   recorded act, and `authedFetch` (`public/lib/signin.js`) clears the session
+   the moment the write is accepted, so the next person has to identify
+   themselves before anything else is recorded. The decision itself is a pure,
+   tested function (`signsOutAfter` in `public/lib/auth.js`): yes for a
+   successful write made with the live session's own token, no for a refused
+   one (the person is still fixing the form), and no for the two writes that
+   are not "a form closed" — topping up the short-code pool in the background,
+   and changing your own PIN. This is a proactive local choice, not a
+   server-side revocation; the token itself is still valid until `TOKEN_TTL_S`
+   the same as before, which is stated rather than left implied.
+
+   **The keypad matches the kitchen's own Kobas till (Dean, 2026-09-24, from a
+   photo of it)** — 7 8 9 / 4 5 6 / 1 2 3, delete / 0 / clear — so a PIN goes
+   in on muscle memory already built daily rather than a layout to relearn.
+
    Still open: the print relay, which no Access application covers and which
    cannot easily be covered because the browser calls it cross-origin.
 10. **Packaging — resolved 2026-09-04 (Dean).** Stays out of scope, same as
