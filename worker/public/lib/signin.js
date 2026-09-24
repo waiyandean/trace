@@ -1,5 +1,5 @@
 import { makeStore } from './offline.js';
-import { makeSession, withAuth, untilText, PIN_LENGTH } from './auth.js';
+import { makeSession, withAuth, untilText, PIN_LENGTH, signsOutAfter } from './auth.js';
 
 // The sign-in screen and the fetch every form's `api()` goes through.
 // The pure half, and the reasoning, is in auth.js.
@@ -10,14 +10,24 @@ export const session = makeSession(store);
 const listeners = new Set();
 const changed = () => listeners.forEach((fn) => fn());
 
-// A request with the current sign-in attached. If the server refuses the
-// sign-in itself, it has run out or was never valid, so it is dropped and the
-// screen comes back. A request that carried its own token, as a queued record
-// does, says nothing about the current session and leaves it alone.
+// A request with the current sign-in attached. Signs itself out afterwards
+// two different ways, for two different reasons — see auth.js for each:
+//
+// - The sign-in itself was refused (expired or never valid): the screen
+//   comes back so it can be fixed.
+// - The write it just made was a closed act — a delivery logged, a batch
+//   started, a lot moved — and the device signs out on purpose so the next
+//   person has to say who they are (`signsOutAfter`).
+//
+// A request that carried its own token, as a queued record does, is neither:
+// it says nothing about who is holding the device right now.
 export async function authedFetch(path, options = {}) {
   const chosen = Boolean(Object.keys(options.headers || {}).some((n) => n.toLowerCase() === 'authorization'));
   const response = await fetch(path, withAuth(options, session.current()?.token));
   if (response.status === 401 && !chosen && path !== '/api/login') {
+    session.clear();
+    changed();
+  } else if (signsOutAfter(path, options, response.ok, chosen)) {
     session.clear();
     changed();
   }
@@ -27,6 +37,8 @@ export async function authedFetch(path, options = {}) {
 // ------------------------------------------------------------------ screen
 
 let overlay = null;
+
+const DIGIT_ORDER = ['7', '8', '9', '4', '5', '6', '1', '2', '3'];
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -138,30 +150,37 @@ function openSignIn(staff) {
       paint();
       note.textContent = result.body.error || `Refused with ${result.status}`;
     };
-    for (const key of ['1', '2', '3', '4', '5', '6', '7', '8', '9']) {
+    // Top row first and counting down — 7 8 9 / 4 5 6 / 1 2 3 — matching the
+    // kitchen's own Kobas till, which staff already type PINs into daily, so
+    // a sign-in PIN goes in on muscle memory rather than a layout to relearn
+    // (Dean, 2026-09-24, from a photo of the till's own pad).
+    for (const key of DIGIT_ORDER) {
       const button = el('button', 'secondary', key);
       button.type = 'button';
       button.addEventListener('click', () => press(key));
       pad.append(button);
     }
-    const corner = el('button', 'secondary', person ? 'Not me' : 'Choose name');
-    corner.type = 'button';
-    corner.addEventListener('click', () => showNames());
-    const zero = el('button', 'secondary', '0');
-    zero.type = 'button';
-    zero.addEventListener('click', () => press('0'));
+    // Bottom row follows Kobas too: delete on the left, 0 in the middle,
+    // clear/leave on the right.
     const erase = el('button', 'secondary', '⌫');
     erase.type = 'button';
     erase.setAttribute('aria-label', 'Delete the last digit');
     erase.addEventListener('click', () => { digits = digits.slice(0, -1); paint(); });
-    pad.append(corner, zero, erase);
+    const zero = el('button', 'secondary', '0');
+    zero.type = 'button';
+    zero.addEventListener('click', () => press('0'));
+    const corner = el('button', 'secondary', person ? 'Not me' : 'Choose name');
+    corner.type = 'button';
+    corner.addEventListener('click', () => showNames());
+    pad.append(erase, zero, corner);
     card.append(pad);
   }
 
   // A hardware keyboard works as well as the pad, on either PIN screen.
   function onKey(event) {
     if (!onPad) return;
-    if (/^\d$/.test(event.key)) card.querySelectorAll('.signin-pad button')[event.key === '0' ? 10 : Number(event.key) - 1]?.click();
+    if (event.key === '0') card.querySelectorAll('.signin-pad button')[10]?.click();
+    else if (/^[1-9]$/.test(event.key)) card.querySelectorAll('.signin-pad button')[DIGIT_ORDER.indexOf(event.key)]?.click();
     else if (event.key === 'Backspace') card.querySelector('.signin-pad button[aria-label]')?.click();
     else if (event.key === 'Escape') showNames();
   }

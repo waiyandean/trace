@@ -37,6 +37,36 @@ export function withAuth(options = {}, token = null) {
 
 export const bearer = (token) => ({ authorization: `Bearer ${token}` });
 
+// One person hands the iPad to the next all day, so a session staying open
+// after a write is submitted is what lets the wrong name sit there unnoticed
+// (Dean, 2026-09-24). This is one write closing one recorded act, so the
+// device signs itself out the moment that act is accepted, and the next
+// person has to identify themselves before anything else can be recorded.
+//
+// This is a proactive local choice, not a server-side revocation: the token
+// itself is still valid server-side until it naturally expires (TOKEN_TTL_S
+// in src/auth.js). What this stops is the ordinary case this exists for — a
+// name being left selected because nobody thought to switch it — not someone
+// deliberately holding onto a bearer token outside the app.
+//
+// Not every successful POST is "a form closed": `/api/codes` is the device
+// topping its own short-code pool up in the background, never something a
+// person did, and `/api/pin` is changing your own PIN, which is about
+// signing in, not a record of anything trace tracks.
+const NOT_A_CLOSED_FORM = ['/api/codes', '/api/pin'];
+
+export function signsOutAfter(path, options, ok, chosen) {
+  // A request that already carried its own token — a queued record going out
+  // with the token of whoever keyed it, not the session live on the device
+  // right now — says nothing about who is holding the device this moment.
+  if (chosen) return false;
+  // Refused: the person is still sat there fixing the form, not walking away.
+  if (!ok) return false;
+  if ((options?.method || 'GET').toUpperCase() !== 'POST') return false;
+  const bare = String(path).split('?')[0];
+  return !NOT_A_CLOSED_FORM.some((prefix) => bare.startsWith(prefix));
+}
+
 // "until 18:10", in the device's own time, so somebody can see a shift's
 // sign-in is about to run out while they are still on wifi to renew it.
 export function untilText(expiresAt) {

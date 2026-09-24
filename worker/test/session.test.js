@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { makeSession, withAuth, bearer, SESSION_KEY } from '../public/lib/auth.js';
+import { makeSession, withAuth, bearer, signsOutAfter, SESSION_KEY } from '../public/lib/auth.js';
 import { makeStore, makeQueue, syncQueue } from '../public/lib/offline.js';
 
 function storage() {
@@ -87,4 +87,33 @@ test('a still-pending record keeps its token so a retry can go out', async () =>
 
 test('bearer builds the header', () => {
   assert.deepEqual(bearer('x'), { authorization: 'Bearer x' });
+});
+
+test('a successful write closes the session, so the next person has to sign in', () => {
+  assert.equal(signsOutAfter('/api/receive', { method: 'POST' }, true, false), true);
+  assert.equal(signsOutAfter('/api/move', { method: 'POST' }, true, false), true);
+  assert.equal(signsOutAfter('/api/produce', { method: 'POST' }, true, false), true);
+});
+
+test('a refused write leaves the session alone — the person is still fixing the form', () => {
+  assert.equal(signsOutAfter('/api/receive', { method: 'POST' }, false, false), false);
+});
+
+test('a GET never signs anyone out, whatever it returns', () => {
+  assert.equal(signsOutAfter('/api/ledger', undefined, true, false), false);
+  assert.equal(signsOutAfter('/api/ledger', { method: 'GET' }, true, false), false);
+});
+
+test('a request that already carried its own token is a queued resend, not the live session', () => {
+  assert.equal(signsOutAfter('/api/receive', { method: 'POST' }, true, true), false);
+});
+
+test('topping up the code pool and changing your PIN are not a closed form', () => {
+  assert.equal(signsOutAfter('/api/codes', { method: 'POST' }, true, false), false);
+  assert.equal(signsOutAfter('/api/pin', { method: 'POST' }, true, false), false);
+});
+
+test('a query string on an excluded path is still excluded', () => {
+  assert.equal(signsOutAfter('/api/hold?release', { method: 'POST' }, true, false), true, 'not excluded, and releasing a hold is a closed act');
+  assert.equal(signsOutAfter('/api/codes?x=1', { method: 'POST' }, true, false), false);
 });
