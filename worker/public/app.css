@@ -168,10 +168,16 @@ button:disabled { opacity: 0.45; }
 }
 .line-editor { padding-bottom: 4px; }
 .line-editor-head {
-  display: flex; gap: 12px; align-items: center; padding: 12px 16px 8px;
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) auto 44px;
+  gap: 12px; align-items: center; padding: 12px 16px 8px;
 }
-.line-title-row { display: flex; align-items: center; gap: 8px 16px; flex-wrap: wrap; }
-.line-identifiers { display: flex; align-items: center; gap: 12px; margin: 0; }
+.line-editor-head > .line-photo { grid-column: 1; grid-row: 1; }
+.line-editor-head > .grow { grid-column: 2; grid-row: 1; }
+.line-editor-head > .line-identifiers { grid-column: 3; grid-row: 1; }
+.line-editor-head > .icon-remove { grid-column: 4; grid-row: 1; }
+.line-identifiers {
+  display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin: 0;
+}
 .line-identifier { display: flex; align-items: center; gap: 6px; }
 .line-identifier dt { color: var(--muted); font-size: 12px; }
 .line-identifier dd { margin: 0; }
@@ -179,6 +185,10 @@ button:disabled { opacity: 0.45; }
 .line-batch-code {
   color: var(--muted); font: 600 15px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
   letter-spacing: 1px;
+}
+.icon-remove {
+  width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 50%;
+  font-size: 26px; font-weight: 500; line-height: 1;
 }
 .line-state { color: var(--warn); font-size: 14px; font-weight: 600; margin-top: 2px; }
 .line-summary-actions { display: flex; gap: 8px; flex: none; }
@@ -190,6 +200,13 @@ button:disabled { opacity: 0.45; }
 .line-note { margin: 0; padding-top: 4px; }
 .line-actions { padding-top: 0; }
 .compact { min-height: 44px; padding: 6px 12px; }
+@media (max-width: 640px) {
+  .line-editor-head { grid-template-columns: 44px minmax(0, 1fr) 44px; }
+  .line-editor-head > .line-identifiers {
+    grid-column: 2 / 4; grid-row: 2; justify-self: end; flex-wrap: wrap;
+  }
+  .line-editor-head > .icon-remove { grid-column: 3; grid-row: 1; }
+}
 @media (max-width: 520px) {
   .line-editor-grid { grid-template-columns: 1fr; }
   .line-summary { display: grid; grid-template-columns: 44px minmax(0, 1fr); }
@@ -198,6 +215,7 @@ button:disabled { opacity: 0.45; }
   .line-summary .code { justify-self: start; }
   .line-summary-actions { flex-direction: column; }
   .line-summary-actions .compact { width: 100%; }
+  .line-summary-actions .icon-remove { width: 44px; align-self: flex-end; }
 }
 .code {
   font: 600 20px/1 ui-monospace, SFMono-Regular, Menlo, monospace;

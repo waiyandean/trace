@@ -296,6 +296,17 @@ function anotherDateButton(line, item) {
   return button;
 }
 
+function removeLineButton(line, item) {
+  const button = document.createElement('button');
+  button.className = 'danger compact icon-remove';
+  button.type = 'button';
+  button.textContent = '×';
+  button.setAttribute('aria-label', `Remove ${item.name}`);
+  button.title = `Remove ${item.name}`;
+  button.addEventListener('click', () => removeLine(line));
+  return button;
+}
+
 function renderDraftLine(line, item) {
   const li = document.createElement('li');
   li.className = 'line-editor';
@@ -307,8 +318,6 @@ function renderDraftLine(line, item) {
 
   const title = document.createElement('div');
   title.className = 'grow';
-  const titleRow = document.createElement('div');
-  titleRow.className = 'line-title-row';
   const name = document.createElement('div');
   name.className = 'name';
   name.textContent = item.name;
@@ -335,19 +344,11 @@ function renderDraftLine(line, item) {
   batchGroup.append(batchLabel, batch);
 
   identifiers.append(shortCodeGroup, batchGroup);
-  titleRow.append(name, identifiers);
   const status = document.createElement('div');
   status.className = 'line-state';
   status.textContent = line.saving ? 'Adding to delivery' : 'Details needed';
-  title.append(titleRow, status);
-  heading.append(title);
-
-  const remove = document.createElement('button');
-  remove.className = 'danger compact';
-  remove.type = 'button';
-  remove.textContent = 'Remove';
-  remove.addEventListener('click', () => removeLine(line));
-  heading.append(remove);
+  title.append(name, status);
+  heading.append(title, identifiers, removeLineButton(line, item));
   li.append(heading);
 
   const grid = document.createElement('div');
@@ -439,15 +440,9 @@ function renderCompleteLine(line, item) {
   code.textContent = line.short_code || 'no code';
   li.append(code);
 
-  const remove = document.createElement('button');
-  remove.className = 'danger compact';
-  remove.type = 'button';
-  remove.textContent = 'Remove';
-  remove.addEventListener('click', () => removeLine(line));
-
   const actions = document.createElement('div');
   actions.className = 'line-summary-actions';
-  actions.append(anotherDateButton(line, item), remove);
+  actions.append(anotherDateButton(line, item), removeLineButton(line, item));
   li.append(actions);
   return li;
 }

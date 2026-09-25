@@ -153,7 +153,7 @@ test('an ingredient can be split into another use-by date', () => {
 test('each ingredient row shows its short code before details are confirmed', () => {
   assert.match(script, /short_code: pool\.take\(\)/);
   assert.match(script, /shortCodeLabel\.textContent = 'Short code'/);
-  assert.match(script, /titleRow\.append\(name, identifiers\)/);
+  assert.match(script, /heading\.append\(title, identifiers, removeLineButton\(line, item\)\)/);
   assert.doesNotMatch(script, /fieldFor\(line, 'short-code'/);
   assert.match(script, /const claimed = new Set\(state\.lines\.map\(\(line\) => line\.short_code\)/);
   assert.match(script, /line\.short_code = line\.short_code \|\| pool\.take\(\)/);
@@ -163,6 +163,14 @@ test('read-only lot identifiers sit with the ingredient name, outside the detail
   assert.match(script, /batchLabel\.textContent = 'Batch'/);
   assert.match(script, /identifiers\.append\(shortCodeGroup, batchGroup\)/);
   assert.doesNotMatch(script, /fieldFor\(line, 'batch'/);
+});
+
+test('lot identifiers align beside a compact, accessible remove control', () => {
+  assert.match(css, /grid-template-columns:\s*44px minmax\(0, 1fr\) auto 44px/);
+  assert.match(script, /button\.className = 'danger compact icon-remove'/);
+  assert.match(script, /button\.textContent = '×'/);
+  assert.match(script, /button\.setAttribute\('aria-label', `Remove \$\{item\.name\}`\)/);
+  assert.match(css, /\.icon-remove\s*\{[^}]*width:\s*44px[^}]*height:\s*44px[^}]*border-radius:\s*50%/);
 });
 
 test('the hidden attribute beats the classes that set display', () => {
