@@ -142,6 +142,14 @@ test('the ingredient picker selects several ingredients before returning to the 
   assert.match(script, /!line\.draft\s*&&\s*!line\.short_code/);
 });
 
+test('an ingredient can be split into another use-by date', () => {
+  assert.match(script, /button\.textContent = 'Add another date'/);
+  assert.match(script, /Add another use-by date for \$\{item\.name\}/);
+  assert.match(script, /draft\.unit = source\.unit \|\| draft\.unit/);
+  assert.match(script, /draft\.location_id = source\.location_id \|\| draft\.location_id/);
+  assert.match(script, /state\.lines\.splice\(sourceIndex \+ 1, 0, draft\)/);
+});
+
 test('the hidden attribute beats the classes that set display', () => {
   // `hidden` is only a `display: none` in the browser's own stylesheet, so a
   // class like `.row { display: flex }` overrides it. Two controls the form

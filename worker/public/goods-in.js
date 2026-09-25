@@ -269,6 +269,28 @@ function draftSelect(line, key, rows, options = {}) {
   return select;
 }
 
+function addAnotherDate(source, item) {
+  const draft = makeDraftLine(item);
+  draft.unit = source.unit || draft.unit;
+  draft.location_id = source.location_id || draft.location_id;
+
+  const sourceIndex = state.lines.findIndex((line) => line.lot_id === source.lot_id);
+  state.lines.splice(sourceIndex + 1, 0, draft);
+  render();
+  document.getElementById(`quantity-${draft.lot_id}`)?.focus();
+}
+
+function anotherDateButton(line, item) {
+  const button = document.createElement('button');
+  button.className = 'secondary compact';
+  button.type = 'button';
+  button.disabled = Boolean(line.saving);
+  button.textContent = 'Add another date';
+  button.setAttribute('aria-label', `Add another use-by date for ${item.name}`);
+  button.addEventListener('click', () => addAnotherDate(line, item));
+  return button;
+}
+
 function renderDraftLine(line, item) {
   const li = document.createElement('li');
   li.className = 'line-editor';
@@ -355,7 +377,7 @@ function renderDraftLine(line, item) {
   save.disabled = Boolean(line.saving);
   save.textContent = line.saving ? 'Adding to delivery' : 'Add to delivery';
   save.addEventListener('click', () => completeDraftLine(line, item, error, save));
-  actions.append(save);
+  actions.append(save, anotherDateButton(line, item));
   li.append(actions);
   return li;
 }
@@ -395,7 +417,11 @@ function renderCompleteLine(line, item) {
   remove.type = 'button';
   remove.textContent = 'Remove';
   remove.addEventListener('click', () => removeLine(line));
-  li.append(remove);
+
+  const actions = document.createElement('div');
+  actions.className = 'line-summary-actions';
+  actions.append(anotherDateButton(line, item), remove);
+  li.append(actions);
   return li;
 }
 
