@@ -108,9 +108,10 @@ test('a request that already carried its own token is a queued resend, not the l
   assert.equal(signsOutAfter('/api/receive', { method: 'POST' }, true, true), false);
 });
 
-test('topping up the code pool and changing your PIN are not a closed form', () => {
+test('topping up the code pool, changing your PIN, and a device registering itself are not a closed form', () => {
   assert.equal(signsOutAfter('/api/codes', { method: 'POST' }, true, false), false);
   assert.equal(signsOutAfter('/api/pin', { method: 'POST' }, true, false), false);
+  assert.equal(signsOutAfter('/api/devices', { method: 'POST' }, true, false), false);
 });
 
 test('a query string on an excluded path is still excluded', () => {

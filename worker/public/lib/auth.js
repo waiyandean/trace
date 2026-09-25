@@ -51,9 +51,11 @@ export const bearer = (token) => ({ authorization: `Bearer ${token}` });
 //
 // Not every successful POST is "a form closed": `/api/codes` is the device
 // topping its own short-code pool up in the background, never something a
-// person did, and `/api/pin` is changing your own PIN, which is about
-// signing in, not a record of anything trace tracks.
-const NOT_A_CLOSED_FORM = ['/api/codes', '/api/pin'];
+// person did; `/api/pin` is changing your own PIN, which is about signing in,
+// not a record of anything trace tracks; and `/api/devices` is a device
+// registering itself on first load, which can happen before anybody has even
+// opened the sign-in screen and records nothing either.
+const NOT_A_CLOSED_FORM = ['/api/codes', '/api/pin', '/api/devices'];
 
 export function signsOutAfter(path, options, ok, chosen) {
   // A request that already carried its own token — a queued record going out

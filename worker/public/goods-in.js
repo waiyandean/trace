@@ -55,7 +55,7 @@ const state = {
   catalog: null,
   deviceId: store.read(DEVICE_KEY, null),
   lines: [],
-  editing: null,
+  pickerSelection: new Set(),
 };
 
 // ---------------------------------------------------------------- network
@@ -99,6 +99,33 @@ async function loadCatalog() {
   }
 }
 
+// ---------------------------------------------------------------- devices
+
+// Registers this browser as a device the first time it shows up with no
+// remembered one. The id is minted the same way every other client-side id
+// is (ulid); the server picks the name, so nothing here can typo a name into
+// colliding with an existing device. Failure is quiet — no device just means
+// the add-ingredient button stays disabled with its usual explanation,
+// exactly as it did before self-registration existed.
+async function registerDevice() {
+  const id = ulid();
+  try {
+    const response = await api('/api/devices', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    if (!response.ok) return;
+    state.catalog.devices = [...(state.catalog.devices || []), response.body];
+    catalogCache.write(state.catalog);
+    state.deviceId = id;
+    store.write(DEVICE_KEY, id);
+  } catch {
+    // Offline in all but name, or the request failed outright. Left
+    // unregistered; boot() will try again next load.
+  }
+}
+
 // ------------------------------------------------------------------ pool
 
 // Why the pool is the size it is, in words, so an empty pool is never a
@@ -129,11 +156,11 @@ async function refillPool({ force = false } = {}) {
     if (response.ok) {
       pool.replace(state.deviceId, response.body.codes.map((row) => row.code));
       state.poolReason = null;
-      // Lines added while the pool was empty get a code as soon as one
-      // exists. They have not been submitted yet, so nothing has been printed
-      // against them and there is no relabelling to do.
+      // Completed lines added while the pool was empty get a code as soon as
+      // one exists. Draft rows have no label details yet and must not spend a
+      // code until the person confirms them.
       for (const line of state.lines) {
-        if (!line.short_code) line.short_code = pool.take();
+        if (!line.draft && !line.short_code) line.short_code = pool.take();
       }
     } else {
       state.poolReason = `The server would not issue codes: ${response.body.error || response.status}`;
@@ -201,6 +228,177 @@ function locationById(id) {
   return (state.catalog?.locations || []).find((row) => row.id === id) || null;
 }
 
+function removeLine(line) {
+  pool.giveBack(line.short_code);
+  state.lines = state.lines.filter((other) => other.lot_id !== line.lot_id);
+  render();
+}
+
+function fieldFor(line, key, labelText, control) {
+  const field = document.createElement('div');
+  field.className = 'field';
+  control.id = `${key}-${line.lot_id}`;
+
+  const label = document.createElement('label');
+  label.htmlFor = control.id;
+  label.textContent = labelText;
+  field.append(label, control);
+  return field;
+}
+
+function draftInput(line, key, { type = 'text', inputmode = null, step = null } = {}) {
+  const input = document.createElement('input');
+  input.type = type;
+  if (inputmode) input.inputMode = inputmode;
+  if (step) input.step = step;
+  input.value = line[key] ?? '';
+  input.addEventListener('input', () => {
+    line[key] = input.value;
+    line.acknowledged_breach = false;
+  });
+  return input;
+}
+
+function draftSelect(line, key, rows, options = {}) {
+  const select = document.createElement('select');
+  fillSelect(select, rows, { ...options, selected: line[key] });
+  select.addEventListener('change', () => {
+    line[key] = select.value;
+    line.acknowledged_breach = false;
+  });
+  return select;
+}
+
+function renderDraftLine(line, item) {
+  const li = document.createElement('li');
+  li.className = 'line-editor';
+  li.dataset.lineId = line.lot_id;
+
+  const heading = document.createElement('div');
+  heading.className = 'line-editor-head';
+  heading.append(thumbnail(item, 'line-photo'));
+
+  const title = document.createElement('div');
+  title.className = 'grow';
+  const name = document.createElement('div');
+  name.className = 'name';
+  name.textContent = item.name;
+  const status = document.createElement('div');
+  status.className = 'line-state';
+  status.textContent = line.saving ? 'Adding to delivery' : 'Details needed';
+  title.append(name, status);
+  heading.append(title);
+
+  const remove = document.createElement('button');
+  remove.className = 'danger compact';
+  remove.type = 'button';
+  remove.textContent = 'Remove';
+  remove.addEventListener('click', () => removeLine(line));
+  heading.append(remove);
+  li.append(heading);
+
+  const grid = document.createElement('div');
+  grid.className = 'line-editor-grid';
+
+  const quantity = draftInput(line, 'quantity', { type: 'number', inputmode: 'decimal', step: 'any' });
+  quantity.min = '0';
+  grid.append(fieldFor(line, 'quantity', 'How many', quantity));
+
+  const units = unitsFor(item, state.catalog.conversions).map((unit) => ({ id: unit, name: unit }));
+  grid.append(fieldFor(line, 'unit', 'Of what', draftSelect(line, 'unit', units)));
+
+  grid.append(fieldFor(
+    line,
+    'location',
+    'Where it is going',
+    draftSelect(line, 'location_id', state.catalog.locations, { placeholder: 'Choose where it is going' }),
+  ));
+
+  const probeKind = probeKindFor(item);
+  if (probeKind) {
+    const limit = state.catalog?.limits?.[probeKind];
+    grid.append(fieldFor(
+      line,
+      'temperature',
+      `Product temperature °C, ${limit}° or below`,
+      draftInput(line, 'product_temp_c', { type: 'number', inputmode: 'decimal', step: '0.1' }),
+    ));
+  }
+
+  grid.append(fieldFor(
+    line,
+    'use-by',
+    'Use-by printed on the box',
+    draftInput(line, 'use_by', { type: 'date' }),
+  ));
+
+  const batch = document.createElement('output');
+  batch.className = 'derived';
+  batch.textContent = batchCode();
+  grid.append(fieldFor(line, 'batch', 'Batch number on the label', batch));
+  li.append(grid);
+
+  const note = document.createElement('p');
+  note.className = 'note line-note';
+  note.textContent =
+    `Leave the use-by empty if the box has no printed date. The ${item.shelf_life_days}-day rule will be applied.`;
+  li.append(note);
+
+  const error = document.createElement('div');
+  error.setAttribute('role', 'alert');
+  li.append(error);
+
+  const actions = document.createElement('div');
+  actions.className = 'actions line-actions';
+  const save = document.createElement('button');
+  save.type = 'button';
+  save.disabled = Boolean(line.saving);
+  save.textContent = line.saving ? 'Adding to delivery' : 'Add to delivery';
+  save.addEventListener('click', () => completeDraftLine(line, item, error, save));
+  actions.append(save);
+  li.append(actions);
+  return li;
+}
+
+function renderCompleteLine(line, item) {
+  const location = locationById(line.location_id);
+  const li = document.createElement('li');
+  li.className = 'line-summary';
+  if (item) li.append(thumbnail(item, 'line-photo'));
+
+  const grow = document.createElement('div');
+  grow.className = 'grow';
+
+  const name = document.createElement('div');
+  name.className = 'name';
+  name.textContent = item ? item.name : line.item_id;
+  grow.append(name);
+
+  const detail = document.createElement('div');
+  detail.className = 'detail';
+  const useBy = line.use_by
+    ? `use by ${line.use_by} (from the box)`
+    : `use by not printed, ${item ? item.shelf_life_days : 7} days will be applied`;
+  detail.textContent =
+    `${line.quantity} ${line.unit} to ${location ? location.name : line.location_id}, ` +
+    `batch ${batchCode()}, ${useBy}`;
+  grow.append(detail);
+  li.append(grow);
+
+  const code = document.createElement('div');
+  code.className = line.short_code ? 'code' : 'code none';
+  code.textContent = line.short_code || 'no code';
+  li.append(code);
+
+  const remove = document.createElement('button');
+  remove.className = 'danger compact';
+  remove.type = 'button';
+  remove.textContent = 'Remove';
+  remove.addEventListener('click', () => removeLine(line));
+  li.append(remove);
+  return li;
+}
+
 function renderLines() {
   const list = $('lines');
   list.replaceChildren();
@@ -208,62 +406,8 @@ function renderLines() {
 
   for (const line of state.lines) {
     const item = itemById(line.item_id);
-    const location = locationById(line.location_id);
-
-    const li = document.createElement('li');
-    if (item) {
-      const image = thumbnail(item);
-      image.style.width = '44px';
-      image.style.height = '44px';
-      image.style.borderRadius = '10px';
-      image.style.objectFit = 'cover';
-      image.style.flex = 'none';
-      li.append(image);
-    }
-
-    const grow = document.createElement('div');
-    grow.className = 'grow';
-
-    const name = document.createElement('div');
-    name.className = 'name';
-    name.textContent = item ? item.name : line.item_id;
-    grow.append(name);
-
-    const detail = document.createElement('div');
-    detail.className = 'detail';
-    const useBy = line.use_by
-      ? `use by ${line.use_by} (from the box)`
-      : `use by not printed — ${item ? item.shelf_life_days : 7} days will be applied`;
-    detail.textContent =
-      `${line.quantity} ${line.unit} → ${location ? location.name : line.location_id} · ` +
-      `batch ${batchCode()} · ${useBy}`;
-    grow.append(detail);
-
-    li.append(grow);
-
-    const code = document.createElement('div');
-    if (line.short_code) {
-      code.className = 'code';
-      code.textContent = line.short_code;
-    } else {
-      code.className = 'code none';
-      code.textContent = 'no code';
-    }
-    li.append(code);
-
-    const remove = document.createElement('button');
-    remove.className = 'danger';
-    remove.textContent = 'Remove';
-    remove.style.minHeight = '36px';
-    remove.style.padding = '6px 12px';
-    remove.addEventListener('click', () => {
-      pool.giveBack(line.short_code);
-      state.lines = state.lines.filter((other) => other.lot_id !== line.lot_id);
-      render();
-    });
-    li.append(remove);
-
-    list.append(li);
+    if (!item) continue;
+    list.append(line.draft ? renderDraftLine(line, item) : renderCompleteLine(line, item));
   }
 }
 
@@ -309,7 +453,7 @@ function renderVehicle() {
     said.push(
       withinLimit(celsius, limits[kind])
         ? `${kind} compartment ${celsius}°, within the ${limits[kind]}° limit`
-        : `${kind} compartment ${celsius}° is above the ${limits[kind]}° limit — everything ${kind} ` +
+        : `${kind} compartment ${celsius}° is above the ${limits[kind]}° limit. Everything ${kind} ` +
           'in this delivery will be held until it is rechecked',
     );
   }
@@ -335,6 +479,7 @@ function renderSubmitNote() {
   if (!$('supplier').value) problems.push('the supplier');
   if (!state.deviceId) problems.push('a registered device');
   if (!state.lines.length) problems.push('at least one ingredient');
+  if (state.lines.some((line) => line.draft)) problems.push('details for every ingredient');
 
   for (const [kind, id] of [['chilled', 'vehicle-chilled'], ['frozen', 'vehicle-frozen']]) {
     if (vehicleReadingsNeeded(state.lines, itemById).has(kind) && $(id).value === '') {
@@ -366,7 +511,7 @@ function renderSubmitNote() {
     const names = [...new Set(duplicates.map((line) => itemById(line.item_id)?.name).filter(Boolean))];
     note.textContent =
       `${names.join(' and ')} appears twice with the same use-by and the same place. ` +
-      'Two lots nothing can tell apart. Combine them, or give one a different date — ' +
+      'Two lots nothing can tell apart. Combine them, or give one a different date, ' +
       'unless you meant to count them apart, which is fine.';
     $('submit').disabled = false;
     return;
@@ -374,7 +519,7 @@ function renderSubmitNote() {
 
   const withoutCode = state.lines.filter((line) => !line.short_code).length;
   note.textContent = withoutCode
-    ? `${state.lines.length} line(s). ${withoutCode} without a short code — save the record anyway and ` +
+    ? `${state.lines.length} line(s). ${withoutCode} without a short code. Save the record anyway and ` +
       'relabel those cases once codes are available.'
     : `${state.lines.length} line(s). Write each short code on that case's label before it goes into storage.`;
   $('submit').disabled = false;
@@ -387,7 +532,7 @@ function renderDeviceNote() {
   if (!state.deviceId) {
     note.textContent = devices.length
       ? 'Choose which device this is before adding anything. Codes are issued per device, so two iPads never print the same one.'
-      : 'No device is registered, so no short codes can be issued to this one. Register it in the database before using this at the door.';
+      : 'Registering this device. Connect once and reload if this does not clear on its own.';
     return;
   }
 
@@ -409,7 +554,7 @@ function renderAddButton() {
   const ready = Boolean(state.deviceId && $('supplier').value);
   $('add-line').disabled = !ready;
   $('add-line').textContent = $('supplier').value
-    ? 'Add an ingredient'
+    ? 'Add ingredients'
     : 'Choose the supplier first';
 }
 
@@ -422,7 +567,7 @@ function render() {
   renderDeviceNote();
 }
 
-// ------------------------------------------------------------ line dialog
+// ----------------------------------------------- ingredient picker and rows
 
 // The picker. Staff recognise their stock by the photograph faster than by
 // reading a name, and the kitchen already has a picture of every ingredient,
@@ -434,16 +579,13 @@ function allIngredients() {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-function ingredientsForSupplier() {
-  return forSupplier(allIngredients(), state.catalog?.itemSuppliers || [], $('supplier').value || null);
-}
-
-// Narrowed to the chosen supplier unless the person has asked to see
-// everything. The escape hatch matters: the mapping came from the kitchen's
-// records rather than from first principles, so a filter must never be the
-// reason a delivery cannot be booked in.
+// Strictly the chosen supplier's own ingredients, with no way round it: an
+// item item_suppliers does not name for this supplier cannot be added to
+// their delivery, full stop (Dean, 2026-09-25). If that turns out to hide
+// something real, the fix is a row in item_suppliers, not a way to bypass
+// this filter from the door.
 function ingredients() {
-  return state.showEveryIngredient ? allIngredients() : ingredientsForSupplier();
+  return forSupplier(allIngredients(), state.catalog?.itemSuppliers || [], $('supplier').value || null);
 }
 
 // A photograph is served from this origin, so it works offline once cached.
@@ -472,21 +614,36 @@ function renderPicker(filter = '') {
 
   // Backups are drawn after everything else, under their own heading, so the
   // everyday grid stays the everyday grid.
-  const { everyday, backup } = state.showEveryIngredient
-    ? { everyday: ingredients(), backup: [] }
-    : splitByRole(ingredients(), state.catalog?.itemSuppliers || [], $('supplier').value || null);
+  const { everyday, backup } = splitByRole(
+    ingredients(), state.catalog?.itemSuppliers || [], $('supplier').value || null,
+  );
 
   const tileFor = (item) => {
     const tile = document.createElement('button');
-    tile.className = 'tile';
     tile.type = 'button';
     tile.append(thumbnail(item));
     const name = document.createElement('span');
+    name.className = 'tile-name';
     name.textContent = item.name;
     tile.append(name);
+
+    const selected = document.createElement('span');
+    selected.className = 'tile-selected';
+    selected.textContent = '✓ Selected';
+    tile.append(selected);
+
+    const paint = () => {
+      const isSelected = state.pickerSelection.has(item.id);
+      tile.className = `tile${isSelected ? ' selected' : ''}`;
+      tile.setAttribute('aria-pressed', String(isSelected));
+      selected.hidden = !isSelected;
+    };
+    paint();
     tile.addEventListener('click', () => {
-      $('picker-dialog').close();
-      openLineDialog(item);
+      if (state.pickerSelection.has(item.id)) state.pickerSelection.delete(item.id);
+      else state.pickerSelection.add(item.id);
+      paint();
+      renderPickerSelection();
     });
     return tile;
   };
@@ -516,7 +673,7 @@ function renderPicker(filter = '') {
       };
       const names = [...new Set(matching.map(usual).filter(Boolean))];
       drawGroup(
-        names.length === 1 ? `Backup only — normally ${names[0]}` : 'Backup only',
+        names.length === 1 ? `Backup only, normally ${names[0]}` : 'Backup only',
         matching,
         true,
       );
@@ -528,50 +685,27 @@ function renderPicker(filter = '') {
     empty.className = 'empty';
     empty.textContent = filter
       ? `Nothing matches “${filter}”.`
-      : 'No ingredients to show. Try showing everything.';
+      : 'No ingredients are set up for this supplier. Ask whoever manages trace to update the supplier list.';
     groups.append(empty);
   }
 }
 
-// Says what the grid is showing and offers the way out of it, because a
-// filter the person cannot see is a filter they cannot work around.
+function renderPickerSelection() {
+  const count = state.pickerSelection.size;
+  $('picker-add').disabled = count === 0;
+  $('picker-add').textContent = count ? `Add ${count} ingredient${count === 1 ? '' : 's'}` : 'Add ingredients';
+}
+
+// Says what the grid is showing. No toggle, no way round it — see the
+// comment on ingredients() above for why.
 function renderPickerScope() {
   const scope = $('picker-scope');
   const supplier = (state.catalog?.suppliers || []).find((row) => row.id === $('supplier').value);
   scope.replaceChildren();
 
-  if (!supplier) {
-    scope.textContent = 'Every ingredient. Choose a supplier on the form to narrow this.';
-    return;
-  }
-
-  // The "plus any with no supplier" clause is only true while some ingredient
-  // has no supplier recorded. Saying it when none do would describe a rule
-  // that is not currently doing anything.
-  const mapping = state.catalog?.itemSuppliers || [];
-  const mapped = new Set(mapping.map((row) => row.item_id));
-  const unmapped = ingredientsForSupplier().filter((item) => !mapped.has(item.id)).length;
-
-  const label = document.createElement('span');
-  label.textContent = state.showEveryIngredient
-    ? 'Showing every ingredient. '
-    : unmapped
-      ? `${supplier.name}’s ingredients, plus ${unmapped} with no supplier recorded. `
-      : `${supplier.name}’s ingredients. `;
-  scope.append(label);
-
-  const toggle = document.createElement('button');
-  toggle.type = 'button';
-  toggle.className = 'secondary';
-  toggle.style.minHeight = '32px';
-  toggle.style.padding = '4px 10px';
-  toggle.style.fontSize = '14px';
-  toggle.textContent = state.showEveryIngredient ? `Just ${supplier.name}` : 'Show everything';
-  toggle.addEventListener('click', () => {
-    state.showEveryIngredient = !state.showEveryIngredient;
-    renderPicker($('picker-search').value);
-  });
-  scope.append(toggle);
+  scope.textContent = supplier
+    ? `${supplier.name}’s ingredients only.`
+    : 'Every ingredient. Choose a supplier on the form to narrow this.';
 }
 
 async function openPicker() {
@@ -585,7 +719,7 @@ async function openPicker() {
   if (!state.deviceId) {
     notify(
       (state.catalog?.devices || []).length
-        ? 'Choose which device this is first — short codes are issued per device.'
+        ? 'Choose which device this is first. Short codes are issued per device.'
         : 'No device is registered, so this one cannot be issued short codes.',
       'bad',
     );
@@ -597,7 +731,7 @@ async function openPicker() {
   // line's supplier is the delivery's supplier in any case: there is nothing
   // to add an ingredient to yet.
   if (!$('supplier').value) {
-    notify('Choose the supplier first — the ingredient list is theirs.', 'bad');
+    notify('Choose the supplier first. The ingredient list is theirs.', 'bad');
     $('supplier').focus();
     return;
   }
@@ -605,64 +739,45 @@ async function openPicker() {
   // Top up before the codes are needed rather than after, so the first line
   // of the morning gets one.
   await refillPool();
+  state.pickerSelection = new Set();
   $('picker-search').value = '';
-  state.showEveryIngredient = false;
   renderPicker();
+  renderPickerSelection();
   $('picker-dialog').showModal();
 }
 
-function openLineDialog(item) {
-  state.editing = item;
-
-  const chosen = $('line-chosen');
-  chosen.replaceChildren();
-  chosen.append(thumbnail(item));
-  const name = document.createElement('b');
-  name.textContent = item.name;
-  chosen.append(name);
-
-  fillSelect($('line-location'), state.catalog.locations, {
-    placeholder: 'Choose where it is going',
-    selected: soleLocationFor(item, state.catalog.locations),
-  });
-  // Only chilled and frozen stock is probed, so the field appears only where
-  // it means something. An ambient item shown a temperature box teaches staff
-  // that some fields are decorative.
-  const probeKind = probeKindFor(item);
-  $('line-temp-row').hidden = !probeKind;
-  $('line-temp').value = '';
-  if (probeKind) {
-    const limit = state.catalog?.limits?.[probeKind];
-    $('line-temp-label').textContent =
-      `Product temperature °C — must be ${limit}° or below`;
-  }
-
-  $('line-quantity').value = '';
-  $('line-use-by').value = '';
-  $('line-batch').textContent = batchCode();
-  $('line-error').replaceChildren();
-  fillUnits(item);
-  $('line-dialog').showModal();
+function makeDraftLine(item) {
+  const units = unitsFor(item, state.catalog.conversions);
+  return {
+    lot_id: ulid(),
+    item_id: item.id,
+    short_code: null,
+    quantity: '',
+    unit: units.includes('case') ? 'case' : item.base_unit,
+    location_id: soleLocationFor(item, state.catalog.locations) || '',
+    use_by: '',
+    product_temp_c: '',
+    draft: true,
+  };
 }
 
-// The units offered are exactly the ones the conversions master can reach the
-// base unit from. Offering anything else would put a refusal in front of
-// somebody holding a box.
-function fillUnits(item) {
-  const units = unitsFor(item, state.catalog.conversions).map((unit) => ({ id: unit, name: unit }));
-  fillSelect($('line-unit'), units, { selected: units.some((u) => u.id === 'case') ? 'case' : item.base_unit });
+function addSelectedIngredients() {
+  const selected = [...state.pickerSelection].map(itemById).filter(Boolean);
+  if (!selected.length) return;
 
-  $('line-use-by-note').textContent =
-    `Leave the use-by empty if the box has no printed date: ${item.shelf_life_days} days from today will be ` +
-    'applied and recorded as a rule rather than as the supplier\u2019s date.';
+  const drafts = selected.map(makeDraftLine);
+  state.lines.push(...drafts);
+  $('picker-dialog').close();
+  render();
+  document.getElementById(`quantity-${drafts[0].lot_id}`)?.focus();
 }
 
-async function saveLine() {
+async function completeDraftLine(line, item, error, button) {
+  if (line.saving) return;
   const problems = [];
-  const item = state.editing;
-  const quantity = Number($('line-quantity').value);
-  const unit = $('line-unit').value;
-  const locationId = $('line-location').value;
+  const quantity = Number(line.quantity);
+  const unit = line.unit;
+  const locationId = line.location_id;
 
   if (!(quantity > 0)) problems.push('enter how many');
   if (!unit) problems.push('choose a unit');
@@ -671,15 +786,18 @@ async function saveLine() {
   const probeKind = probeKindFor(item);
   let productTemp = null;
   if (probeKind) {
-    if ($('line-temp').value === '') problems.push('take a product temperature');
-    else productTemp = Number($('line-temp').value);
+    if (line.product_temp_c === '') problems.push('take a product temperature');
+    else {
+      productTemp = Number(line.product_temp_c);
+      if (!Number.isFinite(productTemp)) problems.push('enter a valid product temperature');
+    }
   }
 
   if (problems.length) {
     const div = document.createElement('div');
     div.className = 'banner bad';
     div.textContent = `Still needed: ${problems.join(', ')}.`;
-    $('line-error').replaceChildren(div);
+    error.replaceChildren(div);
     return;
   }
 
@@ -692,35 +810,30 @@ async function saveLine() {
     div.textContent =
       `${productTemp}°C is above the ${limit}°C limit. This case will be recorded and held ` +
       'until it is rechecked. Add it if the reading is right; take another if it is not.';
-    if (!state.acknowledgedBreach) {
-      state.acknowledgedBreach = true;
-      $('line-error').replaceChildren(div);
+    if (!line.acknowledged_breach) {
+      line.acknowledged_breach = true;
+      error.replaceChildren(div);
       return;
     }
   }
-  state.acknowledgedBreach = false;
+  line.acknowledged_breach = false;
 
   // The code is taken now, at the moment the line is added, because that is
   // when the label is written. An empty pool is worth one attempt to refill
   // before giving up on a code — being online with an empty pool is a
   // recoverable state, and a codeless lot means somebody relabels a box
   // later.
+  line.saving = true;
+  button.disabled = true;
+  button.textContent = 'Adding to delivery';
   if (!pool.remaining() && online()) await refillPool({ force: true });
-  const shortCode = pool.take();
-
-  const line = {
-    lot_id: ulid(),
-    item_id: item.id,
-    short_code: shortCode,
-    quantity,
-    unit,
-    location_id: locationId,
-    use_by: $('line-use-by').value || null,
-    product_temp_c: productTemp,
-  };
-  state.lines.push(line);
-
-  $('line-dialog').close();
+  line.short_code = pool.take();
+  line.quantity = quantity;
+  line.unit = unit;
+  line.location_id = locationId;
+  line.use_by = line.use_by || null;
+  line.product_temp_c = productTemp;
+  line.draft = false;
   render();
   refillPool();
   printLine(line, item);
@@ -767,6 +880,11 @@ async function printLine(line, item) {
 // -------------------------------------------------------------- submitting
 
 async function submitDelivery() {
+  if (state.lines.some((line) => line.draft)) {
+    notify('Add the details for every ingredient before saving this delivery.', 'bad');
+    return;
+  }
+
   const draft = {
     device_id: state.deviceId,
     staff_id: $('staff').value,
@@ -895,7 +1013,7 @@ function renderHolds() {
     const overdue = new Date(hold.recheck_due_at) < new Date();
     due.className = overdue ? 'due late' : 'due';
     due.textContent = overdue
-      ? `Recheck was due ${new Date(hold.recheck_due_at).toLocaleString()} — overdue`
+      ? `Recheck was due ${new Date(hold.recheck_due_at).toLocaleString()}, overdue`
       : `Recheck due ${new Date(hold.recheck_due_at).toLocaleString()}`;
     card.append(due);
 
@@ -977,7 +1095,7 @@ function renderQueue() {
 
     const heading = document.createElement('div');
     const lines = entry.payload.lines.length;
-    heading.textContent = `${entry.status} — ${lines} line(s), invoice ${entry.payload.invoice || 'not given'}`;
+    heading.textContent = `${entry.status}: ${lines} line(s), invoice ${entry.payload.invoice || 'not given'}`;
     div.append(heading);
 
     const when = document.createElement('div');
@@ -1007,16 +1125,14 @@ async function boot() {
     fillSelect($('supplier'), state.catalog.suppliers, { placeholder: 'Choose the supplier' });
   }
 
-  // Which registered device this is. The kitchen has one iPad, so this is
-  // normally not a question at all: where exactly one device is registered it
-  // is used and the row stays hidden. Picking the only candidate is not a
-  // guess.
-  //
-  // The concept stays in the schema regardless, because short codes are
-  // reserved per device and two devices must never be able to mint the same
-  // one. The day a second iPad or a phone is registered, the choice appears
-  // on its own.
-  const devices = state.catalog?.devices || [];
+  // Which registered device this is. Where exactly one device is registered
+  // it is used and the row stays hidden — picking the only candidate is not a
+  // guess. Where the remembered id no longer matches anything (retired, or
+  // this browser has never registered one), the device registers itself: see
+  // registerDevice() below. Short codes are still reserved per device and two
+  // devices must still never mint the same one, but the id and name are both
+  // minted by machinery now, so there is no typing left to typo.
+  let devices = state.catalog?.devices || [];
   if (devices.length === 1) {
     state.deviceId = devices[0].id;
     store.write(DEVICE_KEY, state.deviceId);
@@ -1024,6 +1140,11 @@ async function boot() {
     // The remembered device is no longer registered — retired, or renamed.
     // Silently carrying on with it would fail at the first submission.
     state.deviceId = null;
+  }
+
+  if (!state.deviceId && online()) {
+    await registerDevice();
+    devices = state.catalog?.devices || [];
   }
 
   $('device-row').hidden = devices.length < 2;
@@ -1092,13 +1213,8 @@ $('print-enabled').addEventListener('change', (event) => {
 
 $('add-line').addEventListener('click', openPicker);
 $('picker-search').addEventListener('input', (event) => renderPicker(event.target.value));
+$('picker-add').addEventListener('click', addSelectedIngredients);
 $('picker-cancel').addEventListener('click', () => $('picker-dialog').close());
-$('line-save').addEventListener('click', saveLine);
-$('line-back').addEventListener('click', () => {
-  $('line-dialog').close();
-  openPicker();
-});
-$('line-cancel').addEventListener('click', () => $('line-dialog').close());
 
 $('submit').addEventListener('click', submitDelivery);
 $('discard').addEventListener('click', () => {

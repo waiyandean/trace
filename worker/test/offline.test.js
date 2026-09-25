@@ -295,7 +295,7 @@ const MAPPING = [
 
 test('a supplier shows their own ingredients', () => {
   const shown = forSupplier(SUPPLIER_ITEMS, MAPPING, 'sup:tazaki').map((item) => item.name);
-  assert.deepEqual(shown.sort(), ['Aji-no Moto MSG', 'Carrots', 'Rice Vinegar']);
+  assert.deepEqual(shown.sort(), ['Aji-no Moto MSG', 'Rice Vinegar']);
 });
 
 test('an ingredient both suppliers deliver shows under both', () => {
@@ -305,12 +305,15 @@ test('an ingredient both suppliers deliver shows under both', () => {
   }
 });
 
-test('an ingredient with no supplier recorded shows under every supplier, not none', () => {
-  // Twelve ingredients have no supplier anywhere in the kitchen's records.
-  // Hiding stock that has genuinely turned up leaves somebody at the door
-  // with a box they cannot book in, which is worse than one tile too many.
-  const shown = forSupplier(SUPPLIER_ITEMS, MAPPING, 'sup:lynas').map((item) => item.id);
-  assert.ok(shown.includes('i4'));
+test('an ingredient with no supplier recorded is hidden from every supplier', () => {
+  // Strict by design: a Tazaki delivery must not be able to book in an
+  // ingredient that is not on Tazaki's own list, even while item_suppliers is
+  // still an incomplete mapping. The gap is fixed by recording the supplier,
+  // not by widening what the picker shows.
+  for (const supplier of ['sup:lynas', 'sup:tazaki']) {
+    const shown = forSupplier(SUPPLIER_ITEMS, MAPPING, supplier).map((item) => item.id);
+    assert.equal(shown.includes('i4'), false);
+  }
 });
 
 test("another supplier's ingredient is hidden", () => {

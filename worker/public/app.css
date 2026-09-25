@@ -153,10 +153,40 @@ button:disabled { opacity: 0.45; }
 }
 
 .lines { list-style: none; margin: 0; padding: 0; }
-.lines li { border-top: 1px solid var(--line); padding: 12px 16px; display: flex; gap: 12px; align-items: flex-start; }
+.lines > li { border-top: 1px solid var(--line); }
+.line-summary { padding: 12px 16px; display: flex; gap: 12px; align-items: flex-start; }
 .lines .grow { flex: 1; min-width: 0; }
 .lines .name { font-weight: 600; }
 .lines .detail { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.line-photo {
+  width: 44px; height: 44px; border-radius: 10px; object-fit: cover;
+  background: var(--sunk); flex: none;
+}
+.line-photo.noimg {
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted); font-size: 10px; line-height: 1.1; text-align: center;
+}
+.line-editor { padding-bottom: 4px; }
+.line-editor-head {
+  display: flex; gap: 12px; align-items: center; padding: 12px 16px 8px;
+}
+.line-state { color: var(--warn); font-size: 14px; font-weight: 600; margin-top: 2px; }
+.line-editor-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px; padding: 8px 16px;
+}
+.line-editor-grid .field { min-width: 0; }
+.line-note { margin: 0; padding-top: 4px; }
+.line-actions { padding-top: 0; }
+.compact { min-height: 44px; padding: 6px 12px; }
+@media (max-width: 520px) {
+  .line-editor-grid { grid-template-columns: 1fr; }
+  .line-summary { display: grid; grid-template-columns: 44px minmax(0, 1fr); }
+  .line-summary .line-photo { grid-column: 1; grid-row: 1; }
+  .line-summary .grow, .line-summary .code, .line-summary .compact { grid-column: 2; }
+  .line-summary .code { justify-self: start; }
+  .line-summary .compact { width: 100%; }
+}
 .code {
   font: 600 20px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
   letter-spacing: 2px; background: var(--tint-soft); color: var(--tint);
@@ -217,7 +247,10 @@ dialog {
 #picker-dialog > header,
 #picker-dialog > .picker-search,
 #picker-dialog > .actions { flex: none; position: static; }
-#picker-dialog > .actions { border-top: 1px solid var(--line); padding-top: 12px; }
+#picker-dialog > .actions {
+  border-top: 1px solid var(--line); padding-top: 12px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
 dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
 dialog header { border-radius: 16px 16px 0 0; }
 /* The ingredient picker. Staff recognise their stock by the photograph far
@@ -255,6 +288,11 @@ dialog header { border-radius: 16px 16px 0 0; }
   border-radius: var(--radius); padding: 10px; min-height: 64px; font-weight: 500;
 }
 .tile:active { background: var(--tint-soft); border-color: var(--tint); }
+.tile.selected {
+  background: var(--tint-soft); color: var(--text); border: 2px solid var(--tint);
+  padding: 9px;
+}
+.tile:focus-visible { outline: 3px solid var(--tint); outline-offset: 2px; }
 .tile img, .tile .noimg {
   width: 48px; height: 48px; border-radius: 10px; object-fit: cover;
   background: var(--sunk); flex: none;
@@ -264,6 +302,8 @@ dialog header { border-radius: 16px 16px 0 0; }
   font-size: 11px; color: var(--muted); text-align: center; line-height: 1.1; padding: 2px;
 }
 .tile span { min-width: 0; overflow-wrap: anywhere; }
+.tile-name { min-width: 0; overflow-wrap: anywhere; flex: 1; }
+.tile-selected { color: var(--tint); font-size: 13px; font-weight: 700; white-space: nowrap; }
 .chosen { display: flex; align-items: center; gap: 12px; padding: 12px 16px 4px; }
 .chosen img, .chosen .noimg {
   width: 56px; height: 56px; border-radius: 10px; object-fit: cover; background: var(--sunk); flex: none;

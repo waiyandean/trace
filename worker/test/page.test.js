@@ -131,6 +131,17 @@ test('the attestations start unticked in the markup', () => {
   }
 });
 
+test('the ingredient picker selects several ingredients before returning to the delivery', () => {
+  assert.match(html, /id="picker-add"[^>]*disabled[^>]*>Add ingredients<\/button>/);
+  assert.doesNotMatch(html, /id="line-dialog"/);
+  assert.match(script, /pickerSelection:\s*new Set\(\)/);
+  assert.match(script, /aria-pressed/);
+  assert.match(script, /state\.lines\.push\(\.\.\.drafts\)/);
+  assert.match(script, /function renderDraftLine/);
+  assert.match(script, /function completeDraftLine/);
+  assert.match(script, /!line\.draft\s*&&\s*!line\.short_code/);
+});
+
 test('the hidden attribute beats the classes that set display', () => {
   // `hidden` is only a `display: none` in the browser's own stylesheet, so a
   // class like `.row { display: flex }` overrides it. Two controls the form
