@@ -307,13 +307,39 @@ function renderDraftLine(line, item) {
 
   const title = document.createElement('div');
   title.className = 'grow';
+  const titleRow = document.createElement('div');
+  titleRow.className = 'line-title-row';
   const name = document.createElement('div');
   name.className = 'name';
   name.textContent = item.name;
+
+  const identifiers = document.createElement('dl');
+  identifiers.className = 'line-identifiers';
+
+  const shortCodeGroup = document.createElement('div');
+  shortCodeGroup.className = 'line-identifier';
+  const shortCodeLabel = document.createElement('dt');
+  shortCodeLabel.textContent = 'Short code';
+  const shortCode = document.createElement('dd');
+  shortCode.className = line.short_code ? 'code' : 'code none';
+  shortCode.textContent = line.short_code || 'no code';
+  shortCodeGroup.append(shortCodeLabel, shortCode);
+
+  const batchGroup = document.createElement('div');
+  batchGroup.className = 'line-identifier';
+  const batchLabel = document.createElement('dt');
+  batchLabel.textContent = 'Batch';
+  const batch = document.createElement('dd');
+  batch.className = 'line-batch-code';
+  batch.textContent = batchCode();
+  batchGroup.append(batchLabel, batch);
+
+  identifiers.append(shortCodeGroup, batchGroup);
+  titleRow.append(name, identifiers);
   const status = document.createElement('div');
   status.className = 'line-state';
   status.textContent = line.saving ? 'Adding to delivery' : 'Details needed';
-  title.append(name, status);
+  title.append(titleRow, status);
   heading.append(title);
 
   const remove = document.createElement('button');
@@ -326,11 +352,6 @@ function renderDraftLine(line, item) {
 
   const grid = document.createElement('div');
   grid.className = 'line-editor-grid';
-
-  const shortCode = document.createElement('output');
-  shortCode.className = line.short_code ? 'code' : 'code none';
-  shortCode.textContent = line.short_code || 'no code';
-  grid.append(fieldFor(line, 'short-code', 'Short code', shortCode));
 
   const quantity = draftInput(line, 'quantity', { type: 'number', inputmode: 'decimal', step: 'any' });
   quantity.min = '0';
@@ -364,10 +385,6 @@ function renderDraftLine(line, item) {
     draftInput(line, 'use_by', { type: 'date' }),
   ));
 
-  const batch = document.createElement('output');
-  batch.className = 'derived';
-  batch.textContent = batchCode();
-  grid.append(fieldFor(line, 'batch', 'Batch number on the label', batch));
   li.append(grid);
 
   const note = document.createElement('p');

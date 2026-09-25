@@ -152,9 +152,17 @@ test('an ingredient can be split into another use-by date', () => {
 
 test('each ingredient row shows its short code before details are confirmed', () => {
   assert.match(script, /short_code: pool\.take\(\)/);
-  assert.match(script, /fieldFor\(line, 'short-code', 'Short code', shortCode\)/);
+  assert.match(script, /shortCodeLabel\.textContent = 'Short code'/);
+  assert.match(script, /titleRow\.append\(name, identifiers\)/);
+  assert.doesNotMatch(script, /fieldFor\(line, 'short-code'/);
   assert.match(script, /const claimed = new Set\(state\.lines\.map\(\(line\) => line\.short_code\)/);
   assert.match(script, /line\.short_code = line\.short_code \|\| pool\.take\(\)/);
+});
+
+test('read-only lot identifiers sit with the ingredient name, outside the detail grid', () => {
+  assert.match(script, /batchLabel\.textContent = 'Batch'/);
+  assert.match(script, /identifiers\.append\(shortCodeGroup, batchGroup\)/);
+  assert.doesNotMatch(script, /fieldFor\(line, 'batch'/);
 });
 
 test('the hidden attribute beats the classes that set display', () => {

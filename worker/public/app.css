@@ -170,6 +170,16 @@ button:disabled { opacity: 0.45; }
 .line-editor-head {
   display: flex; gap: 12px; align-items: center; padding: 12px 16px 8px;
 }
+.line-title-row { display: flex; align-items: center; gap: 8px 16px; flex-wrap: wrap; }
+.line-identifiers { display: flex; align-items: center; gap: 12px; margin: 0; }
+.line-identifier { display: flex; align-items: center; gap: 6px; }
+.line-identifier dt { color: var(--muted); font-size: 12px; }
+.line-identifier dd { margin: 0; }
+.line-identifier .code { padding: 5px 7px; border-radius: 6px; font-size: 15px; letter-spacing: 1.5px; }
+.line-batch-code {
+  color: var(--muted); font: 600 15px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 1px;
+}
 .line-state { color: var(--warn); font-size: 14px; font-weight: 600; margin-top: 2px; }
 .line-summary-actions { display: flex; gap: 8px; flex: none; }
 .line-editor-grid {
