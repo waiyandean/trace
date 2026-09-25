@@ -154,13 +154,17 @@ async function refillPool({ force = false } = {}) {
     });
 
     if (response.ok) {
-      pool.replace(state.deviceId, response.body.codes.map((row) => row.code));
+      // The server still calls a code "unbound" until the delivery is
+      // submitted. Keep codes already shown on this form out of the refreshed
+      // pool so another row cannot be handed the same one in the meantime.
+      const claimed = new Set(state.lines.map((line) => line.short_code).filter(Boolean));
+      const available = response.body.codes.map((row) => row.code).filter((code) => !claimed.has(code));
+      pool.replace(state.deviceId, available);
       state.poolReason = null;
-      // Completed lines added while the pool was empty get a code as soon as
-      // one exists. Draft rows have no label details yet and must not spend a
-      // code until the person confirms them.
+      // A row shows its code while its details are being entered. Anything
+      // added while the pool was empty gets one as soon as codes arrive.
       for (const line of state.lines) {
-        if (!line.draft && !line.short_code) line.short_code = pool.take();
+        if (!line.short_code) line.short_code = pool.take();
       }
     } else {
       state.poolReason = `The server would not issue codes: ${response.body.error || response.status}`;
@@ -278,6 +282,7 @@ function addAnotherDate(source, item) {
   state.lines.splice(sourceIndex + 1, 0, draft);
   render();
   document.getElementById(`quantity-${draft.lot_id}`)?.focus();
+  refillPool();
 }
 
 function anotherDateButton(line, item) {
@@ -321,6 +326,11 @@ function renderDraftLine(line, item) {
 
   const grid = document.createElement('div');
   grid.className = 'line-editor-grid';
+
+  const shortCode = document.createElement('output');
+  shortCode.className = line.short_code ? 'code' : 'code none';
+  shortCode.textContent = line.short_code || 'no code';
+  grid.append(fieldFor(line, 'short-code', 'Short code', shortCode));
 
   const quantity = draftInput(line, 'quantity', { type: 'number', inputmode: 'decimal', step: 'any' });
   quantity.min = '0';
@@ -777,7 +787,7 @@ function makeDraftLine(item) {
   return {
     lot_id: ulid(),
     item_id: item.id,
-    short_code: null,
+    short_code: pool.take(),
     quantity: '',
     unit: units.includes('case') ? 'case' : item.base_unit,
     location_id: soleLocationFor(item, state.catalog.locations) || '',
@@ -796,6 +806,7 @@ function addSelectedIngredients() {
   $('picker-dialog').close();
   render();
   document.getElementById(`quantity-${drafts[0].lot_id}`)?.focus();
+  refillPool();
 }
 
 async function completeDraftLine(line, item, error, button) {
@@ -844,16 +855,16 @@ async function completeDraftLine(line, item, error, button) {
   }
   line.acknowledged_breach = false;
 
-  // The code is taken now, at the moment the line is added, because that is
-  // when the label is written. An empty pool is worth one attempt to refill
-  // before giving up on a code — being online with an empty pool is a
-  // recoverable state, and a codeless lot means somebody relabels a box
-  // later.
+  // The row normally received its code as soon as it reached the main page.
+  // If the pool was empty then, give an online device one last chance to fill
+  // it before the label is written.
   line.saving = true;
   button.disabled = true;
   button.textContent = 'Adding to delivery';
-  if (!pool.remaining() && online()) await refillPool({ force: true });
-  line.short_code = pool.take();
+  if (!line.short_code) {
+    if (!pool.remaining() && online()) await refillPool({ force: true });
+    line.short_code = line.short_code || pool.take();
+  }
   line.quantity = quantity;
   line.unit = unit;
   line.location_id = locationId;

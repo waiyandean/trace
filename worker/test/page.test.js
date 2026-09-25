@@ -139,7 +139,7 @@ test('the ingredient picker selects several ingredients before returning to the 
   assert.match(script, /state\.lines\.push\(\.\.\.drafts\)/);
   assert.match(script, /function renderDraftLine/);
   assert.match(script, /function completeDraftLine/);
-  assert.match(script, /!line\.draft\s*&&\s*!line\.short_code/);
+  assert.match(script, /if \(!line\.short_code\) line\.short_code = pool\.take\(\)/);
 });
 
 test('an ingredient can be split into another use-by date', () => {
@@ -148,6 +148,13 @@ test('an ingredient can be split into another use-by date', () => {
   assert.match(script, /draft\.unit = source\.unit \|\| draft\.unit/);
   assert.match(script, /draft\.location_id = source\.location_id \|\| draft\.location_id/);
   assert.match(script, /state\.lines\.splice\(sourceIndex \+ 1, 0, draft\)/);
+});
+
+test('each ingredient row shows its short code before details are confirmed', () => {
+  assert.match(script, /short_code: pool\.take\(\)/);
+  assert.match(script, /fieldFor\(line, 'short-code', 'Short code', shortCode\)/);
+  assert.match(script, /const claimed = new Set\(state\.lines\.map\(\(line\) => line\.short_code\)/);
+  assert.match(script, /line\.short_code = line\.short_code \|\| pool\.take\(\)/);
 });
 
 test('the hidden attribute beats the classes that set display', () => {
