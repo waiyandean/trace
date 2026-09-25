@@ -1,7 +1,7 @@
 import {
   ulid, makeStore, makeQueue, makePool, makeCatalogCache,
   unitsFor, batchCodeFor, buildSubmission, syncQueue, POOL_TARGET,
-  groupByStorage, soleLocationFor, forSupplier, splitByRole, usualSupplierFor, duplicateLines,
+  groupByStorage, defaultLocationFor, forSupplier, splitByRole, usualSupplierFor, duplicateLines,
   probeKindFor, withinLimit, vehicleReadingsNeeded,
 } from './lib/offline.js';
 import { authedFetch, mountStaff, session } from './lib/signin.js';
@@ -263,6 +263,16 @@ function draftInput(line, key, { type = 'text', inputmode = null, step = null } 
   return input;
 }
 
+function draftTextarea(line, key) {
+  const textarea = document.createElement('textarea');
+  textarea.rows = 2;
+  textarea.value = line[key] ?? '';
+  textarea.addEventListener('input', () => {
+    line[key] = textarea.value;
+  });
+  return textarea;
+}
+
 function draftSelect(line, key, rows, options = {}) {
   const select = document.createElement('select');
   fillSelect(select, rows, { ...options, selected: line[key] });
@@ -361,12 +371,36 @@ function renderDraftLine(line, item) {
   const units = unitsFor(item, state.catalog.conversions).map((unit) => ({ id: unit, name: unit }));
   grid.append(fieldFor(line, 'unit', 'Of what', draftSelect(line, 'unit', units)));
 
-  grid.append(fieldFor(
+  const defaultLocationId = defaultLocationFor(item, state.catalog.locations);
+  const locationSelect = draftSelect(
     line,
-    'location',
-    'Where it is going',
-    draftSelect(line, 'location_id', state.catalog.locations, { placeholder: 'Choose where it is going' }),
-  ));
+    'location_id',
+    state.catalog.locations,
+    { placeholder: 'Choose where it is going' },
+  );
+  grid.append(fieldFor(line, 'location', 'Storage location', locationSelect));
+
+  const overrideNote = draftTextarea(line, 'location_override_note');
+  overrideNote.placeholder = 'What changed?';
+  const overrideField = fieldFor(
+    line,
+    'location-override-note',
+    'Why is this going somewhere else?',
+    overrideNote,
+  );
+  const renderLocationException = () => {
+    const isException = Boolean(
+      defaultLocationId && locationSelect.value && locationSelect.value !== defaultLocationId,
+    );
+    overrideField.hidden = !isException;
+    if (!isException) {
+      overrideNote.value = '';
+      line.location_override_note = '';
+    }
+  };
+  locationSelect.addEventListener('change', renderLocationException);
+  renderLocationException();
+  grid.append(overrideField);
 
   const probeKind = probeKindFor(item);
   if (probeKind) {
@@ -431,7 +465,8 @@ function renderCompleteLine(line, item) {
     : `use by not printed, ${item ? item.shelf_life_days : 7} days will be applied`;
   detail.textContent =
     `${line.quantity} ${line.unit} to ${location ? location.name : line.location_id}, ` +
-    `batch ${batchCode()}, ${useBy}`;
+    `batch ${batchCode()}, ${useBy}` +
+    (line.note ? `, storage exception: ${line.note}` : '');
   grow.append(detail);
   li.append(grow);
 
@@ -802,7 +837,8 @@ function makeDraftLine(item) {
     short_code: pool.take(),
     quantity: '',
     unit: units.includes('case') ? 'case' : item.base_unit,
-    location_id: soleLocationFor(item, state.catalog.locations) || '',
+    location_id: defaultLocationFor(item, state.catalog.locations) || '',
+    location_override_note: '',
     use_by: '',
     product_temp_c: '',
     draft: true,
@@ -827,10 +863,16 @@ async function completeDraftLine(line, item, error, button) {
   const quantity = Number(line.quantity);
   const unit = line.unit;
   const locationId = line.location_id;
+  const defaultLocationId = defaultLocationFor(item, state.catalog.locations);
 
   if (!(quantity > 0)) problems.push('enter how many');
   if (!unit) problems.push('choose a unit');
   if (!locationId) problems.push('choose where it is going');
+  if (
+    defaultLocationId
+    && locationId !== defaultLocationId
+    && !line.location_override_note.trim()
+  ) problems.push('say why the storage location changed');
 
   const probeKind = probeKindFor(item);
   let productTemp = null;
@@ -880,6 +922,7 @@ async function completeDraftLine(line, item, error, button) {
   line.quantity = quantity;
   line.unit = unit;
   line.location_id = locationId;
+  line.note = line.location_override_note.trim() || null;
   line.use_by = line.use_by || null;
   line.product_temp_c = productTemp;
   line.draft = false;

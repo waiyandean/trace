@@ -19,7 +19,12 @@ function intakeDb(overrides = {}) {
         shelf_life_days: 7, storage_unopened: 'ambient', active: 1,
       },
     },
-    locations: { 'loc:fridge': { id: 'loc:fridge', name: 'Walk In Fridge', active: 1 } },
+    locations: {
+      'loc:fridge': { id: 'loc:fridge', name: 'Walk In Fridge', kind: 'chill', active: 1 },
+      'loc:freezer': { id: 'loc:freezer', name: 'Walk In Freezer', kind: 'freezer', active: 1 },
+      'loc:dry': { id: 'loc:dry', name: 'Dry Store', kind: 'ambient', active: 1 },
+      'loc:allergen': { id: 'loc:allergen', name: 'Dry Store Allergen Free Shelf', kind: 'ambient', active: 1 },
+    },
     staff: { 'staff:nikin': { id: 'staff:nikin', name: 'Nikin', active: 1 } },
     devices: { 'dev:ipad': { id: 'dev:ipad', active: 1 } },
     suppliers: { 'sup:lynas': { id: 'sup:lynas', name: 'Lynas', active: 1 } },
@@ -64,6 +69,9 @@ function intakeDb(overrides = {}) {
         async all() {
           if (sql.includes('FROM unit_conversions')) return { results: state.conversions };
           if (sql.includes('FROM temperature_limits')) return { results: state.limits };
+          if (sql.includes('FROM locations WHERE kind')) {
+            return { results: Object.values(state.locations).filter((row) => row.kind === statement.params[0] && row.active === 1) };
+          }
           return { results: [] };
         },
         sql,
@@ -101,7 +109,7 @@ const delivery = (changes = {}) => ({
       short_code: 'K7M4QP',
       quantity: 3,
       unit: 'case',
-      location_id: 'loc:fridge',
+      location_id: 'loc:freezer',
       use_by: '2026-09-04',
       batch_code: '310826',
       product_temp_c: -19,
@@ -139,6 +147,26 @@ test('a delivery line opens a lot and writes one RECEIVE movement', async () => 
   assert.equal(quantity, 24);
   assert.equal(enteredQuantity, 3);
   assert.equal(enteredUnit, 'case');
+});
+
+test('a different storage location needs a reason and keeps it with the lot', async () => {
+  const withoutReason = intakeDb();
+  const changed = delivery();
+  changed.lines[0].location_id = 'loc:fridge';
+  await assert.rejects(() => receive(withoutReason, changed), /normally goes to Walk In Freezer/);
+
+  const withReason = intakeDb();
+  changed.lines[0].note = 'Freezer is being repaired';
+  await receive(withReason, changed);
+  assert.equal(lotFields(withReason).note, 'Freezer is being repaired');
+
+  const ambient = delivery();
+  ambient.lines[0].item_id = 'item:oil';
+  ambient.lines[0].unit = 'L';
+  ambient.lines[0].location_id = 'loc:allergen';
+  delete ambient.lines[0].product_temp_c;
+  delete ambient.checks.vehicle_frozen_c;
+  await assert.rejects(() => receive(intakeDb(), ambient), /normally goes to Dry Store/);
 });
 
 test('the short code is bound from the same transaction as the lot', async () => {
@@ -325,6 +353,7 @@ test('an ambient line is not asked for a reading, and refuses one', async () => 
   const db = intakeDb();
   const payload = delivery();
   payload.lines[0].item_id = 'item:oil';
+  payload.lines[0].location_id = 'loc:dry';
   delete payload.checks.vehicle_frozen_c;
   delete payload.lines[0].product_temp_c;
   payload.lines[0].unit = 'L';
@@ -334,6 +363,7 @@ test('an ambient line is not asked for a reading, and refuses one', async () => 
   const withReading = intakeDb();
   const other = delivery();
   other.lines[0].item_id = 'item:oil';
+  other.lines[0].location_id = 'loc:dry';
   other.lines[0].unit = 'L';
   delete other.checks.vehicle_frozen_c;
   await assert.rejects(() => receive(withReading, other), /would mean nothing/);
@@ -348,6 +378,7 @@ test('the van reading is required when the load needs it, and refused when it do
   const spurious = intakeDb();
   const ambient = delivery();
   ambient.lines[0].item_id = 'item:oil';
+  ambient.lines[0].location_id = 'loc:dry';
   ambient.lines[0].unit = 'L';
   delete ambient.lines[0].product_temp_c;
   await assert.rejects(() => receive(spurious, ambient), /contains no frozen stock/);

@@ -118,12 +118,13 @@ input, select, button, textarea { font: inherit; }
 /* Text and picker fields. Checkboxes are excluded deliberately: `appearance:
    none` strips a checkbox's tick entirely, so it goes on toggling while
    showing nothing, and `width: 100%` stretches it across the row. */
-input:not([type="checkbox"]), select {
+input:not([type="checkbox"]), select, textarea {
   width: 100%; min-height: 44px; padding: 10px 12px; color: var(--text);
   background: var(--sunk); border: 1px solid var(--line);
   border-radius: 10px; appearance: none;
 }
-input:focus, select:focus { outline: 2px solid var(--tint); outline-offset: -1px; }
+textarea { resize: vertical; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--tint); outline-offset: -1px; }
 /* Shown, not asked for. The batch number is the delivery's date and is the
    same on every case, so it is one less thing to key in and one less thing to
    mistype. */

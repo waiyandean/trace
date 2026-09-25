@@ -173,6 +173,15 @@ test('lot identifiers align beside a compact, accessible remove control', () => 
   assert.match(css, /\.icon-remove\s*\{[^}]*width:\s*44px[^}]*height:\s*44px[^}]*border-radius:\s*50%/);
 });
 
+test('storage defaults automatically and an exception requires a reason', () => {
+  assert.match(script, /location_id: defaultLocationFor\(item, state\.catalog\.locations\)/);
+  assert.match(script, /'Why is this going somewhere else\?'/);
+  assert.match(script, /locationId !== defaultLocationId/);
+  assert.match(script, /say why the storage location changed/);
+  assert.match(script, /line\.note = line\.location_override_note\.trim\(\) \|\| null/);
+  assert.match(css, /input:not\(\[type="checkbox"\]\), select, textarea/);
+});
+
 test('the hidden attribute beats the classes that set display', () => {
   // `hidden` is only a `display: none` in the browser's own stylesheet, so a
   // class like `.row { display: flex }` overrides it. Two controls the form

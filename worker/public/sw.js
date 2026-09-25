@@ -20,7 +20,7 @@
 // deleted, so a stale cache cannot outlive the code it belongs to. It is also
 // shown on screen, so the iPad can be asked what it is running rather than
 // guessed at.
-const VERSION = '2026-09-25.5';
+const VERSION = '2026-09-25.6';
 
 const SHELL_CACHE = `trace-shell-${VERSION}`;
 const PHOTO_CACHE = 'trace-photos';

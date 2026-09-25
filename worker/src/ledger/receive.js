@@ -38,6 +38,23 @@ export function deriveUseBy(occurredAt, shelfLifeDays) {
   return useBy.toISOString().slice(0, 10);
 }
 
+const DEFAULT_LOCATION_NAMES = {
+  ambient: 'Dry Store',
+  chill: 'Walk In Fridge',
+  freezer: 'Walk In Freezer',
+};
+
+async function defaultLocationForItem(db, item) {
+  if (!item.storage_unopened) return null;
+  const { results = [] } = await db
+    .prepare('SELECT id, name FROM locations WHERE kind = ? AND active = 1 ORDER BY name')
+    .bind(item.storage_unopened)
+    .all();
+  const named = results.find((row) => row.name === DEFAULT_LOCATION_NAMES[item.storage_unopened]);
+  if (named) return named;
+  return results.length === 1 ? results[0] : null;
+}
+
 // Reads back what one submission wrote. Used both for a fresh submission and
 // for the replay of one already accepted, so a device gets the same answer
 // either way and never has to treat a duplicate differently.
@@ -95,9 +112,22 @@ async function prepareLine(db, line, index, envelope, limits) {
   if (!item) throw new BadRequest(`${where}: unknown item ${JSON.stringify(line.item_id)}`);
   if (item.active !== 1) throw new BadRequest(`${where}: ${item.name} is not an active item`);
 
-  const location = await lookupRow(db, 'SELECT id, name, active FROM locations WHERE id = ?', line.location_id);
+  const location = await lookupRow(db, 'SELECT id, name, kind, active FROM locations WHERE id = ?', line.location_id);
   if (!location) throw new BadRequest(`${where}: unknown location ${JSON.stringify(line.location_id)}`);
   if (location.active !== 1) throw new BadRequest(`${where}: ${location.name} is not an active location`);
+
+  let note = null;
+  if (line.note !== undefined && line.note !== null) {
+    if (typeof line.note !== 'string') throw new BadRequest(`${where}.note must be text`);
+    note = line.note.trim() || null;
+  }
+  const defaultLocation = await defaultLocationForItem(db, item);
+  if (defaultLocation && location.id !== defaultLocation.id && !note) {
+    throw new BadRequest(
+      `${where}: ${item.name} normally goes to ${defaultLocation.name}; ` +
+        `a different storage location needs a reason`,
+    );
+  }
 
   if (typeof line.quantity !== 'number' || !Number.isFinite(line.quantity) || line.quantity <= 0) {
     throw new BadRequest(`${where}.quantity must be a positive number, got ${JSON.stringify(line.quantity)}`);
@@ -176,7 +206,7 @@ async function prepareLine(db, line, index, envelope, limits) {
     supplierLot: line.supplier_lot ?? null,
     useBy,
     useBySource,
-    note: line.note ?? null,
+    note,
     locationId: location.id,
     quantity: converted.quantity,
     enteredQuantity: line.quantity,
