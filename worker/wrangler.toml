@@ -18,10 +18,15 @@ workers_dev = false
 # its own /api/labels/* calls and the shared /photos/* images are not all
 # under one path; each pattern reaches only what it names, so nothing else on
 # this Worker -- the ledger above all -- becomes reachable from that zone.
+#
+# trace.deanops.uk is the fourth pattern, added 2026-09-24: the app's own
+# hostname, everything on it, now that Cloudflare Access and the Worker's own
+# check of it (src/access.js) are both in place to gate what this opens up.
 routes = [
   { pattern = "forms.deanops.uk/labels*", zone_name = "deanops.uk" },
   { pattern = "forms.deanops.uk/api/labels*", zone_name = "deanops.uk" },
   { pattern = "forms.deanops.uk/photos*", zone_name = "deanops.uk" },
+  { pattern = "trace.deanops.uk/*", zone_name = "deanops.uk" },
 ]
 
 # Cloudflare Access, the door in front of everything but the public label

@@ -1,8 +1,18 @@
-# Copy to .dev.vars (gitignored) for `wrangler dev`. Both must be 32+ characters.
-# Generate each with:  openssl rand -base64 48
+# Copy to .dev.vars (gitignored) for `wrangler dev`. AUTH_SECRET and PIN_PEPPER
+# must be 32+ characters. Generate each with:  openssl rand -base64 48
 #
 # In production they are Worker secrets, never files:
 #   npx wrangler secret put AUTH_SECRET   (signs the sign-in tokens; rotating it signs everybody out)
 #   npx wrangler secret put PIN_PEPPER    (keys the PIN hashes; rotating it invalidates every PIN)
 AUTH_SECRET=
 PIN_PEPPER=
+
+# Skips the Cloudflare Access check (src/access.js). This has to be a variable
+# rather than a "am I on localhost" check: wrangler.toml names a real route
+# (trace.deanops.uk), so under `wrangler dev` the Request the Worker sees is
+# simulated as arriving on THAT hostname, not on whatever wrangler dev is
+# actually listening on — checked directly, not assumed; even the raw Host
+# header says trace.deanops.uk. So this only ever comes from here or a test's
+# own env object, never from wrangler.toml's [vars] (which ships to
+# production) and never as a Worker secret.
+LOCAL_DEV=1

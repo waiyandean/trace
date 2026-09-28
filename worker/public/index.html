@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-<title>Goods In — trace</title>
+<title>Goods In | trace</title>
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-title" content="Goods In" />
 <meta name="theme-color" content="#f2f2f7" />
@@ -15,16 +15,14 @@
 <body>
 
 <header>
-  <h1>Goods In</h1>
-  <span class="pill" id="net">checking</span>
-  <span class="pill" id="pool">codes —</span>
-  <a href="/stock" class="pill" style="text-decoration:none">Stock</a>
-  <a href="/batching" class="pill" style="text-decoration:none">Batching</a>
-  <a href="/dispatch" class="pill" style="text-decoration:none">Dispatch</a>
-  <a href="/count" class="pill" style="text-decoration:none">Count</a>
-  <a href="/reports" class="pill" style="text-decoration:none">Reports</a>
-  <button class="secondary" id="open-holds" style="min-height:36px;padding:6px 12px;font-size:14px">Held <span id="holds-count">0</span></button>
-  <button class="secondary" id="open-queue" style="min-height:36px;padding:6px 12px;font-size:14px">Queue <span id="queue-count">0</span></button>
+  <div class="header-top">
+    <h1>Goods In</h1>
+    <span class="pill" id="net">checking</span>
+    <span class="pill" id="pool">codes pending</span>
+    <button class="secondary header-btn" id="open-holds">Held <span id="holds-count">0</span></button>
+    <button class="secondary header-btn" id="open-queue">Queue <span id="queue-count">0</span></button>
+  </div>
+  <nav id="nav"></nav>
 </header>
 
 <main>
@@ -57,9 +55,9 @@
   <section>
     <h2>Cases received</h2>
     <ul class="lines" id="lines"></ul>
-    <p class="empty" id="lines-empty">Nothing added yet. Add one line per ingredient on the delivery note.</p>
+    <p class="empty" id="lines-empty">Nothing added yet. Add the ingredients on the delivery note.</p>
     <div class="actions">
-      <button id="add-line">Add an ingredient</button>
+      <button id="add-line">Add ingredients</button>
     </div>
   </section>
 
@@ -132,69 +130,26 @@
     <h2>Label printer</h2>
     <div class="row">
       <div class="field">
-        <label for="relay-url">Print relay address</label>
-        <input id="relay-url" placeholder="https://print-relay.deanops.uk" autocomplete="off" />
+        <label><input type="checkbox" id="print-enabled" checked /> Print through the relay</label>
+        <span class="relay-status" id="relay-status" role="status"></span>
       </div>
     </div>
     <p class="note" id="printer-note">
-      Leave this blank to add lines without printing — write the short code on the case by hand, as before.
+      Turn this off to add lines without printing. Write the short code on the case by hand, as before.
     </p>
   </section>
 
 </main>
 
-<dialog id="line-dialog">
-  <header><h1 id="line-dialog-title">Add an ingredient</h1></header>
-  <div class="chosen" id="line-chosen"></div>
-  <div class="row">
-    <div class="field">
-      <label for="line-quantity">How many</label>
-      <input id="line-quantity" type="number" min="0" step="any" inputmode="decimal" />
-    </div>
-    <div class="field">
-      <label for="line-unit">Of what</label>
-      <select id="line-unit"></select>
-    </div>
-  </div>
-  <div class="row">
-    <div class="field">
-      <label for="line-location">Where it is going</label>
-      <select id="line-location"></select>
-    </div>
-  </div>
-  <div class="row" id="line-temp-row" hidden>
-    <div class="field">
-      <label for="line-temp" id="line-temp-label">Product temperature °C</label>
-      <input id="line-temp" type="number" step="0.1" inputmode="decimal" />
-    </div>
-  </div>
-  <div class="row">
-    <div class="field">
-      <label for="line-use-by">Use-by printed on the box</label>
-      <input id="line-use-by" type="date" />
-    </div>
-    <div class="field">
-      <label>Batch number on the label</label>
-      <output class="derived" id="line-batch"></output>
-    </div>
-  </div>
-  <p class="note" id="line-use-by-note"></p>
-  <div id="line-error"></div>
-  <div class="actions">
-    <button id="line-save">Add to the delivery</button>
-    <button class="secondary" id="line-back">Pick a different one</button>
-    <button class="secondary" id="line-cancel">Cancel</button>
-  </div>
-</dialog>
-
 <dialog id="picker-dialog">
-  <header><h1>Tap an ingredient</h1></header>
+  <header><h1>Choose ingredients</h1></header>
   <div class="picker-search">
     <input id="picker-search" type="search" placeholder="Search by name" autocomplete="off" />
     <p class="note" id="picker-scope"></p>
   </div>
   <div class="picker-groups" id="picker-groups"></div>
   <div class="actions">
+    <button id="picker-add" disabled>Add ingredients</button>
     <button class="secondary" id="picker-cancel">Cancel</button>
   </div>
 </dialog>

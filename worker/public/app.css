@@ -37,19 +37,71 @@ body {
   font: 17px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   padding: 0 0 env(safe-area-inset-bottom);
 }
+/* Two fixed rows, never one that reflows around whichever page-specific
+   buttons happen to exist: the top row is "what is going on right now" and
+   its contents differ page to page (a connectivity pill is the only thing
+   every page has); the nav row underneath is the same seven pills in the
+   same order everywhere, in a strip of its own so it can never be mistaken
+   for a status pill or shift position depending on what is above it
+   (Dean, 2026-09-24). */
 header {
   position: sticky; top: 0; z-index: 20; background: var(--surface);
-  border-bottom: 1px solid var(--line); padding: 10px 16px calc(10px);
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  border-bottom: 1px solid var(--line); display: flex; flex-direction: column;
 }
-header h1 { font-size: 20px; margin: 0; flex: 1; letter-spacing: -0.2px; }
+/* Kept small on purpose (Dean, 2026-09-24): this row is what is going on
+   right now, not the page's main content, and the nav row below it is
+   where staff actually look to move around — this one should take up as
+   little of the screen as it can while still being readable. */
+.header-top {
+  padding: 6px 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+header h1 { font-size: 17px; margin: 0; flex: 1; letter-spacing: -0.2px; }
 .pill {
-  font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 999px;
   background: var(--sunk); color: var(--muted); white-space: nowrap;
 }
 .pill.ok { background: var(--tint-soft); color: var(--tint); }
 .pill.bad { background: var(--bad-soft); color: var(--bad); }
 .pill.warn { background: var(--warn-soft); color: var(--warn); }
+/* A read-only status, not a control -- there is exactly one relay and
+   typing a different address only breaks printing, so this replaced what
+   used to be an editable field (labels/app.css carries the same rule). */
+.relay-status {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 13px; color: var(--muted); white-space: nowrap;
+}
+.relay-status .dot {
+  width: 8px; height: 8px; border-radius: 50%; flex: none;
+  background: var(--muted);
+}
+.relay-status[data-state="ok"] { color: var(--tint); }
+.relay-status[data-state="ok"] .dot { background: var(--tint); }
+.relay-status[data-state="bad"] { color: var(--bad); }
+.relay-status[data-state="bad"] .dot { background: var(--bad); }
+/* A status-row action button (Held, Queue, Unproven, Unresolved…) — same
+   idea as .pill, sized down to match, so a header button reads as part of
+   the compact status row rather than a full-size call to action. */
+.header-btn { min-height: 28px; padding: 3px 10px; font-size: 12px; }
+/* One row, always — never two. Wrapping to a second line on a narrow phone
+   pushed the whole page down and undid the point of pinning this row in a
+   fixed place (Dean, 2026-09-24, spotted on his phone). Scrolls sideways
+   instead, the way a phone's own tab strips do; nav-pill's flex-shrink: 0
+   is what stops a pill being squashed instead of the row just scrolling. */
+#nav {
+  display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
+  padding: 8px 16px; background: var(--sunk); border-top: 1px solid var(--line);
+  overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+#nav::-webkit-scrollbar { display: none; }
+.nav-pill { text-decoration: none; position: relative; flex-shrink: 0; }
+.nav-pill.current { background: var(--tint-soft); color: var(--tint); font-weight: 700; }
+/* The underline GitHub's own tab strip uses, flush with the header's own
+   bottom edge rather than the pill's — so it reads as "the row itself is
+   anchored here" rather than just another fill colour (Dean, 2026-09-24). */
+.nav-pill.current::after {
+  content: ''; position: absolute; left: 6px; right: 6px; bottom: -8px;
+  height: 2px; border-radius: 1px; background: var(--tint);
+}
 main { padding: 16px; max-width: 760px; margin: 0 auto; }
 section {
   background: var(--surface); border: 1px solid var(--line);
@@ -66,12 +118,13 @@ input, select, button, textarea { font: inherit; }
 /* Text and picker fields. Checkboxes are excluded deliberately: `appearance:
    none` strips a checkbox's tick entirely, so it goes on toggling while
    showing nothing, and `width: 100%` stretches it across the row. */
-input:not([type="checkbox"]), select {
+input:not([type="checkbox"]), select, textarea {
   width: 100%; min-height: 44px; padding: 10px 12px; color: var(--text);
   background: var(--sunk); border: 1px solid var(--line);
   border-radius: 10px; appearance: none;
 }
-input:focus, select:focus { outline: 2px solid var(--tint); outline-offset: -1px; }
+textarea { resize: vertical; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--tint); outline-offset: -1px; }
 /* Shown, not asked for. The batch number is the delivery's date and is the
    same on every case, so it is one less thing to key in and one less thing to
    mistype. */
@@ -89,12 +142,82 @@ button.danger { background: transparent; color: var(--bad); border-color: var(--
 button:disabled { opacity: 0.45; }
 .actions { display: flex; gap: 10px; padding: 0 16px 16px; flex-wrap: wrap; }
 .actions button { flex: 1 1 160px; }
+/* Two buttons side by side at 160px each leaves a long label — "Save goods
+   in record" — nowhere to go but a second line, and a two-line button at a
+   44px-minimum height reads as oversized rather than just a longer label
+   (Dean, 2026-09-24, on his phone). Full width and stacked below 520px, the
+   same breakpoint the ingredient grid already uses, so the label gets the
+   width it needs instead of the button growing taller to make room for it. */
+@media (max-width: 520px) {
+  .actions { flex-direction: column; }
+  .actions button { flex: none; width: 100%; }
+}
 
 .lines { list-style: none; margin: 0; padding: 0; }
-.lines li { border-top: 1px solid var(--line); padding: 12px 16px; display: flex; gap: 12px; align-items: flex-start; }
+.lines > li { border-top: 1px solid var(--line); }
+.line-summary { padding: 12px 16px; display: flex; gap: 12px; align-items: flex-start; }
 .lines .grow { flex: 1; min-width: 0; }
 .lines .name { font-weight: 600; }
 .lines .detail { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.line-photo {
+  width: 44px; height: 44px; border-radius: 10px; object-fit: cover;
+  background: var(--sunk); flex: none;
+}
+.line-photo.noimg {
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted); font-size: 10px; line-height: 1.1; text-align: center;
+}
+.line-editor { padding-bottom: 4px; }
+.line-editor-head {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) auto 44px;
+  gap: 12px; align-items: center; padding: 12px 16px 8px;
+}
+.line-editor-head > .line-photo { grid-column: 1; grid-row: 1; }
+.line-editor-head > .grow { grid-column: 2; grid-row: 1; }
+.line-editor-head > .line-identifiers { grid-column: 3; grid-row: 1; }
+.line-editor-head > .icon-remove { grid-column: 4; grid-row: 1; }
+.line-identifiers {
+  display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin: 0;
+}
+.line-identifier { display: flex; align-items: center; gap: 6px; }
+.line-identifier dt { color: var(--muted); font-size: 12px; }
+.line-identifier dd { margin: 0; }
+.line-identifier .code { padding: 5px 7px; border-radius: 6px; font-size: 15px; letter-spacing: 1.5px; }
+.line-batch-code {
+  color: var(--muted); font: 600 15px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 1px;
+}
+.icon-remove {
+  width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 50%;
+  font-size: 26px; font-weight: 500; line-height: 1;
+}
+.line-state { color: var(--warn); font-size: 14px; font-weight: 600; margin-top: 2px; }
+.line-summary-actions { display: flex; gap: 8px; flex: none; }
+.line-editor-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px; padding: 8px 16px;
+}
+.line-editor-grid .field { min-width: 0; }
+.line-note { margin: 0; padding-top: 4px; }
+.line-actions { padding-top: 0; }
+.compact { min-height: 44px; padding: 6px 12px; }
+@media (max-width: 640px) {
+  .line-editor-head { grid-template-columns: 44px minmax(0, 1fr) 44px; }
+  .line-editor-head > .line-identifiers {
+    grid-column: 2 / 4; grid-row: 2; justify-self: end; flex-wrap: wrap;
+  }
+  .line-editor-head > .icon-remove { grid-column: 3; grid-row: 1; }
+}
+@media (max-width: 520px) {
+  .line-editor-grid { grid-template-columns: 1fr; }
+  .line-summary { display: grid; grid-template-columns: 44px minmax(0, 1fr); }
+  .line-summary .line-photo { grid-column: 1; grid-row: 1; }
+  .line-summary .grow, .line-summary .code, .line-summary-actions { grid-column: 2; }
+  .line-summary .code { justify-self: start; }
+  .line-summary-actions { flex-direction: column; }
+  .line-summary-actions .compact { width: 100%; }
+  .line-summary-actions .icon-remove { width: 44px; align-self: flex-end; }
+}
 .code {
   font: 600 20px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
   letter-spacing: 2px; background: var(--tint-soft); color: var(--tint);
@@ -155,7 +278,10 @@ dialog {
 #picker-dialog > header,
 #picker-dialog > .picker-search,
 #picker-dialog > .actions { flex: none; position: static; }
-#picker-dialog > .actions { border-top: 1px solid var(--line); padding-top: 12px; }
+#picker-dialog > .actions {
+  border-top: 1px solid var(--line); padding-top: 12px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
 dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
 dialog header { border-radius: 16px 16px 0 0; }
 /* The ingredient picker. Staff recognise their stock by the photograph far
@@ -193,6 +319,11 @@ dialog header { border-radius: 16px 16px 0 0; }
   border-radius: var(--radius); padding: 10px; min-height: 64px; font-weight: 500;
 }
 .tile:active { background: var(--tint-soft); border-color: var(--tint); }
+.tile.selected {
+  background: var(--tint-soft); color: var(--text); border: 2px solid var(--tint);
+  padding: 9px;
+}
+.tile:focus-visible { outline: 3px solid var(--tint); outline-offset: 2px; }
 .tile img, .tile .noimg {
   width: 48px; height: 48px; border-radius: 10px; object-fit: cover;
   background: var(--sunk); flex: none;
@@ -202,6 +333,8 @@ dialog header { border-radius: 16px 16px 0 0; }
   font-size: 11px; color: var(--muted); text-align: center; line-height: 1.1; padding: 2px;
 }
 .tile span { min-width: 0; overflow-wrap: anywhere; }
+.tile-name { min-width: 0; overflow-wrap: anywhere; flex: 1; }
+.tile-selected { color: var(--tint); font-size: 13px; font-weight: 700; white-space: nowrap; }
 .chosen { display: flex; align-items: center; gap: 12px; padding: 12px 16px 4px; }
 .chosen img, .chosen .noimg {
   width: 56px; height: 56px; border-radius: 10px; object-fit: cover; background: var(--sunk); flex: none;

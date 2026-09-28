@@ -197,21 +197,17 @@ export const STORAGE_GROUPS = [
   { key: null, label: 'Storage not yet decided' },
 ];
 
-// Narrowing the picker to one supplier's ingredients. Sixty-odd tiles become
-// twenty-odd, which is the difference between scanning a grid and hunting
-// through one.
-//
-// An item nobody has mapped to any supplier is shown under every supplier,
-// not under none. The mapping is incomplete — twelve ingredients have no
-// supplier recorded anywhere in the kitchen's records — and hiding stock that
-// has genuinely turned up is a worse failure than showing one tile too many:
-// it leaves somebody at the door with a box they cannot book in.
+// Narrowing the picker to one supplier's ingredients. Strict: an item with no
+// row in the mapping for this supplier is not shown, full stop, whether or
+// not anybody has mapped it anywhere. A Tazaki delivery must not be able to
+// book in an ingredient that is not on Tazaki's own list, even if that list
+// is still incomplete — the gap is a data problem to fix in item_suppliers,
+// not a filter to widen at the door (Dean, 2026-09-25).
 export function forSupplier(items, mapping, supplierId) {
   if (!supplierId) return items;
 
-  const mapped = new Set(mapping.map((row) => row.item_id));
   const theirs = new Set(mapping.filter((row) => row.supplier_id === supplierId).map((row) => row.item_id));
-  return items.filter((item) => theirs.has(item.id) || !mapped.has(item.id));
+  return items.filter((item) => theirs.has(item.id));
 }
 
 // Which of a supplier's ingredients are the everyday ones and which they only
@@ -246,13 +242,20 @@ export function groupByStorage(items, filter = '') {
     .filter((group) => group.items.length);
 }
 
-// Where an item goes is usually not a question: an item that must be kept
-// chilled has exactly one chilled area to go to. Where the kitchen has more
-// than one area of that kind — the dry store and the allergen-free shelf —
-// nothing is chosen, because picking for somebody there would be a guess
-// about allergens, which is not a guess this system is allowed to make.
-export function soleLocationFor(item, locations) {
+// The normal destination follows the item's unopened storage rule. Named
+// kitchen defaults settle the one ambiguous class: ambient stock goes to the
+// Dry Store, not the allergen-free shelf, unless somebody records an
+// exception on this delivery line.
+const DEFAULT_LOCATION_NAMES = {
+  ambient: 'Dry Store',
+  chill: 'Walk In Fridge',
+  freezer: 'Walk In Freezer',
+};
+
+export function defaultLocationFor(item, locations) {
   const candidates = locations.filter((row) => row.kind === item.storage_unopened);
+  const named = candidates.find((row) => row.name === DEFAULT_LOCATION_NAMES[item.storage_unopened]);
+  if (named) return named.id;
   return candidates.length === 1 ? candidates[0].id : '';
 }
 
@@ -341,6 +344,7 @@ export function buildSubmission(draft, { now = new Date(), mintId = ulid } = {})
       use_by: line.use_by || undefined,
       batch_code: line.batch_code || undefined,
       product_temp_c: line.product_temp_c ?? undefined,
+      note: line.note || undefined,
     })),
   };
 }

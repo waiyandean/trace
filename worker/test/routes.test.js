@@ -8,14 +8,14 @@ import { sqliteDb } from './sqliteDb.js';
 const get = (path) => new Request(`https://localhost${path}`);
 
 test('health reports what the database holds', async () => {
-  const env = { DB: fakeDb(() => [{ items: 42, lots: 3 }]) };
+  const env = { LOCAL_DEV: '1', DB: fakeDb(() => [{ items: 42, lots: 3 }]) };
   const res = await worker.fetch(get('/api/health'), env);
   assert.equal(res.status, 200);
   assert.deepEqual(await res.json(), { ok: true, items: 42, lots: 3 });
 });
 
 test('a catalog read returns the rows', async () => {
-  const env = { DB: fakeDb(() => [{ id: 'l1', name: 'Walk-in chill', kind: 'chill', active: 1 }]) };
+  const env = { LOCAL_DEV: '1', DB: fakeDb(() => [{ id: 'l1', name: 'Walk-in chill', kind: 'chill', active: 1 }]) };
   const res = await worker.fetch(get('/api/catalog?action=locations'), env);
   assert.equal(res.status, 200);
   const body = await res.json();
@@ -24,28 +24,28 @@ test('a catalog read returns the rows', async () => {
 });
 
 test('a bad action is a 400 with the reason', async () => {
-  const env = { DB: fakeDb(() => []) };
+  const env = { LOCAL_DEV: '1', DB: fakeDb(() => []) };
   const res = await worker.fetch(get('/api/catalog?action=lots'), env);
   assert.equal(res.status, 400);
   assert.match((await res.json()).error, /unknown action: lots/);
 });
 
 test('the catalog is read-only: a write to it is refused and says what to use', async () => {
-  const env = { DB: fakeDb(() => []) };
+  const env = { LOCAL_DEV: '1', DB: fakeDb(() => []) };
   const res = await worker.fetch(new Request('https://localhost/api/catalog', { method: 'POST' }), env);
   assert.equal(res.status, 405);
   assert.equal(res.headers.get('allow'), 'GET');
 });
 
 test('receiving is a write, so a GET of it is refused the same way', async () => {
-  const env = { DB: fakeDb(() => []) };
+  const env = { LOCAL_DEV: '1', DB: fakeDb(() => []) };
   const res = await worker.fetch(get('/api/receive'), env);
   assert.equal(res.status, 405);
   assert.equal(res.headers.get('allow'), 'POST');
 });
 
 test('a ledger read returns the rows', async () => {
-  const env = { DB: fakeDb(() => [{ id: 'lot1', item_name: 'Chicken Carcass', quantity: 24 }]) };
+  const env = { LOCAL_DEV: '1', DB: fakeDb(() => [{ id: 'lot1', item_name: 'Chicken Carcass', quantity: 24 }]) };
   const res = await worker.fetch(get('/api/ledger?action=lots'), env);
   assert.equal(res.status, 200);
   const body = await res.json();
@@ -54,14 +54,14 @@ test('a ledger read returns the rows', async () => {
 });
 
 test('an unknown lot status is a 400 rather than an empty list', async () => {
-  const env = { DB: fakeDb(() => []) };
+  const env = { LOCAL_DEV: '1', DB: fakeDb(() => []) };
   const res = await worker.fetch(get('/api/ledger?action=lots&status=frozen'), env);
   assert.equal(res.status, 400);
   assert.match((await res.json()).error, /unknown lot status: frozen/);
 });
 
 test('a code that matches nothing says so rather than guessing', async () => {
-  const env = { DB: fakeDb(() => []) };
+  const env = { LOCAL_DEV: '1', DB: fakeDb(() => []) };
   const res = await worker.fetch(get('/api/lookup?code=ZZZZZZ'), env);
   assert.equal(res.status, 200);
   assert.deepEqual(await res.json(), { code: 'ZZZZZZ', matched: null, lots: [] });
@@ -72,7 +72,7 @@ test('a body that is not JSON is a 400, not a crash', async () => {
   // is looked at, which is its own test in auth.test.js.
   const db = sqliteDb();
   db.sqlite.exec("INSERT INTO staff (id, name) VALUES ('s1', 'Dean')");
-  const env = { DB: db, AUTH_SECRET: 'a'.repeat(40), PIN_PEPPER: 'b'.repeat(40) };
+  const env = { LOCAL_DEV: '1', DB: db, AUTH_SECRET: 'a'.repeat(40), PIN_PEPPER: 'b'.repeat(40) };
   const pin = await makePinRow(env, '4821');
   db.sqlite.prepare('INSERT INTO staff_pins (staff_id, pin_hash, salt) VALUES (?, ?, ?)').run('s1', pin.pin_hash, pin.salt);
   const { token } = await login(db, env, { staff_id: 's1', pin: '4821' });
@@ -86,21 +86,21 @@ test('a body that is not JSON is a 400, not a crash', async () => {
 });
 
 test('tracing with no lot is a 400', async () => {
-  const env = { DB: fakeDb(() => []) };
+  const env = { LOCAL_DEV: '1', DB: fakeDb(() => []) };
   const res = await worker.fetch(get('/api/trace'), env);
   assert.equal(res.status, 400);
   assert.match((await res.json()).error, /lot is required/);
 });
 
 test('tracing is a read, so a POST to it is refused', async () => {
-  const env = { DB: fakeDb(() => []) };
+  const env = { LOCAL_DEV: '1', DB: fakeDb(() => []) };
   const res = await worker.fetch(new Request('https://localhost/api/trace', { method: 'POST' }), env);
   assert.equal(res.status, 405);
   assert.equal(res.headers.get('allow'), 'GET');
 });
 
 test('a recall with no lot is a 400, and with a bad direction is a 400', async () => {
-  const env = { DB: fakeDb(() => []) };
+  const env = { LOCAL_DEV: '1', DB: fakeDb(() => []) };
   const none = await worker.fetch(get('/api/recall'), env);
   assert.equal(none.status, 400);
   assert.match((await none.json()).error, /lot is required/);
@@ -110,28 +110,28 @@ test('a recall with no lot is a 400, and with a bad direction is a 400', async (
 });
 
 test('a recall is a read, so a POST to it is refused', async () => {
-  const env = { DB: fakeDb(() => []) };
+  const env = { LOCAL_DEV: '1', DB: fakeDb(() => []) };
   const res = await worker.fetch(new Request('https://localhost/api/recall', { method: 'POST' }), env);
   assert.equal(res.status, 405);
   assert.equal(res.headers.get('allow'), 'GET');
 });
 
 test('a balance with no dates is a 400 that says which', async () => {
-  const env = { DB: fakeDb(() => []) };
+  const env = { LOCAL_DEV: '1', DB: fakeDb(() => []) };
   const res = await worker.fetch(get('/api/period-balance'), env);
   assert.equal(res.status, 400);
   assert.match((await res.json()).error, /from must be a date/);
 });
 
 test('a balance is a read, so a POST to it is refused', async () => {
-  const env = { DB: fakeDb(() => []) };
+  const env = { LOCAL_DEV: '1', DB: fakeDb(() => []) };
   const res = await worker.fetch(new Request('https://localhost/api/period-balance', { method: 'POST' }), env);
   assert.equal(res.status, 405);
   assert.equal(res.headers.get('allow'), 'GET');
 });
 
 test('the bundled alert view answers with every category, even with nothing open', async () => {
-  const env = { DB: fakeDb(() => []) };
+  const env = { LOCAL_DEV: '1', DB: fakeDb(() => []) };
   const res = await worker.fetch(get('/api/alerts'), env);
   assert.equal(res.status, 200);
   assert.deepEqual(await res.json(), {
@@ -141,7 +141,7 @@ test('the bundled alert view answers with every category, even with nothing open
 });
 
 test('an unknown path is a 404 that names the endpoints', async () => {
-  const env = { DB: fakeDb(() => []) };
+  const env = { LOCAL_DEV: '1', DB: fakeDb(() => []) };
   const res = await worker.fetch(get('/api/nope'), env);
   assert.equal(res.status, 404);
   assert.match((await res.json()).error, /\/api\/catalog/);

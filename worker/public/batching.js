@@ -1,5 +1,6 @@
 import { ulid, makeStore } from './lib/offline.js';
 import { authedFetch, mountStaff } from './lib/signin.js';
+import { mountNav } from './lib/nav.js';
 
 // The batching form.
 //
@@ -14,6 +15,8 @@ import { authedFetch, mountStaff } from './lib/signin.js';
 // something.
 
 const $ = (id) => document.getElementById(id);
+
+mountNav($('nav'), '/batching');
 const store = makeStore(window.localStorage);
 const STAFF_KEY = 'trace.intake.staff';
 

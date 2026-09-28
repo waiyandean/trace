@@ -9,11 +9,19 @@ import { readFileSync, existsSync } from 'node:fs';
 
 const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
 const script = readFileSync(new URL('../public/goods-in.js', import.meta.url), 'utf8');
+
+// The shared nav (lib/nav.js) declares a few element ids of its own at
+// runtime — the current wording is static import.meta.url — pulled out here
+// so every per-page "every id a script reaches for exists" check below can
+// count them as declared, the same as anything written directly in the HTML.
+const navScript = readFileSync(new URL('../public/lib/nav.js', import.meta.url), 'utf8');
+const navDeclaredIds = new Set([...navScript.matchAll(/badgeId: '([^']+)'/g)].map((m) => m[1]));
 // Both forms share one stylesheet, so the rules that are load-bearing for
 // behaviour — the hidden attribute, the checkbox tick — are checked there.
 const css = readFileSync(new URL('../public/app.css', import.meta.url), 'utf8');
 
 const declared = new Set([...html.matchAll(/id="([^"]+)"/g)].map((match) => match[1]));
+for (const id of navDeclaredIds) declared.add(id);
 const used = new Set([...script.matchAll(/\$\('([^']+)'\)/g)].map((match) => match[1]));
 
 test('every element the form reaches for exists in the page', () => {
@@ -123,6 +131,57 @@ test('the attestations start unticked in the markup', () => {
   }
 });
 
+test('the ingredient picker selects several ingredients before returning to the delivery', () => {
+  assert.match(html, /id="picker-add"[^>]*disabled[^>]*>Add ingredients<\/button>/);
+  assert.doesNotMatch(html, /id="line-dialog"/);
+  assert.match(script, /pickerSelection:\s*new Set\(\)/);
+  assert.match(script, /aria-pressed/);
+  assert.match(script, /state\.lines\.push\(\.\.\.drafts\)/);
+  assert.match(script, /function renderDraftLine/);
+  assert.match(script, /function completeDraftLine/);
+  assert.match(script, /if \(!line\.short_code\) line\.short_code = pool\.take\(\)/);
+});
+
+test('an ingredient can be split into another use-by date', () => {
+  assert.match(script, /button\.textContent = 'Add another date'/);
+  assert.match(script, /Add another use-by date for \$\{item\.name\}/);
+  assert.match(script, /draft\.unit = source\.unit \|\| draft\.unit/);
+  assert.match(script, /draft\.location_id = source\.location_id \|\| draft\.location_id/);
+  assert.match(script, /state\.lines\.splice\(sourceIndex \+ 1, 0, draft\)/);
+});
+
+test('each ingredient row shows its short code before details are confirmed', () => {
+  assert.match(script, /short_code: pool\.take\(\)/);
+  assert.match(script, /shortCodeLabel\.textContent = 'Short code'/);
+  assert.match(script, /heading\.append\(title, identifiers, removeLineButton\(line, item\)\)/);
+  assert.doesNotMatch(script, /fieldFor\(line, 'short-code'/);
+  assert.match(script, /const claimed = new Set\(state\.lines\.map\(\(line\) => line\.short_code\)/);
+  assert.match(script, /line\.short_code = line\.short_code \|\| pool\.take\(\)/);
+});
+
+test('read-only lot identifiers sit with the ingredient name, outside the detail grid', () => {
+  assert.match(script, /batchLabel\.textContent = 'Batch'/);
+  assert.match(script, /identifiers\.append\(shortCodeGroup, batchGroup\)/);
+  assert.doesNotMatch(script, /fieldFor\(line, 'batch'/);
+});
+
+test('lot identifiers align beside a compact, accessible remove control', () => {
+  assert.match(css, /grid-template-columns:\s*44px minmax\(0, 1fr\) auto 44px/);
+  assert.match(script, /button\.className = 'danger compact icon-remove'/);
+  assert.match(script, /button\.textContent = '×'/);
+  assert.match(script, /button\.setAttribute\('aria-label', `Remove \$\{item\.name\}`\)/);
+  assert.match(css, /\.icon-remove\s*\{[^}]*width:\s*44px[^}]*height:\s*44px[^}]*border-radius:\s*50%/);
+});
+
+test('storage defaults automatically and an exception requires a reason', () => {
+  assert.match(script, /location_id: defaultLocationFor\(item, state\.catalog\.locations\)/);
+  assert.match(script, /'Why is this going somewhere else\?'/);
+  assert.match(script, /locationId !== defaultLocationId/);
+  assert.match(script, /say why the storage location changed/);
+  assert.match(script, /line\.note = line\.location_override_note\.trim\(\) \|\| null/);
+  assert.match(css, /input:not\(\[type="checkbox"\]\), select, textarea/);
+});
+
 test('the hidden attribute beats the classes that set display', () => {
   // `hidden` is only a `display: none` in the browser's own stylesheet, so a
   // class like `.row { display: flex }` overrides it. Two controls the form
@@ -149,6 +208,7 @@ const stockScript = readFileSync(new URL('../public/stock.js', import.meta.url),
 
 test('every element the stock screen reaches for exists in its page', () => {
   const declared = new Set([...stockHtml.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+  for (const id of navDeclaredIds) declared.add(id);
   const used = new Set([...stockScript.matchAll(/\$\('([^']+)'\)/g)].map((m) => m[1]));
   const missing = [...used].filter((id) => !declared.has(id));
   assert.deepEqual(missing, []);
@@ -174,6 +234,7 @@ const batchingScript = readFileSync(new URL('../public/batching.js', import.meta
 
 test('every element the batching form reaches for exists in its page', () => {
   const declared = new Set([...batchingHtml.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+  for (const id of navDeclaredIds) declared.add(id);
   const used = new Set([...batchingScript.matchAll(/\$\('([^']+)'\)/g)].map((m) => m[1]));
   assert.deepEqual([...used].filter((id) => !declared.has(id)), []);
 });
@@ -239,6 +300,7 @@ const batchesScript = readFileSync(new URL('../public/batches.js', import.meta.u
 
 test('every element the open batches screen reaches for exists in its page', () => {
   const declared = new Set([...batchesHtml.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+  for (const id of navDeclaredIds) declared.add(id);
   const used = new Set([...batchesScript.matchAll(/\$\('([^']+)'\)/g)].map((m) => m[1]));
   assert.deepEqual([...used].filter((id) => !declared.has(id)), []);
 });
@@ -271,6 +333,7 @@ const dispatchScript = readFileSync(new URL('../public/dispatch.js', import.meta
 
 test('every element the dispatch screen reaches for exists in its page', () => {
   const declared = new Set([...dispatchHtml.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+  for (const id of navDeclaredIds) declared.add(id);
   const used = new Set([...dispatchScript.matchAll(/\$\('([^']+)'\)/g)].map((m) => m[1]));
   assert.deepEqual([...used].filter((id) => !declared.has(id)), []);
 });
@@ -301,6 +364,7 @@ const countScript = readFileSync(new URL('../public/count.js', import.meta.url),
 
 test('every element the count screen reaches for exists in its page', () => {
   const declared = new Set([...countHtml.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+  for (const id of navDeclaredIds) declared.add(id);
   const used = new Set([...countScript.matchAll(/\$\('([^']+)'\)/g)].map((m) => m[1]));
   assert.deepEqual([...used].filter((id) => !declared.has(id)), []);
 });
@@ -339,4 +403,63 @@ test('the count screen treats a missing item as uncounted, not zero', () => {
   // so, or a half-done sheet reads as "everything else is gone".
   assert.match(countScript, /not set to zero/);
   assert.match(countScript, /left as it is/);
+});
+
+// A header status button's className was once replaced wholesale on render
+// (`$('open-holds').className = holds ? 'danger' : 'secondary'`), which
+// silently dropped the shared .header-btn class the moment a hold appeared
+// or cleared, and the button jumped back to full size (Dean, 2026-09-24,
+// spotted on the live page). Every className assignment for one of these
+// buttons must keep header-btn in every branch, not just the initial HTML.
+test('a header status button never loses its size class when its own state changes', () => {
+  const targets = [
+    { name: 'open-holds', text: script },
+    { name: 'open-unproven', text: batchesScript },
+    { name: 'open-unresolved', text: countScript },
+  ];
+  for (const { name, text } of targets) {
+    const assignments = [...text.matchAll(new RegExp(String.raw`\$\('${name}'\)\.className = ([^;]+);`, 'g'))];
+    assert.ok(assignments.length > 0, `${name}: expected at least one className assignment`);
+    for (const [, expr] of assignments) {
+      assert.match(expr, /header-btn/, `${name}: ${expr.trim()}`);
+    }
+  }
+});
+
+// The print relay address used to be a text field, backed by localStorage,
+// on Goods In, Stock and Batches — exactly the mistake already fixed once in
+// labels/app.js (2026-09-18) for the same reason: there is one relay, and
+// retyping it only breaks printing for everybody. Dean asked for the same
+// fix here (2026-09-24). Whether to print at all stays a real choice, now a
+// checkbox rather than an empty field that happened to mean the same thing.
+test('the print relay is a fixed constant on every form that prints, never a typed field', () => {
+  for (const { name, text } of [
+    { name: 'goods-in.js', text: script },
+    { name: 'stock.js', text: stockScript },
+    { name: 'batches.js', text: batchesScript },
+  ]) {
+    assert.doesNotMatch(text, /relay-url|RELAY_KEY/, `${name} still has the old editable field`);
+    assert.match(text, /mountRelayStatus/, `${name} should show the read-only relay status`);
+    assert.match(text, /print-enabled/, `${name} should still let staff turn printing off`);
+  }
+});
+
+// A device that has never registered itself has no valid sign-in either,
+// and POST /api/devices needs one the same as every other write (checked
+// directly: no token is a 401) — so calling it from raw page load, before
+// anyone has typed a PIN, always lost that race silently (Dean, 2026-09-28,
+// asked for a second look at six commits that were not written in this
+// session). registerDevice() must only ever be attempted once a session
+// exists, and only from the onSessionChange hook that re-fires on sign-in,
+// never unconditionally from boot() itself.
+test('device self-registration waits for a signed-in session, not raw page load', () => {
+  assert.match(script, /onSessionChange\(syncDevice\)/);
+  const syncDevice = script.match(/async function syncDevice\(\) \{[\s\S]*?\n\}/)[0];
+  assert.match(syncDevice, /session\.current\(\)/, 'must check there is a session before registering');
+  assert.doesNotMatch(
+    // The pre-fix shape: no session check gating the call.
+    script.replace(syncDevice, ''),
+    /await registerDevice\(\)/,
+    'registerDevice() must only be called from inside the session-gated function',
+  );
 });

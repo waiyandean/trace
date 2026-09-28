@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ulid, makeStore, makeQueue, makePool, unitsFor, batchCodeFor, buildSubmission, syncQueue,
-  groupByStorage, soleLocationFor, forSupplier, splitByRole, usualSupplierFor, duplicateLines,
+  groupByStorage, defaultLocationFor, forSupplier, splitByRole, usualSupplierFor, duplicateLines,
 } from '../public/lib/offline.js';
 
 // A localStorage stand-in, with a switch for the case that matters: storage
@@ -188,7 +188,7 @@ test('a draft becomes the submission the server takes', () => {
       invoice: '009298395',
       occurred_at: '2026-08-31T09:14:00.000Z',
       lines: [
-        { lot_id: 'L1', item_id: 'i1', short_code: 'K7M4QP', quantity: 3, unit: 'case', location_id: 'loc:fridge', use_by: '2026-09-04', batch_code: '2026-08-31' },
+        { lot_id: 'L1', item_id: 'i1', short_code: 'K7M4QP', quantity: 3, unit: 'case', location_id: 'loc:fridge', use_by: '2026-09-04', batch_code: '2026-08-31', note: 'Freezer maintenance' },
       ],
     },
     { mintId: () => '01J8XQZ5T7M4QPB9CDEFGHJKMN' },
@@ -198,6 +198,7 @@ test('a draft becomes the submission the server takes', () => {
   assert.match(submission.idempotency_key, /^goods-in-/);
   assert.equal(submission.occurred_at, '2026-08-31T09:14:00.000Z');
   assert.equal(submission.lines[0].quantity, 3);
+  assert.equal(submission.lines[0].note, 'Freezer maintenance');
 });
 
 test('a line with no use-by omits it, so the shelf-life rule applies on the server', () => {
@@ -261,18 +262,17 @@ test('searching narrows the grid and drops the groups it empties', () => {
   assert.deepEqual(groups[0].items.map((item) => item.name), ['Chicken Carcass']);
 });
 
-test('an item with one possible area has it chosen for them', () => {
-  assert.equal(soleLocationFor(PICKER_ITEMS[0], AREAS), 'loc:freezer');
-  assert.equal(soleLocationFor(PICKER_ITEMS[1], AREAS), 'loc:fridge');
+test('the item storage rule chooses the kitchen default', () => {
+  assert.equal(defaultLocationFor(PICKER_ITEMS[0], AREAS), 'loc:freezer');
+  assert.equal(defaultLocationFor(PICKER_ITEMS[1], AREAS), 'loc:fridge');
 });
 
-test('nothing is chosen where the dry store and the allergen shelf both fit', () => {
-  // Choosing between those two for somebody would be a guess about allergens.
-  assert.equal(soleLocationFor(PICKER_ITEMS[2], AREAS), '');
+test('ambient ingredients default to the dry store, not its exception shelf', () => {
+  assert.equal(defaultLocationFor(PICKER_ITEMS[2], AREAS), 'loc:dry');
 });
 
 test('an item with no storage decided gets no location chosen either', () => {
-  assert.equal(soleLocationFor(PICKER_ITEMS[3], AREAS), '');
+  assert.equal(defaultLocationFor(PICKER_ITEMS[3], AREAS), '');
 });
 
 // Narrowing the picker to one supplier. The mapping is many-to-many and
@@ -295,7 +295,7 @@ const MAPPING = [
 
 test('a supplier shows their own ingredients', () => {
   const shown = forSupplier(SUPPLIER_ITEMS, MAPPING, 'sup:tazaki').map((item) => item.name);
-  assert.deepEqual(shown.sort(), ['Aji-no Moto MSG', 'Carrots', 'Rice Vinegar']);
+  assert.deepEqual(shown.sort(), ['Aji-no Moto MSG', 'Rice Vinegar']);
 });
 
 test('an ingredient both suppliers deliver shows under both', () => {
@@ -305,12 +305,15 @@ test('an ingredient both suppliers deliver shows under both', () => {
   }
 });
 
-test('an ingredient with no supplier recorded shows under every supplier, not none', () => {
-  // Twelve ingredients have no supplier anywhere in the kitchen's records.
-  // Hiding stock that has genuinely turned up leaves somebody at the door
-  // with a box they cannot book in, which is worse than one tile too many.
-  const shown = forSupplier(SUPPLIER_ITEMS, MAPPING, 'sup:lynas').map((item) => item.id);
-  assert.ok(shown.includes('i4'));
+test('an ingredient with no supplier recorded is hidden from every supplier', () => {
+  // Strict by design: a Tazaki delivery must not be able to book in an
+  // ingredient that is not on Tazaki's own list, even while item_suppliers is
+  // still an incomplete mapping. The gap is fixed by recording the supplier,
+  // not by widening what the picker shows.
+  for (const supplier of ['sup:lynas', 'sup:tazaki']) {
+    const shown = forSupplier(SUPPLIER_ITEMS, MAPPING, supplier).map((item) => item.id);
+    assert.equal(shown.includes('i4'), false);
+  }
 });
 
 test("another supplier's ingredient is hidden", () => {

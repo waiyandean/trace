@@ -950,11 +950,56 @@ with tests plus a supervised real submission before its line is ticked.
   condition relied on a browser's "first option wins" default for a compliance
   field, which is now set explicitly.
 
-  Still to do before P1 can be called finished: authentication, registering
-  the real iPad, and the supervised real delivery that ends the phase.
-  Authentication is deferred until the whole system is built (Dean,
-  2026-08-31), so P1 cannot formally close until then — everything is proven
-  locally in the meantime.
+  Still to do before P1 can be called finished: registering the real iPad,
+  and the supervised real delivery that ends the phase. Authentication (open
+  question 9) is no longer the blocker it was when this was written — it is
+  built, deployed, and live as of 2026-09-24 — so what remains is the
+  supervised run itself.
+
+  **Goods In was reworked six commits at a time on 2026-09-25 — batch
+  ingredient selection, multiple use-by dates per ingredient, a more compact
+  lot-entry layout, and a default storage location that needs a typed reason
+  to override — none of it recorded here at the time, added retroactively
+  2026-09-28 after Dean asked for a second look at work done outside this
+  session.** Staff now pick several ingredients from the picker at once
+  rather than one at a time, each becoming a draft line with its own short
+  code taken immediately (matching the existing rule that a code is taken
+  the moment its label would be written, not deferred) and its own details
+  filled in before the line counts as complete. An item can carry more than
+  one use-by on the same delivery — two cases of the same ingredient with
+  different printed dates no longer have to be forced onto one line or
+  entered as two separate deliveries. `receive.js` gained a real refusal to
+  go with the reworked entry: a line whose storage location is not the
+  item's usual one (read from `storage_unopened` against a small
+  ambient/chill/freezer name map, falling back to "the only active location
+  of that kind" where there is one) is rejected unless a note says why,
+  tested including the override path and a second ambient location that
+  is not the default. `scripts/item-suppliers-seed.sql` rebuilt the
+  item-supplier mapping from the live Goods In Records sheet (source
+  `delivered`) layered under the kitchen's own decisions
+  (`catalog-overrides.json`, source `decided`), and
+  `scripts/retire-edinburgh-only.sql` retired the ten ingredients confirmed
+  Edinburgh-only, both already applied to the remote database, checked
+  directly rather than assumed.
+
+  **Device self-registration (PLAN.md's own "revisit once there is
+  authentication" note, under P1's original progress above) was part of the
+  same six commits, and had a real bug: `POST /api/devices` needs a
+  signed-in token the same as any other write, but the client called it from
+  raw `boot()`, before anyone could possibly have signed in yet.** Proven by
+  calling it directly with no token (401, "sign in first") and confirmed a
+  genuinely fresh device — no session, no device — loses that race every
+  time, silently, since the failure was swallowed with nothing said on
+  screen. Fixed 2026-09-28: `onSessionChange` (`lib/signin.js`) is a small
+  hook onto the same "the session changed" event `mountStaff` already
+  listens to internally, and registration now runs from that — once
+  immediately with whatever the session already is, and again on every
+  sign-in, sign-out and shift expiry — rather than once, unconditionally,
+  before anyone can have signed in. This keeps "every write needs a
+  signed-in person" a rule with no exceptions, rather than adding
+  `/api/devices` to the small list of routes that skip it. Verified against
+  the real server: registration refused with no token, the same request
+  accepted once signed in.
 - **P2 — Store, move, waste.** Location tracking, `MOVE` between areas, and the
   waste/hold log that the old project never started. Waste is early here, not
   late, because without it stock can only ever go missing rather than be
@@ -1685,9 +1730,19 @@ These need Dean's answer before the phase that depends on them.
    exists is safe, and the label GUI is unaffected. Only the algorithm Access
    uses is accepted, keys are cached and refetched at most once a minute so a
    stranger cannot turn requests into fetches, and if Access cannot be reached
-   to check, the answer is no. Localhost skips it, being `wrangler dev` and the
-   tests, and cannot be reached from outside since Cloudflare routes on the
-   hostname it was sent.
+   to check, the answer is no.
+
+   **Skipping the check for local dev needed a real signal, not a hostname
+   guess (found 2026-09-24, by testing it rather than assuming).** The first
+   version skipped it for `localhost`, on the reasoning that Cloudflare routes
+   on the hostname a request was actually sent to, so `localhost` could never
+   arrive from outside. True, but irrelevant: once `wrangler.toml` named a real
+   route (`trace.deanops.uk`), `wrangler dev` started *simulating* that route
+   locally too — the Request the Worker sees has that hostname on it, even the
+   raw `Host` header, whatever port it is actually listening on. So `isDevRequest`
+   now reads an explicit `LOCAL_DEV` variable instead, which only ever comes
+   from `.dev.vars` (gitignored) or a test's own env — never from
+   `wrangler.toml`'s `[vars]`, which ships to production, and never a secret.
 
    **The application exists (created in the dashboard, 2026-09-21).** The
    Cloudflare connection used in the session can read Access but not write it
@@ -1701,11 +1756,132 @@ These need Dean's answer before the phase that depends on them.
    was changed to one month (730 hours, the dashboard's preset) on the same day
    and confirmed by reading it back.
 
-   Still to do: the two Worker secrets, `trace.deanops.uk` added to
-   `wrangler.toml` as a custom domain, the remote database migrated (it holds
-   only the first migration), and the print relay, which no Access application
-   covers and which cannot easily be covered because the browser calls it
-   cross-origin. Nothing here has been deployed.
+   **Deployed, 2026-09-24 (Dean).** In order: the two Worker secrets
+   (`AUTH_SECRET`, `PIN_PEPPER`, each piped straight into `wrangler secret put`
+   from Dean's own terminal, never displayed or typed); migrations 2 to 18
+   applied to the remote database, the first time it held anything past the
+   catalog; `trace.deanops.uk` added as a fourth pattern on the existing
+   `routes` array (the same mechanism `forms.deanops.uk` already used — no
+   separate custom-domain feature needed, since both are on a zone Cloudflare
+   already manages), with the zone's own proxied placeholder DNS record it
+   needs to intercept anything at all (found by checking `forms.deanops.uk`'s
+   own record first, not assumed); then `npm run deploy`. Verified from
+   outside afterwards rather than trusted: `trace.deanops.uk` redirects to
+   Access (302), `forms.deanops.uk/labels` is unaffected (307, its normal
+   asset redirect), and the closed `workers.dev` address stays closed (404).
+   Dean set the first real PIN the same way, reusing his own Kobas clock-in
+   code, confirmed in the database without ever reading the PIN back.
+
+   **Sign-in became PIN-first the same day, with the name grid as a fallback
+   (Dean, 2026-09-24), once the first real sign-in showed choosing a name
+   first was extra friction the PIN made unnecessary.** Typing a PIN with
+   nobody chosen now identifies the person by trying it against everyone's
+   stored hash (`identifyByPin` in `src/auth.js`); the name grid appears only
+   when that finds no one match. This only works while every PIN is unique, so
+   `changePin` and `scripts/set-pin.mjs` both refuse a PIN that collides with
+   another active person's — checked by trying it against everyone else's
+   hash the same way, since a salted hash cannot be looked up directly
+   (`pinCollision`, and `findPinCollision` for the script, which reaches the
+   database through the `wrangler` CLI rather than this file's `db.prepare()`
+   and needed the same comparison in a form it could call on rows it fetched
+   itself).
+
+   The one real design question was lockout: a wrong guess against a chosen
+   name locks that one person, but a blind guess belongs to nobody until it
+   matches, so there is nothing to charge it to. A single shared row,
+   `identify_lockout` (migration 0019), locks blind guessing itself after
+   repeated misses, entirely apart from anyone's own lockout — so a burst of
+   wrong guesses throttles guessing, never a specific account, and choosing a
+   name is always still available as the original, unaffected path — the same
+   escape hatch a PIN that matches nobody also falls back to. A locked-out
+   person's own correct PIN is excluded from the blind search entirely, so it
+   neither signs them in nor reveals that it was close.
+
+   **The device signs itself out after every closed write, not after a whole
+   shift (Dean, 2026-09-24), once trying identify-by-PIN live showed staying
+   signed in was what let the wrong name sit there unnoticed on a shared
+   iPad.** A delivery logged, a lot moved, a batch started — each is one
+   recorded act, and `authedFetch` (`public/lib/signin.js`) clears the session
+   the moment the write is accepted, so the next person has to identify
+   themselves before anything else is recorded. The decision itself is a pure,
+   tested function (`signsOutAfter` in `public/lib/auth.js`): yes for a
+   successful write made with the live session's own token, no for a refused
+   one (the person is still fixing the form), and no for the two writes that
+   are not "a form closed" — topping up the short-code pool in the background,
+   and changing your own PIN. This is a proactive local choice, not a
+   server-side revocation; the token itself is still valid until `TOKEN_TTL_S`
+   the same as before, which is stated rather than left implied.
+
+   **The keypad matches the kitchen's own Kobas till (Dean, 2026-09-24, from a
+   photo of it)** — 7 8 9 / 4 5 6 / 1 2 3, delete / 0 / clear — so a PIN goes
+   in on muscle memory already built daily rather than a layout to relearn.
+
+   **Every screen's header nav is now one shared list (Dean, 2026-09-24):
+   the same seven pills, in the same order, on every page — including the
+   page you are already on, shown as a plain pill rather than hidden, so the
+   row itself never changes shape as staff move around.** Ordered by the
+   process rather than alphabetically: Goods In, Stock, Batching, Batches,
+   Dispatch, Count, Reports. `public/lib/nav.js` is the one place this list
+   lives; each page calls `mountNav` with its own path rather than
+   hand-writing its own set of links. Fixing this surfaced a real gap the
+   hand-written headers had drifted into: five of the seven pages —
+   everything except `batches.html` and `batching.html` itself — had no link
+   to Batching at all, so starting a new batch from, say, Dispatch or Count
+   meant going via Goods In first. That gap closed for free once there was
+   one list instead of seven hand-kept ones.
+
+   **The nav is also a fixed second row now, not interleaved with each
+   page's own status pills (Dean, 2026-09-24), once having the same list
+   everywhere made a different problem visible: the nav's position still
+   drifted, because how many status pills sit before it in the header — a
+   connectivity pill on every page, then Goods In's pool count and Held and
+   Queue buttons, or Batches' and Count's own review-queue buttons — is not
+   the same on every page.** The header is two rows now: the status row on
+   top, whatever it holds on a given page, and the nav underneath it,
+   shaded and set off with its own top border, always the same seven pills
+   at the same position regardless of what is above them.
+
+   **The nav scrolls sideways rather than wrapping to a second line (Dean,
+   2026-09-24, spotted on his phone).** Seven pills at a readable size do
+   not fit one line on a phone-width screen, and letting the row wrap
+   pushed the whole page down and undid the point of the row above: it
+   only stays in a fixed position if it stays one row. `#nav` scrolls
+   horizontally instead, the way a phone's own tab strips already do, and
+   `mountNav` scrolls the current page's pill into view on load so a page
+   near the end of the list — Reports, on a narrow screen — is never left
+   off to the side unless somebody scrolls to find it.
+
+   The status row above it was not touched, and status pills top out at
+   four (Goods In: connectivity, pool count, Held, Queue), which still
+   fits a phone width; revisit if that grows.
+
+   **The print relay address stopped being an editable field on Goods In,
+   Stock and Batches too (Dean, 2026-09-24)**, the same fix `labels/app.js`
+   already had for the same reason (2026-09-18): there is exactly one relay
+   for this domain, so a text box only offered a way to break printing for
+   everybody by mistyping it. `public/lib/relay.js` is the one place `RELAY`
+   now lives and the one place the read-only status pill (checked on load,
+   focus, a 30s interval and again right after a print) is built, shared by
+   all three forms rather than copied a third time. Whether to print at all
+   stayed a real, kept choice — "leave this blank" used to mean "don't
+   print, write the code on the case by hand", now a plain on/off checkbox
+   that means the same thing, under one shared key so it applies wherever
+   staff set it.
+
+   **Long button labels forced onto two lines were what actually read as
+   "too big" (Dean, 2026-09-24, on his phone) — not the 44px minimum tap
+   target itself, which stays untouched.** "Save goods in record" squeezed
+   into half a row next to "Clear this delivery" wraps its text, and a
+   two-line button at a 44px floor looks bulky. Below 520px — the same
+   breakpoint the ingredient grid already used — `.actions` stacks full
+   width instead of forcing a row, so a long label gets the width it needs
+   rather than the button growing taller around wrapped text. iPad not yet
+   checked at the time of writing.
+
+   Still open: the print relay has no password, so anyone who reaches the
+   tunnel URL can print to the kitchen printer; no Access application
+   covers it, and it cannot easily be covered because the browser calls it
+   cross-origin.
 10. **Packaging — resolved 2026-09-04 (Dean).** Stays out of scope, same as
    the old rebuild. Nothing in the join failures this project exists to fix —
    not the 12,731 recorded uses, not the 2,675 delivery rows — ever pointed at

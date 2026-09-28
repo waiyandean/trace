@@ -31,13 +31,11 @@
 <body>
 
 <header>
-  <h1>Stock</h1>
-  <span class="pill" id="net">checking</span>
-  <a href="/" class="pill" style="text-decoration:none">Goods In</a>
-  <a href="/batching" class="pill" style="text-decoration:none">Batching</a>
-  <a href="/dispatch" class="pill" style="text-decoration:none">Dispatch</a>
-  <a href="/count" class="pill" style="text-decoration:none">Count</a>
-  <a href="/reports" class="pill" style="text-decoration:none">Reports</a>
+  <div class="header-top">
+    <h1>Stock</h1>
+    <span class="pill" id="net">checking</span>
+  </div>
+  <nav id="nav"></nav>
 </header>
 
 <main>
@@ -76,11 +74,11 @@
     <h2>Label printer</h2>
     <div class="row">
       <div class="field">
-        <label for="relay-url">Print relay address</label>
-        <input id="relay-url" placeholder="https://print-relay.deanops.uk" autocomplete="off" />
+        <label><input type="checkbox" id="print-enabled" checked /> Print through the relay</label>
+        <span class="relay-status" id="relay-status" role="status"></span>
       </div>
     </div>
-    <p class="note">Leave this blank to mark a lot opened without printing.</p>
+    <p class="note">Turn this off to mark a lot opened without printing.</p>
   </section>
 </main>
 

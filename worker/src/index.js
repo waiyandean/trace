@@ -1,7 +1,7 @@
 import { json, error, BadRequest, AuthError } from './http.js';
 import { login, authenticate, whoami, changePin } from './auth.js';
-import { verifyAccess, isLocalHost, isPublicApi } from './access.js';
-import { handleCatalog, CATALOG_ACTIONS } from './catalog/handlers.js';
+import { verifyAccess, isDevRequest, isPublicApi } from './access.js';
+import { handleCatalog, CATALOG_ACTIONS, registerDevice } from './catalog/handlers.js';
 import { handleLedger, LEDGER_ACTIONS, lookupCode } from './ledger/reads.js';
 import { issueCodes, poolFor } from './ledger/codes.js';
 import { receive } from './ledger/receive.js';
@@ -33,6 +33,7 @@ import { periodBalance } from './ledger/balance.js';
 //   GET  /api/lookup?code=…       resolve a scanned or typed code to its lots
 //   GET  /api/codes?device=…      the short codes a device still holds unbound
 //   POST /api/codes               {device_id, want} — top that pool up
+//   POST /api/devices             {id} — a device registers itself; name is auto-assigned
 //   GET  /api/deviations          temperature holds nobody has closed yet
 //   POST /api/receive             book a delivery: opens lots, writes RECEIVE
 //   POST /api/deviations          close one: a second reading, an outcome, a name
@@ -107,6 +108,7 @@ const ROUTES = {
   '/api/ledger': ['GET'],
   '/api/lookup': ['GET'],
   '/api/codes': ['GET', 'POST'],
+  '/api/devices': ['POST'],
   '/api/receive': ['POST'],
   '/api/deviations': ['GET', 'POST'],
   '/api/holds': ['GET'],
@@ -242,6 +244,9 @@ async function route(request, env, url) {
       const body = await readBody(request);
       return json(await issueCodes(db, body.device_id, body.want));
     }
+    if (url.pathname === '/api/devices') {
+      return json(await registerDevice(db, await readBody(request)), { status: 201 });
+    }
     if (url.pathname === '/api/deviations') {
       return json(await closeDeviation(db, await readBody(request)));
     }
@@ -308,7 +313,7 @@ export default {
     try {
       // Everything but the public label routes must have come through
       // Cloudflare Access, checked here as well as at the edge (access.js).
-      if (!isLocalHost(url.hostname) && !isPublicApi(url.pathname)) await verifyAccess(request, env);
+      if (!isDevRequest(env) && !isPublicApi(url.pathname)) await verifyAccess(request, env);
       const response = await route(request, env, url);
       if (response) return response;
     } catch (err) {

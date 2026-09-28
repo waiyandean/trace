@@ -1,5 +1,6 @@
 import { ulid, makeStore, unitsFor } from './lib/offline.js';
 import { authedFetch, mountStaff } from './lib/signin.js';
+import { mountNav } from './lib/nav.js';
 
 // The weekly count: what the ledger thinks is in one storage area against what
 // is physically counted there. The difference is written as ADJUST movements
@@ -16,6 +17,8 @@ import { authedFetch, mountStaff } from './lib/signin.js';
 // counted — it is left alone, not treated as zero.
 
 const $ = (id) => document.getElementById(id);
+
+mountNav($('nav'), '/count');
 const store = makeStore(window.localStorage);
 const STAFF_KEY = 'trace.intake.staff';
 
@@ -464,7 +467,7 @@ async function loadOpen() {
   const response = await api('/api/counts?open');
   state.openLines = response.ok ? response.body.rows : [];
   $('open-count').textContent = String(state.openLines.length);
-  $('open-unresolved').className = state.openLines.length ? 'secondary warn-outline' : 'secondary';
+  $('open-unresolved').className = `header-btn ${state.openLines.length ? 'secondary warn-outline' : 'secondary'}`;
 }
 
 function openUnresolved() {

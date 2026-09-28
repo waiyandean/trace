@@ -1,5 +1,7 @@
 import { ulid, makeStore } from './lib/offline.js';
 import { authedFetch, mountStaff } from './lib/signin.js';
+import { RELAY, PRINT_ENABLED_KEY, mountRelayStatus } from './lib/relay.js';
+import { mountNav } from './lib/nav.js';
 import { buildDateOpenedLabel } from './lib/zpl.js';
 
 // The stock screen: what is in each area, and the three things that can be
@@ -11,10 +13,11 @@ import { buildDateOpenedLabel } from './lib/zpl.js';
 // else moved something. Pretending otherwise would be worse than saying so.
 
 const $ = (id) => document.getElementById(id);
+
+mountNav($('nav'), '/stock');
 const store = makeStore(window.localStorage);
 const STAFF_KEY = 'trace.intake.staff';
 const DEVICE_KEY = 'trace.intake.device';
-const RELAY_KEY = 'trace.intake.relay';
 
 const state = { catalog: null, rows: [], holds: [], chosen: null, action: null };
 
@@ -276,8 +279,7 @@ async function markOpened(row) {
 }
 
 async function printOpened(opened) {
-  const relay = $('relay-url').value.trim();
-  if (!relay || !opened.short_code) return;
+  if (!$('print-enabled').checked || !opened.short_code) return;
 
   const zpl = buildDateOpenedLabel({
     name: opened.item_name,
@@ -289,7 +291,7 @@ async function printOpened(opened) {
   });
 
   try {
-    const printed = await fetch(`${relay.replace(/\/$/, '')}/print`, {
+    const printed = await fetch(`${RELAY}/print`, {
       method: 'POST',
       headers: { 'content-type': 'text/plain' },
       body: zpl,
@@ -299,7 +301,7 @@ async function printOpened(opened) {
       notify(`Date Opened label did not print: ${body.error || printed.status}. Write it on the box by hand.`, 'warn');
     }
   } catch {
-    notify(`Could not reach the print relay at ${relay}. Write it on the box by hand.`, 'warn');
+    notify('Could not reach the print relay. Write it on the box by hand.', 'warn');
   }
 }
 
@@ -386,7 +388,8 @@ async function boot() {
 
   mountStaff($('staff'), staff);
   fillSelect($('where'), locations, { placeholder: 'Everywhere' });
-  $('relay-url').value = store.read(RELAY_KEY, 'https://print-relay.deanops.uk');
+  $('print-enabled').checked = store.read(PRINT_ENABLED_KEY, true);
+  mountRelayStatus($('relay-status'));
 
   $('net').textContent = online() ? 'online' : 'offline';
   $('net').className = `pill ${online() ? 'ok' : 'warn'}`;
@@ -402,7 +405,7 @@ $('do-waste').addEventListener('click', () => showForm('waste'));
 $('do-hold').addEventListener('click', () => showForm('hold'));
 $('do-release').addEventListener('click', () => showForm('release'));
 $('do-open').addEventListener('click', () => markOpened(state.chosen));
-$('relay-url').addEventListener('change', (event) => store.write(RELAY_KEY, event.target.value.trim()));
+$('print-enabled').addEventListener('change', (event) => store.write(PRINT_ENABLED_KEY, event.target.checked));
 $('action-save').addEventListener('click', save);
 $('action-back').addEventListener('click', () => {
   $('action-pick').hidden = false;

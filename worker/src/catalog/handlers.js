@@ -57,12 +57,32 @@ export function getStaff(db, { includeInactive = false } = {}) {
   return selectAll(db, `SELECT * FROM staff${activeClause(includeInactive)} ORDER BY name`);
 }
 
-// The registered devices. Reference data like the rest of this file: rows are
-// created by hand in the database, never by a form, so that a typo in a
-// device name cannot quietly mint a second short-code pool. The intake form
-// reads this to ask which of them it is running on.
+// The registered devices. Reference data like the rest of this file, with one
+// write path: registerDevice below. The intake form reads this to ask which
+// of them it is running on.
 export function getDevices(db, { includeInactive = false } = {}) {
   return selectAll(db, `SELECT * FROM devices${activeClause(includeInactive)} ORDER BY name`);
+}
+
+// A device registers itself the first time it is used, rather than being
+// typed into the database by hand. The id comes from the caller (minted the
+// same way every other client-side id is, in lib/offline.js) so two devices
+// can never collide on one; the name is picked here, sequentially, so a typo
+// can never mint a second short-code pool under a name that only looks new.
+// A concurrent registration can still race the count, so a unique-name
+// collision is retried with a fresh one rather than surfaced as an error.
+export async function registerDevice(db, { id } = {}) {
+  if (!id) throw new BadRequest('id is required');
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const { count } = await db.prepare('SELECT COUNT(*) AS count FROM devices').first();
+    const name = `Device ${count + 1}`;
+    try {
+      await db.prepare('INSERT INTO devices (id, name) VALUES (?, ?)').bind(id, name).run();
+      return { id, name, active: true };
+    } catch (err) {
+      if (attempt === 4 || !/UNIQUE/i.test(String(err))) throw err;
+    }
+  }
 }
 
 // Which supplier each ingredient comes from. Many-to-many, because the

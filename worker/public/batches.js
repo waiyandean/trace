@@ -1,5 +1,7 @@
 import { ulid, makeStore } from './lib/offline.js';
 import { authedFetch, mountStaff } from './lib/signin.js';
+import { RELAY, PRINT_ENABLED_KEY, mountRelayStatus } from './lib/relay.js';
+import { mountNav } from './lib/nav.js';
 import { buildPackingLabel } from './lib/zpl.js';
 
 // Cooked several pots a day, so the batch code needs the pot to tell today's
@@ -17,9 +19,10 @@ const POT_ITEMS = new Set(['Chicken Broth', 'Tonkotsu Broth']);
 // the one nobody looks at is where a cooling check goes to die.
 
 const $ = (id) => document.getElementById(id);
+
+mountNav($('nav'), '/batches');
 const store = makeStore(window.localStorage);
 const STAFF_KEY = 'trace.intake.staff';
-const RELAY_KEY = 'trace.intake.relay';
 
 const state = { catalog: null, batches: [], open: null, unproven: [] };
 
@@ -309,8 +312,7 @@ function packingBatchCode(productName) {
 }
 
 async function printPacking(batch, batchCode, packetsProduced) {
-  const relay = $('relay-url').value.trim();
-  if (!relay || !batch.short_code) return;
+  if (!$('print-enabled').checked || !batch.short_code) return;
 
   const zpl = buildPackingLabel({
     name: batch.product_name,
@@ -323,7 +325,7 @@ async function printPacking(batch, batchCode, packetsProduced) {
   });
 
   try {
-    const response = await fetch(`${relay.replace(/\/$/, '')}/print`, {
+    const response = await fetch(`${RELAY}/print`, {
       method: 'POST',
       headers: { 'content-type': 'text/plain' },
       body: zpl,
@@ -333,10 +335,10 @@ async function printPacking(batch, batchCode, packetsProduced) {
       notify(`Packet labels did not print: ${body.error || response.status}. Label them by hand.`, 'warn');
     }
   } catch {
-    notify(`Could not reach the print relay at ${relay}. Label the packets by hand.`, 'warn');
+    notify('Could not reach the print relay. Label the packets by hand.', 'warn');
   }
 
-  await printSeal(batch, batchCode, relay);
+  await printSeal(batch, batchCode);
 }
 
 // The Brother box seal: name, barcode, batch, best before and the health
@@ -345,12 +347,12 @@ async function printPacking(batch, batchCode, packetsProduced) {
 // name list here — see seal-info) decides whether it fires at all. A failure
 // here is reported separately from the case label above, because one can
 // print while the other does not.
-async function printSeal(batch, batchCode, relay) {
+async function printSeal(batch, batchCode) {
   const info = await api(`/api/labels/seal-info?item=${encodeURIComponent(batch.product_name)}`);
   if (!info.ok || info.body.category !== 'Frozen Ramen') return;
 
   try {
-    const response = await fetch(`${relay.replace(/\/$/, '')}/print-seal`, {
+    const response = await fetch(`${RELAY}/print-seal`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
@@ -368,7 +370,7 @@ async function printSeal(batch, batchCode, relay) {
       notify(`Box seal label did not print: ${body.error || response.status}. Seal the boxes by hand.`, 'warn');
     }
   } catch {
-    notify(`Could not reach the print relay at ${relay} for the box seal. Seal the boxes by hand.`, 'warn');
+    notify('Could not reach the print relay for the box seal. Seal the boxes by hand.', 'warn');
   }
 }
 
@@ -478,7 +480,7 @@ async function loadUnprovenCount() {
 function renderUnprovenBadge() {
   const count = state.unproven.length;
   $('unproven-count').textContent = String(count);
-  $('open-unproven').className = count ? 'danger' : 'secondary';
+  $('open-unproven').className = `header-btn ${count ? 'danger' : 'secondary'}`;
 }
 
 function renderUnproven() {
@@ -558,7 +560,8 @@ async function boot() {
   state.catalog = { staff, locations };
   mountStaff($('staff'), staff);
   fillSelect($('where'), locations, { placeholder: 'Choose where it is going' });
-  $('relay-url').value = store.read(RELAY_KEY, 'https://print-relay.deanops.uk');
+  $('print-enabled').checked = store.read(PRINT_ENABLED_KEY, true);
+  mountRelayStatus($('relay-status'));
 
   $('net').textContent = online() ? 'online' : 'offline';
   $('net').className = `pill ${online() ? 'ok' : 'warn'}`;
@@ -567,7 +570,7 @@ async function boot() {
 }
 
 $('staff').addEventListener('change', (event) => store.write(STAFF_KEY, event.target.value));
-$('relay-url').addEventListener('change', (event) => store.write(RELAY_KEY, event.target.value.trim()));
+$('print-enabled').addEventListener('change', (event) => store.write(PRINT_ENABLED_KEY, event.target.checked));
 $('pack-save').addEventListener('click', packOut);
 $('batch-close').addEventListener('click', () => $('batch-dialog').close());
 $('open-unproven').addEventListener('click', async () => {

@@ -1,5 +1,6 @@
 import { ulid, makeStore, probeKindFor } from './lib/offline.js';
 import { authedFetch, mountStaff } from './lib/signin.js';
+import { mountNav } from './lib/nav.js';
 
 // The dispatch screen: produced stock leaving for a customer.
 //
@@ -13,6 +14,8 @@ import { authedFetch, mountStaff } from './lib/signin.js';
 // customer is told — the screen only shows it.
 
 const $ = (id) => document.getElementById(id);
+
+mountNav($('nav'), '/dispatch');
 const store = makeStore(window.localStorage);
 const STAFF_KEY = 'trace.dispatch.staff';
 const CUSTOMER_KEY = 'trace.dispatch.customer';
