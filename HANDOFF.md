@@ -13,14 +13,14 @@ dates per ingredient, a default-storage-location rule, device
 self-registration) are all live as of today. Latest deploy: version
 `4b399e68`, 2026-09-28T09:19 UTC. 416 tests pass.
 
-**The single most important thing to know: the branch this is all built on,
-`worker/identify-by-pin`, has never been pushed to GitHub.** It branched from
-`main` several sessions ago and has grown to roughly 30 commits, all local to
-this machine. `origin/main` still only has the print/P6 work from
-2026-09-21 — nothing from the auth build onward exists anywhere but this
-laptop's `.git`. If this machine were lost, the deployed Worker's source
-would be unrecoverable from GitHub. **This should be pushed and a PR opened
-before anything else**, even before the items below.
+**Fixed today: the branch this is all built on, `worker/identify-by-pin`, had
+never been pushed to GitHub.** It branched from `main` several sessions ago
+and had grown to 19 commits, all local to this one machine, with
+`origin/main` still only holding the print/P6 work from 2026-09-21 — nothing
+from the auth build onward existed anywhere else. Pushed and opened as
+[PR #8](https://github.com/waiyandean/trace/pull/8) on 2026-09-28, clean and
+mergeable against `main`. Still needs Dean's review and merge; nothing in
+this file assumes that has happened yet.
 
 **Only Dean has a PIN set on the remote database.** Nine other active staff
 have none, so nobody else can sign in on the live app yet. Run
@@ -71,9 +71,8 @@ simulated 390px width, since `resize_window` does not actually narrow this
 browser's real viewport in this environment (checked directly).
 
 **Resume here, in order:**
-1. Push `worker/identify-by-pin` to GitHub and open a PR against `main`.
-   This is the priority — everything else assumes the code is recoverable
-   from somewhere other than this one laptop.
+1. Merge [PR #8](https://github.com/waiyandean/trace/pull/8), or ask for
+   changes first if anything in it does not look right.
 2. Set every other active staff member's PIN
    (`set-pin.mjs --remote --all`).
 3. Confirm what `Device 1` actually is, and register the real iPad
