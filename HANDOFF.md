@@ -1,3 +1,101 @@
+## Update, 2026-09-28: where trace stands, and where to resume
+
+Read this block first; everything below it, including the 2026-09-16 update,
+is older. `PLAN.md` is the plan of record and stays more current than this
+file — its status line and several dated paragraphs (open question 9, P1)
+were updated today to match what is actually live.
+
+**Everything is deployed and live at `trace.deanops.uk`, gated by Cloudflare
+Access then a per-person PIN.** P0 through P6 are built; PIN sign-in
+(identify by PIN alone, with a name-grid fallback), the header nav, and a
+2026-09-25 rework of Goods In (batch ingredient selection, multiple use-by
+dates per ingredient, a default-storage-location rule, device
+self-registration) are all live as of today. Latest deploy: version
+`4b399e68`, 2026-09-28T09:19 UTC. 416 tests pass.
+
+**The single most important thing to know: the branch this is all built on,
+`worker/identify-by-pin`, has never been pushed to GitHub.** It branched from
+`main` several sessions ago and has grown to roughly 30 commits, all local to
+this machine. `origin/main` still only has the print/P6 work from
+2026-09-21 — nothing from the auth build onward exists anywhere but this
+laptop's `.git`. If this machine were lost, the deployed Worker's source
+would be unrecoverable from GitHub. **This should be pushed and a PR opened
+before anything else**, even before the items below.
+
+**Only Dean has a PIN set on the remote database.** Nine other active staff
+have none, so nobody else can sign in on the live app yet. Run
+`PIN_PEPPER=… node scripts/set-pin.mjs --remote --all` from `worker/`, in a
+real terminal with the Kobas codes ready — see `worker/README.md`'s
+Authentication section for the exact command. Confirmed today:
+`AUTH_SECRET` and `PIN_PEPPER` are already set as Worker secrets (from the
+2026-09-24 session), so this is the only step left before the whole kitchen
+can sign in.
+
+**A device has already self-registered against the remote database** —
+`Device 1`, id `01M3C5T6G19BYNJR8VC0CWP74C` — most likely from testing
+during the six 2026-09-25 commits rather than the real iPad. Worth checking
+which device this actually is before the real iPad's first use, since a
+second device would self-register as `Device 2` and the app would then show
+a device picker where today it shows none.
+
+**Today's session (2026-09-28) reviewed six commits made outside any
+session on 2026-09-25** (`655bc6e` through `5f3c094`) that Dean asked for a
+second look at, since they had not gone through this repo's usual
+commit-message and `PLAN.md` discipline. Found and fixed one real bug:
+device self-registration called `POST /api/devices` from raw page load,
+before anyone could have signed in, and that endpoint needs a signed-in
+token the same as every other write — a genuinely fresh device lost that
+race every time, silently. Fixed by hooking registration onto the same
+session-change event the sign-in chip already listens to
+(`onSessionChange` in `lib/signin.js`), so it only ever fires once someone
+is actually signed in. Verified against the real running server (the
+browser extension was not connected this session): refused with no token,
+accepted once signed in. `PLAN.md`'s P1 section and open question 9 now
+record what those six commits actually did, which they did not do
+themselves.
+
+**Also fixed today, before the review:** the print relay address was still
+an editable text field on Goods In, Stock and Batches, the exact mistake
+`labels/app.js` already had fixed once (2026-09-18) for the same reason —
+one relay for this domain, so retyping it only breaks printing for
+everybody. `lib/relay.js` is now the one place the fixed address and the
+read-only status pill live, shared by all three forms. Whether to print at
+all stayed a real, kept choice: a checkbox now, not a blank field that
+happened to mean the same thing. Long button labels wrapping to two lines
+on a phone (not the deliberate 44px tap-target minimum, which stayed
+untouched) are fixed with a stack-full-width rule below 520px. The header
+nav scrolls sideways rather than wrapping on a narrow screen, and the
+current tab carries a GitHub-style underline. None of this has been
+checked on the real iPad yet — only verified with a same-origin iframe at a
+simulated 390px width, since `resize_window` does not actually narrow this
+browser's real viewport in this environment (checked directly).
+
+**Resume here, in order:**
+1. Push `worker/identify-by-pin` to GitHub and open a PR against `main`.
+   This is the priority — everything else assumes the code is recoverable
+   from somewhere other than this one laptop.
+2. Set every other active staff member's PIN
+   (`set-pin.mjs --remote --all`).
+3. Confirm what `Device 1` actually is, and register the real iPad
+   properly (it will now self-register correctly the first time someone
+   signs in on it, once its browser has never registered before).
+4. Check the responsive fixes (nav scroll, stacked buttons) on the real
+   iPad and phone, not just the iframe simulation.
+5. First real sign-in and supervised delivery/batch/dispatch/count on the
+   real iPad — this is what closes P1 through P5 (each phase's own
+   progress note in `PLAN.md` says it cannot close until then).
+6. Still open, unrelated to the above: the print relay has no password,
+   and no Access application covers it (the browser calls it cross-origin,
+   so Access is awkward there).
+
+**Working in this repo.** `com.dean.git-autosync` stays disabled — pushes
+are manual, commit promptly, nothing backs up automatically until pushed
+(see the 2026-09-21 note further down, and now doubly true given point 1
+above). The repo merges PRs with merge commits; branches are named
+`worker/…`.
+
+---
+
 # Handoff: the label GUI (2026-09-02)
 
 Context for a new session picking this up. Dean runs a small ramen kitchen and
