@@ -10,6 +10,20 @@ export const session = makeSession(store);
 const listeners = new Set();
 const changed = () => listeners.forEach((fn) => fn());
 
+// A page's own hook onto the same "the session changed" event `mountStaff`
+// listens to internally — signing in, signing out, a shift running out. `fn`
+// is also called once immediately, with whatever the session already is, so
+// a caller does not need a separate check for "already signed in when this
+// ran" versus "signed in later". Device self-registration is why this
+// exists: it must only ever be attempted once somebody is actually signed
+// in, never at raw page load before anyone has typed a PIN, which is a
+// request with no token to attach and was refused every time (found by
+// testing it directly rather than assumed).
+export function onSessionChange(fn) {
+  listeners.add(fn);
+  fn();
+}
+
 // A request with the current sign-in attached. Signs itself out afterwards
 // two different ways, for two different reasons — see auth.js for each:
 //

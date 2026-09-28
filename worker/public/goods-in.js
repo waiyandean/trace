@@ -4,7 +4,7 @@ import {
   groupByStorage, defaultLocationFor, forSupplier, splitByRole, usualSupplierFor, duplicateLines,
   probeKindFor, withinLimit, vehicleReadingsNeeded,
 } from './lib/offline.js';
-import { authedFetch, mountStaff, session } from './lib/signin.js';
+import { authedFetch, mountStaff, session, onSessionChange } from './lib/signin.js';
 import { RELAY, PRINT_ENABLED_KEY, mountRelayStatus } from './lib/relay.js';
 import { mountNav } from './lib/nav.js';
 import { bearer } from './lib/auth.js';
@@ -124,6 +124,41 @@ async function registerDevice() {
     // Offline in all but name, or the request failed outright. Left
     // unregistered; boot() will try again next load.
   }
+}
+
+// Which registered device this is, and self-registration where none is.
+// Called once immediately by onSessionChange (below) and again on every
+// sign-in, sign-out and shift expiry, because registerDevice() needs a
+// signed-in person to attach its request to — server-side it is a write
+// like any other, requiring the same token everything else does — and at
+// raw page load, before anyone has typed a PIN, there is none. Running this
+// only inline in boot() meant it always lost that race on a genuinely fresh
+// device: found by testing it directly (POST /api/devices with no token is
+// a 401), not assumed. `registering` stops two overlapping calls — a sign-in
+// followed quickly by some other session change — from both trying to
+// register at once.
+let registering = false;
+async function syncDevice() {
+  if (!state.catalog) return;
+  let devices = state.catalog.devices || [];
+  if (devices.length === 1) {
+    state.deviceId = devices[0].id;
+    store.write(DEVICE_KEY, state.deviceId);
+  } else if (state.deviceId && !devices.some((row) => row.id === state.deviceId)) {
+    // The remembered device is no longer registered — retired, or renamed.
+    // Silently carrying on with it would fail at the first submission.
+    state.deviceId = null;
+  }
+
+  if (!state.deviceId && online() && session.current() && !registering) {
+    registering = true;
+    await registerDevice();
+    registering = false;
+    devices = state.catalog.devices || [];
+  }
+
+  $('device-row').hidden = devices.length < 2;
+  fillSelect($('device'), devices, { placeholder: 'Not set', selected: state.deviceId });
 }
 
 // ------------------------------------------------------------------ pool
@@ -1217,30 +1252,10 @@ async function boot() {
     fillSelect($('supplier'), state.catalog.suppliers, { placeholder: 'Choose the supplier' });
   }
 
-  // Which registered device this is. Where exactly one device is registered
-  // it is used and the row stays hidden — picking the only candidate is not a
-  // guess. Where the remembered id no longer matches anything (retired, or
-  // this browser has never registered one), the device registers itself: see
-  // registerDevice() below. Short codes are still reserved per device and two
-  // devices must still never mint the same one, but the id and name are both
-  // minted by machinery now, so there is no typing left to typo.
-  let devices = state.catalog?.devices || [];
-  if (devices.length === 1) {
-    state.deviceId = devices[0].id;
-    store.write(DEVICE_KEY, state.deviceId);
-  } else if (state.deviceId && !devices.some((row) => row.id === state.deviceId)) {
-    // The remembered device is no longer registered — retired, or renamed.
-    // Silently carrying on with it would fail at the first submission.
-    state.deviceId = null;
-  }
-
-  if (!state.deviceId && online()) {
-    await registerDevice();
-    devices = state.catalog?.devices || [];
-  }
-
-  $('device-row').hidden = devices.length < 2;
-  fillSelect($('device'), devices, { placeholder: 'Not set', selected: state.deviceId });
+  // Which registered device this is, and self-registration where none is.
+  // Driven by the session rather than run once inline here — see
+  // syncDevice() below for why.
+  onSessionChange(syncDevice);
 
   $('print-enabled').checked = store.read(PRINT_ENABLED_KEY, true);
   mountRelayStatus($('relay-status'));

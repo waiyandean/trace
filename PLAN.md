@@ -950,11 +950,56 @@ with tests plus a supervised real submission before its line is ticked.
   condition relied on a browser's "first option wins" default for a compliance
   field, which is now set explicitly.
 
-  Still to do before P1 can be called finished: authentication, registering
-  the real iPad, and the supervised real delivery that ends the phase.
-  Authentication is deferred until the whole system is built (Dean,
-  2026-08-31), so P1 cannot formally close until then — everything is proven
-  locally in the meantime.
+  Still to do before P1 can be called finished: registering the real iPad,
+  and the supervised real delivery that ends the phase. Authentication (open
+  question 9) is no longer the blocker it was when this was written — it is
+  built, deployed, and live as of 2026-09-24 — so what remains is the
+  supervised run itself.
+
+  **Goods In was reworked six commits at a time on 2026-09-25 — batch
+  ingredient selection, multiple use-by dates per ingredient, a more compact
+  lot-entry layout, and a default storage location that needs a typed reason
+  to override — none of it recorded here at the time, added retroactively
+  2026-09-28 after Dean asked for a second look at work done outside this
+  session.** Staff now pick several ingredients from the picker at once
+  rather than one at a time, each becoming a draft line with its own short
+  code taken immediately (matching the existing rule that a code is taken
+  the moment its label would be written, not deferred) and its own details
+  filled in before the line counts as complete. An item can carry more than
+  one use-by on the same delivery — two cases of the same ingredient with
+  different printed dates no longer have to be forced onto one line or
+  entered as two separate deliveries. `receive.js` gained a real refusal to
+  go with the reworked entry: a line whose storage location is not the
+  item's usual one (read from `storage_unopened` against a small
+  ambient/chill/freezer name map, falling back to "the only active location
+  of that kind" where there is one) is rejected unless a note says why,
+  tested including the override path and a second ambient location that
+  is not the default. `scripts/item-suppliers-seed.sql` rebuilt the
+  item-supplier mapping from the live Goods In Records sheet (source
+  `delivered`) layered under the kitchen's own decisions
+  (`catalog-overrides.json`, source `decided`), and
+  `scripts/retire-edinburgh-only.sql` retired the ten ingredients confirmed
+  Edinburgh-only, both already applied to the remote database, checked
+  directly rather than assumed.
+
+  **Device self-registration (PLAN.md's own "revisit once there is
+  authentication" note, under P1's original progress above) was part of the
+  same six commits, and had a real bug: `POST /api/devices` needs a
+  signed-in token the same as any other write, but the client called it from
+  raw `boot()`, before anyone could possibly have signed in yet.** Proven by
+  calling it directly with no token (401, "sign in first") and confirmed a
+  genuinely fresh device — no session, no device — loses that race every
+  time, silently, since the failure was swallowed with nothing said on
+  screen. Fixed 2026-09-28: `onSessionChange` (`lib/signin.js`) is a small
+  hook onto the same "the session changed" event `mountStaff` already
+  listens to internally, and registration now runs from that — once
+  immediately with whatever the session already is, and again on every
+  sign-in, sign-out and shift expiry — rather than once, unconditionally,
+  before anyone can have signed in. This keeps "every write needs a
+  signed-in person" a rule with no exceptions, rather than adding
+  `/api/devices` to the small list of routes that skip it. Verified against
+  the real server: registration refused with no token, the same request
+  accepted once signed in.
 - **P2 — Store, move, waste.** Location tracking, `MOVE` between areas, and the
   waste/hold log that the old project never started. Waste is early here, not
   late, because without it stock can only ever go missing rather than be

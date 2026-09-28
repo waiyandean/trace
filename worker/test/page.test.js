@@ -443,3 +443,23 @@ test('the print relay is a fixed constant on every form that prints, never a typ
     assert.match(text, /print-enabled/, `${name} should still let staff turn printing off`);
   }
 });
+
+// A device that has never registered itself has no valid sign-in either,
+// and POST /api/devices needs one the same as every other write (checked
+// directly: no token is a 401) — so calling it from raw page load, before
+// anyone has typed a PIN, always lost that race silently (Dean, 2026-09-28,
+// asked for a second look at six commits that were not written in this
+// session). registerDevice() must only ever be attempted once a session
+// exists, and only from the onSessionChange hook that re-fires on sign-in,
+// never unconditionally from boot() itself.
+test('device self-registration waits for a signed-in session, not raw page load', () => {
+  assert.match(script, /onSessionChange\(syncDevice\)/);
+  const syncDevice = script.match(/async function syncDevice\(\) \{[\s\S]*?\n\}/)[0];
+  assert.match(syncDevice, /session\.current\(\)/, 'must check there is a session before registering');
+  assert.doesNotMatch(
+    // The pre-fix shape: no session check gating the call.
+    script.replace(syncDevice, ''),
+    /await registerDevice\(\)/,
+    'registerDevice() must only be called from inside the session-gated function',
+  );
+});
