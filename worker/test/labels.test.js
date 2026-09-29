@@ -201,6 +201,15 @@ test('seal-info requires an item name', async () => {
   await assert.rejects(() => sealInfo(''), /item is required/);
 });
 
+test('the Frozen Ramen box has a twelve month shelf life, its packet six', async () => {
+  const item = itemNamed('Frozen Ramen : Hell Ramen');
+  for (const [type, months] of [['box', 12], ['packet', 6]]) {
+    const result = await form(type, item.id);
+    const fields = Object.fromEntries(result.fields.map((f) => [f.key, f]));
+    assert.equal(fields.use_by.derive, `months:${months}`);
+  }
+});
+
 test('box-seal lists only Frozen Ramen', () => {
   for (const group of data.listing('box-seal')) {
     for (const section of group.sections) {

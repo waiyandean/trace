@@ -446,10 +446,12 @@ export class Data {
       const variant = product[typeId === 'box' ? 'box' : 'packet'] || {};
       const mark = product.health_mark;
       // Shelf life is counted in whole months from the day a batch is
-      // packed. Twelve for the broths, six for everything else (Dean,
-      // 2026-09-01); it is held per category rather than per product
-      // because that is the level at which it was decided.
-      const months = product.category === 'Broths' ? 12 : 6;
+      // packed. Twelve for the broths and for the Frozen Ramen box, six for
+      // everything else (Dean, 2026-09-01; the Frozen Ramen box went from six
+      // to twelve on 2026-09-29); it is held per category rather than per
+      // product because that is the level at which it was decided.
+      const months = product.category === 'Broths'
+        || (product.category === 'Frozen Ramen' && typeId === 'box') ? 12 : 6;
       const pots = this.extra.pot_numbers || {};
       const usesPots = (pots.categories || []).includes(product.category);
       const firstPot = usesPots ? '1' : '';
