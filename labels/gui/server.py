@@ -663,10 +663,14 @@ class Data:
             variant = product.get("box" if type_id == "box" else "packet", {})
             mark = product.get("health_mark")
             # Shelf life is counted in whole months from the day a batch is
-            # packed. Twelve for the broths, six for everything else (Dean,
-            # 2026-09-01); it is held per category rather than per product
-            # because that is the level at which it was decided.
-            months = 12 if product.get("category") == "Broths" else 6
+            # packed. Twelve for the broths and for the Frozen Ramen box, six
+            # for everything else (Dean, 2026-09-01; the Frozen Ramen box went
+            # from six to twelve on 2026-09-29); it is held per category
+            # rather than per product because that is the level at which it
+            # was decided.
+            category = product.get("category")
+            months = 12 if (category == "Broths"
+                            or (category == "Frozen Ramen" and type_id == "box")) else 6
             pots = self.extra.get("pot_numbers", {})
             uses_pots = product.get("category") in pots.get("categories", [])
             first_pot = "1" if uses_pots else ""
