@@ -446,12 +446,24 @@ export class Data {
       const variant = product[typeId === 'box' ? 'box' : 'packet'] || {};
       const mark = product.health_mark;
       // Shelf life is counted in whole months from the day a batch is
-      // packed. Twelve for the broths and for the Frozen Ramen box, six for
-      // everything else (Dean, 2026-09-01; the Frozen Ramen box went from six
-      // to twelve on 2026-09-29); it is held per category rather than per
-      // product because that is the level at which it was decided.
-      const months = product.category === 'Broths'
-        || (product.category === 'Frozen Ramen' && typeId === 'box') ? 12 : 6;
+      // packed. Twelve for the broths, six for everything else (Dean,
+      // 2026-09-01); it is held per category rather than per product
+      // because that is the level at which it was decided. The Frozen
+      // Ramen box is the exception: exactly one year to the day, not
+      // rounded to the first of a month (Dean, 2026-09-29).
+      let useByValue;
+      let useByDerive;
+      let useByHint;
+      if (product.category === 'Frozen Ramen' && typeId === 'box') {
+        useByValue = yearsOn(today, 1);
+        useByDerive = 'years:1';
+        useByHint = 'One year from packing, to the day. Type over it to set a different date.';
+      } else {
+        const months = product.category === 'Broths' ? 12 : 6;
+        useByValue = monthsOn(today, months);
+        useByDerive = `months:${months}`;
+        useByHint = `${months} months from packing, on the first of that month. Type over it to set a different date.`;
+      }
       const pots = this.extra.pot_numbers || {};
       const usesPots = (pots.categories || []).includes(product.category);
       const firstPot = usesPots ? '1' : '';
@@ -461,10 +473,10 @@ export class Data {
         // says so; there is nothing to type here.
         field('name', 'Product', product.label_name || item.name, { editable: false }),
         field('packed', 'Packed', today, { kind: 'date', hint: 'The batch code and the use-by both follow this.' }),
-        field('use_by', 'Use by', monthsOn(today, months), {
+        field('use_by', 'Use by', useByValue, {
           kind: 'date',
-          derive: `months:${months}`,
-          hint: `${months} months from packing, on the first of that month. Type over it to set a different date.`,
+          derive: useByDerive,
+          hint: useByHint,
         }),
         field('batch', 'Batch code', batchCode(today, firstPot), {
           derive: 'batch',

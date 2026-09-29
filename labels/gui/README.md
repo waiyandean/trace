@@ -205,14 +205,19 @@ by touching the date afterwards. "Use automatic value" restores the link.
 | Product, batch code | Packed, Pot | `ddmm`, the run suffix `GA`, then the pot — `0109GA3` |
 | Product, use by | Packed | Whole months on, landing on the **first** of that month |
 
-Shelf life is twelve months for the two broths and for the Frozen Ramen box,
-and six for everything else (Dean, 2026-09-01; the Frozen Ramen box moved from
-six to twelve on 2026-09-29), held per category rather than per product because that is
+Shelf life is twelve months for the two broths and six for everything else
+(Dean, 2026-09-01), held per category rather than per product because that is
 the level at which it was decided. A batch packed on 23/01/2026 with six
 months on it is used by 01/07/2026, not the 23rd. Rounding to the start of the
 month can only shorten the life, never extend it past what was intended, and
 counting in whole months means there is no 31st to fall off the end of a short
 month.
+
+The one exception is the Frozen Ramen box label, whose use by is exactly one
+year after packing, to the day, with no rounding to the first of a month (Dean,
+2026-09-29; it had been six months). A 29 February packing date falls back to
+28 February in a non-leap year. The Frozen Ramen packet label keeps the six
+month rule.
 
 The broths are cooked several times a day and **each pot is its own batch**,
 so the pot number is part of the code rather than a note beside it. It is

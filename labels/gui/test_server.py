@@ -131,15 +131,18 @@ class LabelWorkflowTests(unittest.TestCase):
         self.assertEqual(fields["batch"]["value"], server.batch_code(today))
         self.assertEqual(fields["use_by"]["value"], server.years_on(today, 1))
 
-    def test_frozen_ramen_box_shelf_life_is_twelve_months(self):
+    def test_frozen_ramen_box_use_by_is_exactly_one_year(self):
         item = next(
             item for item in self.data.catalog["items"]
             if self.data.extra["products"].get(item["name"], {}).get(
                 "category") == "Frozen Ramen")
-        for type_id, months in (("box", 12), ("packet", 6)):
+        for type_id, derive in (("box", "years:1"), ("packet", "months:6")):
             form = self.data.form(type_id, item["id"])
             fields = {field["key"]: field for field in form["fields"]}
-            self.assertEqual(fields["use_by"]["derive"], f"months:{months}")
+            self.assertEqual(fields["use_by"]["derive"], derive)
+        box = {f["key"]: f for f in self.data.form("box", item["id"])["fields"]}
+        today = server.date.today().isoformat()
+        self.assertEqual(box["use_by"]["value"], server.years_on(today, 1))
 
     def test_box_seal_barcode_and_health_mark_are_never_editable(self):
         item = next(

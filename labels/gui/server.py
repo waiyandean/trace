@@ -663,14 +663,24 @@ class Data:
             variant = product.get("box" if type_id == "box" else "packet", {})
             mark = product.get("health_mark")
             # Shelf life is counted in whole months from the day a batch is
-            # packed. Twelve for the broths and for the Frozen Ramen box, six
-            # for everything else (Dean, 2026-09-01; the Frozen Ramen box went
-            # from six to twelve on 2026-09-29); it is held per category
-            # rather than per product because that is the level at which it
-            # was decided.
+            # packed. Twelve for the broths, six for everything else (Dean,
+            # 2026-09-01); it is held per category rather than per product
+            # because that is the level at which it was decided. The Frozen
+            # Ramen box is the exception: exactly one year to the day, not
+            # rounded to the first of a month (Dean, 2026-09-29).
             category = product.get("category")
-            months = 12 if (category == "Broths"
-                            or (category == "Frozen Ramen" and type_id == "box")) else 6
+            if category == "Frozen Ramen" and type_id == "box":
+                use_by_value = years_on(today, 1)
+                use_by_derive = "years:1"
+                use_by_hint = ("One year from packing, to the day. Type over "
+                               "it to set a different date.")
+            else:
+                months = 12 if category == "Broths" else 6
+                use_by_value = months_on(today, months)
+                use_by_derive = f"months:{months}"
+                use_by_hint = (f"{months} months from packing, on the first of "
+                               f"that month. Type over it to set a different "
+                               f"date.")
             pots = self.extra.get("pot_numbers", {})
             uses_pots = product.get("category") in pots.get("categories", [])
             first_pot = "1" if uses_pots else ""
@@ -683,10 +693,8 @@ class Data:
                       editable=False),
                 field("packed", "Packed", today, kind="date",
                       hint="The batch code and the use-by both follow this."),
-                field("use_by", "Use by", months_on(today, months), kind="date",
-                      derive=f"months:{months}",
-                      hint=f"{months} months from packing, on the first of that "
-                           f"month. Type over it to set a different date."),
+                field("use_by", "Use by", use_by_value, kind="date",
+                      derive=use_by_derive, hint=use_by_hint),
                 field("batch", "Batch code", batch_code(today, first_pot),
                       derive="batch",
                       hint="The packing date as ddmm, then the run suffix "
